@@ -10,7 +10,7 @@ serviceAccount: projects/$PROJECT_ID/serviceAccounts/lesspane-build@$PROJECT_ID.
 #   _SERVICE=lesspane-staging, _APP_ENV=staging, _FIRESTORE_DATABASE=staging,
 #   _ADMIN_SECRET=lesspane-staging-admin-password
 substitutions:
-  _REGION: us-west1 # Oregon, closest region to Vancouver, WA
+  _REGION: us-west1 # Oregon; Firestore databases are fixed to us-west1, so keep this here
   _SERVICE: lesspane
   _REPO: lesspane
   _APP_ENV: production

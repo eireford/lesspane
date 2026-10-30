@@ -3,8 +3,8 @@ import { addDaysIso, parseContact, parseHomeDetails, todayIso } from './validati
 
 const home = (overrides: Record<string, string | string[]> = {}) => {
 	const base: Record<string, string | string[]> = {
-		address: '123 Main St, Vancouver, WA',
-		zip: '98660',
+		address: '123 Main St, Easton, MD',
+		zip: '21601',
 		stories: '2',
 		windows: '18',
 		service: 'exterior',
@@ -42,7 +42,7 @@ describe('parseHomeDetails', () => {
 
 describe('parseContact', () => {
 	const now = new Date('2026-11-02T18:00:00Z');
-	const tomorrow = addDaysIso(todayIso('America/Los_Angeles', now), 1);
+	const tomorrow = addDaysIso(todayIso('America/New_York', now), 1);
 
 	const contact = (overrides: Record<string, string> = {}) =>
 		new URLSearchParams({

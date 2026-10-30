@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { pricing, serviceLabels, timeWindowLabels } from '$lib/config';
+	import { business, pricing, serviceLabels, timeWindowLabels } from '$lib/config';
 	import { formatUsd } from '$lib/pricing';
 	import type { PageData } from './$types';
 
@@ -8,7 +8,7 @@
 
 	const received = (iso: string) =>
 		new Date(iso).toLocaleString('en-US', {
-			timeZone: 'America/Los_Angeles',
+			timeZone: business.timeZone,
 			month: 'short',
 			day: 'numeric',
 			hour: 'numeric',

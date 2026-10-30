@@ -20,7 +20,7 @@
 </main>
 
 <footer class="wrap site-footer muted">
-	<p>LessPane · Vancouver, WA · <a href="mailto:hello@lesspane.com">hello@lesspane.com</a></p>
+	<p>LessPane · Eastern Shore, MD · <a href="mailto:hello@lesspane.com">hello@lesspane.com</a></p>
 </footer>
 
 <style>

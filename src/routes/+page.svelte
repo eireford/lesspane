@@ -8,7 +8,7 @@
 		Tell us about your home, see your price instantly, and pick a day. We handle the rest.
 	</p>
 	<a class="btn block" href="/quote">Get my quote</a>
-	<p class="muted small">Serving Vancouver, WA · No account needed · Takes under 2 minutes</p>
+	<p class="muted small">Serving Maryland's Eastern Shore · No account needed · Takes under 2 minutes</p>
 </section>
 
 <section class="how card">
