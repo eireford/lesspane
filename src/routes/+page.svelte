@@ -2,8 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
 	import HouseScene from '$lib/components/HouseScene.svelte';
-	import { pricing, timeWindowLabels, type AddOnKey, type Stories, type TimeWindow } from '$lib/config';
-	import { housePhotos } from '$lib/photos';
+	import Icon, { type IconName } from '$lib/components/Icon.svelte';
+	import { pricing, type AddOnKey, type TimeWindow } from '$lib/config';
+	import { houses } from '$lib/photos';
 	import { computeQuote, formatUsd } from '$lib/pricing';
 	import type { ActionData, PageData } from './$types';
 
@@ -12,21 +13,26 @@
 	/** Back-and-side tiles the scene will draw; bigger homes add a note and get sized up on site. */
 	const MAX_EXTRA = 40;
 
-	let stories = $state<Stories>(2);
+	let pick = $state(0);
 	let extra = $state(6);
-	let dirt = $state<number[]>(Array(housePhotos[2].windows.length + 6).fill(1));
+	let dirt = $state<number[]>(Array(houses[0].windows.length + 6).fill(1));
 	let inside = $state(false);
 	let addons = $state<AddOnKey[]>([]);
 	let booking = $state(false);
+	let showLimits = $state(false);
 	let submitting = $state(false);
 	let bookingEl = $state<HTMLElement>();
+	let stripEl = $state<HTMLElement>();
+	let resultEl = $state<HTMLElement>();
+	let resultInView = $state(false);
 
+	const house = $derived(houses[pick]);
 	const wiped = $derived(dirt.filter((d) => d === 0).length);
 	const service = $derived(inside ? 'interior_exterior' : 'exterior');
 	const quoteFor = (o: { inside?: boolean; addons?: AddOnKey[] } = {}) =>
 		computeQuote({
 			windows: wiped,
-			stories,
+			stories: house.stories,
 			service: (o.inside ?? inside) ? 'interior_exterior' : 'exterior',
 			addons: o.addons ?? addons
 		});
@@ -38,21 +44,24 @@
 		quoteFor({ addons: [...new Set([...addons, key])] }).subtotal -
 		quoteFor({ addons: addons.filter((a) => a !== key) }).subtotal;
 
-	const problems: { key: AddOnKey; title: string; how: string }[] = [
-		{ key: 'screens', title: 'Dusty screens', how: 'Screens off, washed, dried, back on.' },
-		{ key: 'tracks', title: 'Gunk in the tracks and sills', how: 'Vacuumed, scrubbed and wiped.' },
-		{ key: 'hard_water', title: 'Hard-water spots', how: 'Mineral spotting lifted from the glass.' }
-	];
+	const addOnIcons: Record<AddOnKey, IconName> = { screens: 'mesh', tracks: 'track', hard_water: 'drop' };
+	const addOnKeys = Object.keys(addOnIcons) as AddOnKey[];
 
-	function setStories(s: Stories) {
-		stories = s;
+	async function choose(i: number) {
+		pick = (i + houses.length) % houses.length;
 		// A new photo has different windows; start it grimy.
-		dirt = Array(housePhotos[s].windows.length + extra).fill(1);
+		dirt = Array(houses[pick].windows.length + extra).fill(1);
+		await tick();
+		stripEl?.querySelector<HTMLElement>(`[data-pick="${pick}"]`)?.scrollIntoView({
+			behavior: 'smooth',
+			block: 'nearest',
+			inline: 'center'
+		});
 	}
 
 	function setExtra(n: number) {
 		extra = Math.min(MAX_EXTRA, Math.max(0, n));
-		const total = housePhotos[stories].windows.length + extra;
+		const total = house.windows.length + extra;
 		dirt = total > dirt.length ? [...dirt, ...Array(total - dirt.length).fill(1)] : dirt.slice(0, total);
 	}
 
@@ -68,11 +77,22 @@
 
 	const errors = $derived((form?.errors ?? {}) as Record<string, string>);
 	const values = $derived((form?.values ?? {}) as Partial<Record<string, string>>);
-	const windowEntries = Object.entries(timeWindowLabels) as [TimeWindow, string][];
+	const times: { value: TimeWindow; icon: IconName; hours: string; label: string }[] = [
+		{ value: 'morning', icon: 'sun', hours: '8–12', label: 'Morning, 8am to noon' },
+		{ value: 'afternoon', icon: 'sunset', hours: '12–5', label: 'Afternoon, noon to 5pm' }
+	];
 
 	$effect(() => {
 		// A failed submit re-renders the page; keep the booking form open so errors show.
 		if (form) booking = true;
+	});
+
+	$effect(() => {
+		// The floating price bar is only needed while the price card is off screen.
+		if (!resultEl) return;
+		const io = new IntersectionObserver(([e]) => (resultInView = e.isIntersecting), { threshold: 0.3 });
+		io.observe(resultEl);
+		return () => io.disconnect();
 	});
 </script>
 
@@ -80,120 +100,154 @@
 	<title>LessPane · Wipe away the windows you don't want to clean</title>
 </svelte:head>
 
-<section class="intro">
-	<h1>Wipe away the windows you don't want to clean.</h1>
-	<p class="muted">Pick the house most like yours, then rub or tap each grimy window you'd rather not clean yourself. The price updates as you go.</p>
-</section>
+<h1 class="headline">Wipe it. <span>We'll wash it.</span></h1>
 
-<section class="stage stack">
-	<div class="controls">
-		<fieldset>
-			<legend>Stories</legend>
-			<div class="seg">
-				{#each [1, 2, 3] as s}
-					<button
-						type="button"
-						class:on={stories === s}
-						aria-pressed={stories === s}
-						onclick={() => setStories(s as Stories)}>{s}{s === 3 ? '+' : ''}</button
-					>
-				{/each}
-			</div>
-		</fieldset>
-		<fieldset>
-			<legend>More windows around back</legend>
-			<div class="stepper">
-				<button type="button" aria-label="Fewer back and side windows" onclick={() => setExtra(extra - 1)}
-					>−</button
-				>
-				<output aria-live="polite">{extra}</output>
-				<button type="button" aria-label="More back and side windows" onclick={() => setExtra(extra + 1)}
-					>+</button
-				>
-			</div>
-		</fieldset>
-	</div>
-
-	<HouseScene {stories} bind:dirt {inside} {addons} />
-
-	<div class="scene-actions">
-		<button type="button" class="btn ghost" onclick={() => (dirt = dirt.map(() => 0))}>Wipe them all</button>
-		<button type="button" class="btn ghost" onclick={() => (dirt = dirt.map(() => 1))} disabled={wiped === 0}
-			>Start over</button
+<!-- House picker: the photos are the menu -->
+<div class="strip" bind:this={stripEl} role="listbox" aria-label="Choose a house like yours">
+	{#each houses as h, i (h.id)}
+		<button
+			type="button"
+			class="thumb"
+			class:on={i === pick}
+			data-pick={i}
+			role="option"
+			aria-selected={i === pick}
+			aria-label={`${h.name}, ${h.stories} ${h.stories === 1 ? 'story' : 'stories'}`}
+			onclick={() => choose(i)}
 		>
+			<img src={h.src} alt="" loading="lazy" width="96" height="64" />
+			<span class="floors" aria-hidden="true">
+				{#each Array(h.stories) as _}<i></i>{/each}
+			</span>
+		</button>
+	{/each}
+</div>
+
+<section class="stage">
+	<HouseScene {house} bind:dirt {inside} {addons} onprev={() => choose(pick - 1)} onnext={() => choose(pick + 1)} />
+
+	<div class="toolbar">
+		<button type="button" class="round" aria-label="Wipe every window" title="Wipe every window" onclick={() => (dirt = dirt.map(() => 0))}>
+			<Icon name="sparkle" />
+		</button>
+		<button
+			type="button"
+			class="round"
+			aria-label="Make every window dirty again"
+			title="Start over"
+			disabled={wiped === 0}
+			onclick={() => (dirt = dirt.map(() => 1))}
+		>
+			<Icon name="undo" />
+		</button>
+		<span class="score" aria-live="polite" aria-label={`${wiped} of ${dirt.length} windows for us`}>
+			<Icon name="window" size={20} />
+			<strong>{wiped}</strong><span class="muted">/{dirt.length}</span>
+		</span>
+		<div class="stepper" role="group" aria-label="Windows around the back and sides">
+			<button type="button" aria-label="Fewer back and side windows" onclick={() => setExtra(extra - 1)}><Icon name="minus" size={18} /></button>
+			<span class="stepper-mid"><Icon name="back" size={18} /><output>{extra}</output></span>
+			<button type="button" aria-label="More back and side windows" onclick={() => setExtra(extra + 1)}><Icon name="plus" size={18} /></button>
+		</div>
 	</div>
-	<p class="muted small">{dirt.length} windows in all · {wiped} for us</p>
-	{#if extra === MAX_EXTRA}
-		<p class="muted small">Even more? Wipe them all and mention it in your notes; we'll size it up on site.</p>
-	{/if}
 </section>
 
-<section class="stack">
-	<h2>Anything else bugging you?</h2>
-	<button type="button" class="problem" class:on={inside} aria-pressed={inside} onclick={() => (inside = !inside)}>
-		<span class="tick" aria-hidden="true">{inside ? '✓' : ''}</span>
-		<span class="what">
-			<strong>Smudges on the inside</strong>
-			<span class="muted">We clean both sides of every window you wiped.</span>
-		</span>
-		<span class="cost">{wiped ? `+${formatUsd(deltaInside)}` : ''}</span>
+<!-- Other problems: tap to make them go away too -->
+<section class="problems" aria-label="Other problems we can fix">
+	<button
+		type="button"
+		class="problem"
+		class:on={inside}
+		aria-pressed={inside}
+		aria-label="Smudges on the inside: clean both sides"
+		title="Smudges on the inside"
+		onclick={() => (inside = !inside)}
+	>
+		<Icon name="hand" size={34} />
+		<span class="cost">{wiped ? `+${formatUsd(deltaInside)}` : '×2'}</span>
+		{#if inside}<span class="tick"><Icon name="check" size={14} /></span>{/if}
 	</button>
-	{#each problems as p (p.key)}
-		{@const on = addons.includes(p.key)}
-		<button type="button" class="problem" class:on aria-pressed={on} onclick={() => toggleAddOn(p.key)}>
-			<span class="tick" aria-hidden="true">{on ? '✓' : ''}</span>
-			<span class="what">
-				<strong>{p.title}</strong>
-				<span class="muted">{p.how}</span>
-			</span>
-			<span class="cost">
-				{wiped ? `+${formatUsd(deltaAddOn(p.key))}` : `${formatUsd(pricing.addOns[p.key].price)}/window`}
-			</span>
+	{#each addOnKeys as key (key)}
+		{@const on = addons.includes(key)}
+		<button
+			type="button"
+			class="problem"
+			class:on
+			aria-pressed={on}
+			aria-label={pricing.addOns[key].label}
+			title={pricing.addOns[key].label}
+			onclick={() => toggleAddOn(key)}
+		>
+			<Icon name={addOnIcons[key]} size={34} />
+			<span class="cost">{wiped ? `+${formatUsd(deltaAddOn(key))}` : `${formatUsd(pricing.addOns[key].price)}`}</span>
+			{#if on}<span class="tick"><Icon name="check" size={14} /></span>{/if}
 		</button>
 	{/each}
 </section>
 
-<section class="result card stack" aria-live="polite">
+<section class="result card" aria-live="polite" bind:this={resultEl}>
 	{#if quote}
-		<p class="eyebrow">Your problem goes away for</p>
-		<p class="price">{formatUsd(quote.total)}</p>
+		<div class="total">
+			<Icon name="sparkle" size={30} />
+			<p class="price">{formatUsd(quote.total)}</p>
+			<button
+				type="button"
+				class="info"
+				aria-expanded={showLimits}
+				aria-label="What this estimate covers"
+				onclick={() => (showLimits = !showLimits)}><Icon name="info" /></button
+			>
+		</div>
 		<ul class="lines">
-			{#each quote.lines as line}
-				<li><span>{line.label}</span><span>{formatUsd(line.amount)}</span></li>
+			<li>
+				<span class="ico"
+					><Icon name="window" size={18} />{#if inside}<Icon name="hand" size={18} />{/if}
+					{wiped}</span
+				><span>{formatUsd(quote.lines[0].amount)}</span>
+			</li>
+			{#each [...new Set(addons)] as key, k (key)}
+				<li>
+					<span class="ico"><Icon name={addOnIcons[key]} size={18} /> {wiped}</span>
+					<span>{formatUsd(quote.lines[k + 1].amount)}</span>
+				</li>
 			{/each}
+			{#if quote.minimumApplied}
+				<li class="muted"><span class="ico">min</span><span>{formatUsd(pricing.minimum)}</span></li>
+			{/if}
 		</ul>
-		{#if quote.minimumApplied}
-			<p class="muted small-left">Our {formatUsd(pricing.minimum)} minimum visit applies.</p>
-		{/if}
-		<details class="limits">
-			<summary>Instant estimate · what it covers</summary>
+		{#if showLimits}
 			<!-- Placeholder terms: review before the pilot. -->
-			<p>
-				Your technician walks the job with you on arrival and gives a formal estimate before any work starts.
-				This price holds as long as the home matches what you showed us here:
-			</p>
-			<ul>
-				<li>The number of windows and stories you set.</li>
-				<li>Standard-size residential windows, reachable by ladder up to three stories.</li>
-				<li>Not included: skylights, storm windows, sunrooms, and inside glass more than 10 feet up.</li>
-				<li>Paint, sticker or construction residue is quoted separately.</li>
-				<li>Hard-water removal covers normal mineral spotting; etched glass needs restoration pricing.</li>
-				<li>Screen cleaning doesn't include repairs or replacements.</li>
-			</ul>
-			<p>If anything differs, you'll see the new price before we start, and you can say no.</p>
-		</details>
+			<div class="limits">
+				<p>
+					An instant estimate. Your technician walks the job with you on arrival and gives a formal estimate
+					before any work starts. It holds as long as the home matches what you showed us:
+				</p>
+				<ul>
+					<li>The number of windows and the house type you picked.</li>
+					<li>Standard-size residential windows, reachable by ladder up to three stories.</li>
+					<li>Not included: skylights, storm windows, sunrooms, inside glass more than 10 feet up.</li>
+					<li>Paint, sticker or construction residue is quoted separately.</li>
+					<li>Hard-water removal covers normal spotting; etched glass needs restoration pricing.</li>
+					<li>Screen cleaning doesn't include repairs or replacements.</li>
+				</ul>
+				<p>If anything differs, you'll see the new price before we start, and you can say no.</p>
+			</div>
+		{/if}
 		{#if !booking}
-			<button type="button" class="btn block" onclick={startBooking}>Make it go away</button>
+			<button type="button" class="btn block" onclick={startBooking}>
+				<Icon name="calendar" /> Book · {formatUsd(quote.total)}
+			</button>
 		{/if}
 	{:else}
-		<p class="eyebrow">Your price</p>
-		<p class="empty">Wipe a window to see it.</p>
+		<div class="empty" aria-label="Wipe a window to see your price">
+			<Icon name="swipe" size={36} />
+			<span class="price ghost">$—</span>
+		</div>
 	{/if}
 </section>
 
 {#if booking && quote}
-	<section class="card stack" bind:this={bookingEl} id="book">
-		<h2>Where and when?</h2>
+	<section class="card" bind:this={bookingEl} id="book" aria-label="Where and when">
 		<form
 			method="POST"
 			class="stack"
@@ -211,7 +265,7 @@
 			{/if}
 
 			<!-- What the house scene built. The server re-validates and re-prices it. -->
-			<input type="hidden" name="stories" value={stories} />
+			<input type="hidden" name="stories" value={house.stories} />
 			<input type="hidden" name="windows" value={wiped} />
 			<input type="hidden" name="service" value={service} />
 			{#each addons as addon}
@@ -223,233 +277,262 @@
 				<input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
 			</div>
 
-			<div class="row">
-				<div class="wide">
-					<label for="address">Street address</label>
-					<input
-						id="address"
-						name="address"
-						type="text"
-						autocomplete="street-address"
-						required
-						value={values.address ?? ''}
-						aria-invalid={!!errors.address}
-					/>
-					{#if errors.address}<p class="error">{errors.address}</p>{/if}
-				</div>
+			{#snippet field(id: string, icon: IconName, label: string, attrs: Record<string, unknown>)}
 				<div>
-					<label for="zip">ZIP</label>
-					<input
-						id="zip"
-						name="zip"
-						type="text"
-						inputmode="numeric"
-						autocomplete="postal-code"
-						maxlength="5"
-						required
-						value={values.zip ?? ''}
-						aria-invalid={!!errors.zip}
-					/>
-					{#if errors.zip}<p class="error">{errors.zip}</p>{/if}
+					<label class="field" class:bad={!!errors[id]}>
+						<Icon name={icon} size={20} />
+						<span class="sr">{label}</span>
+						<input {id} name={id} placeholder={label} value={values[id] ?? ''} aria-invalid={!!errors[id]} {...attrs} />
+					</label>
+					{#if errors[id]}<p class="error">{errors[id]}</p>{/if}
 				</div>
+			{/snippet}
+
+			<div class="row addr">
+				{@render field('address', 'pin', 'Street address', { type: 'text', autocomplete: 'street-address', required: true })}
+				{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5, required: true })}
 			</div>
 
 			<div class="row">
-				<div>
-					<label for="preferredDate">Preferred day</label>
-					<input
-						id="preferredDate"
-						name="preferredDate"
-						type="date"
-						min={data.dateRange.min}
-						max={data.dateRange.max}
-						required
-						value={values.preferredDate ?? ''}
-						aria-invalid={!!errors.preferredDate}
-					/>
-					{#if errors.preferredDate}<p class="error">{errors.preferredDate}</p>{/if}
+				{@render field('preferredDate', 'calendar', 'Day', {
+					type: 'date',
+					min: data.dateRange.min,
+					max: data.dateRange.max,
+					required: true
+				})}
+				<div class="times" role="radiogroup" aria-label="Time of day">
+					{#each times as t (t.value)}
+						<label class="time" title={t.label}>
+							<input
+								type="radio"
+								name="preferredWindow"
+								value={t.value}
+								checked={(values.preferredWindow || 'morning') === t.value}
+								aria-label={t.label}
+							/>
+							<span><Icon name={t.icon} size={22} /><small>{t.hours}</small></span>
+						</label>
+					{/each}
 				</div>
-				<fieldset>
-					<legend>Time of day</legend>
-					<div class="choices">
-						{#each windowEntries as [value, label]}
-							<label class="choice">
-								<input
-									type="radio"
-									name="preferredWindow"
-									{value}
-									checked={(values.preferredWindow || 'morning') === value}
-								/>
-								<span>{label.split(' ')[0]}</span>
-							</label>
-						{/each}
-					</div>
-					{#if errors.preferredWindow}<p class="error">{errors.preferredWindow}</p>{/if}
-				</fieldset>
 			</div>
+			{#if errors.preferredWindow}<p class="error">{errors.preferredWindow}</p>{/if}
 
+			{@render field('name', 'user', 'Name', { type: 'text', autocomplete: 'name', required: true })}
+			<div class="row">
+				{@render field('phone', 'phone', 'Mobile', { type: 'tel', autocomplete: 'tel', required: true })}
+				{@render field('email', 'mail', 'Email', { type: 'email', autocomplete: 'email', required: true })}
+			</div>
 			<div>
-				<label for="name">Name</label>
-				<input
-					id="name"
-					name="name"
-					type="text"
-					autocomplete="name"
-					required
-					value={values.name ?? ''}
-					aria-invalid={!!errors.name}
-				/>
-				{#if errors.name}<p class="error">{errors.name}</p>{/if}
-			</div>
-
-			<div class="row">
-				<div>
-					<label for="phone">Mobile phone</label>
-					<input
-						id="phone"
-						name="phone"
-						type="tel"
-						autocomplete="tel"
-						required
-						value={values.phone ?? ''}
-						aria-invalid={!!errors.phone}
-					/>
-					{#if errors.phone}<p class="error">{errors.phone}</p>{/if}
-				</div>
-				<div>
-					<label for="email">Email</label>
-					<input
-						id="email"
-						name="email"
-						type="email"
-						autocomplete="email"
-						required
-						value={values.email ?? ''}
-						aria-invalid={!!errors.email}
-					/>
-					{#if errors.email}<p class="error">{errors.email}</p>{/if}
-				</div>
-			</div>
-
-			<div>
-				<label for="notes">Notes <span class="hint">(optional: gate code, pets, parking)</span></label>
-				<textarea id="notes" name="notes" maxlength="500" value={values.notes ?? ''}></textarea>
+				<label class="field area">
+					<Icon name="note" size={20} />
+					<span class="sr">Notes</span>
+					<textarea id="notes" name="notes" maxlength="500" placeholder="Gate code, pets, parking…" value={values.notes ?? ''}
+					></textarea>
+				</label>
 				{#if errors.notes}<p class="error">{errors.notes}</p>{/if}
 			</div>
 
 			<button class="btn block" type="submit" disabled={submitting}>
-				{submitting ? 'Sending…' : `Request my visit · ${formatUsd(quote.total)}`}
+				{#if submitting}…{:else}<Icon name="check" /> {formatUsd(quote.total)}{/if}
 			</button>
-			<p class="muted small">No payment now. We'll text you to confirm the exact time.</p>
+			<p class="fine muted">No payment now · we text to confirm</p>
 		</form>
 	</section>
 {/if}
 
-{#if quote && !booking}
+{#if quote && !booking && !resultInView}
 	<div class="dock">
-		<span><span class="muted">Gone for</span> <strong>{formatUsd(quote.total)}</strong></span>
-		<button type="button" class="btn" onclick={startBooking}>Book it</button>
+		<span class="dock-price"><Icon name="sparkle" size={20} /> <strong>{formatUsd(quote.total)}</strong></span>
+		<button type="button" class="btn" aria-label="Book this" onclick={startBooking}><Icon name="calendar" /></button>
 	</div>
 {/if}
 
 <style>
-	.intro h1 {
-		font-size: clamp(1.7rem, 7vw, 2.3rem);
+	.headline {
+		font-size: clamp(1.6rem, 7vw, 2.2rem);
+		margin-bottom: 12px;
 	}
 
-	.intro {
-		margin-bottom: 16px;
-	}
-
-	section + section {
-		margin-top: 24px;
-	}
-
-	h2 {
-		font-size: 1.25rem;
-	}
-
-	.controls {
-		display: flex;
-		justify-content: space-between;
-		gap: 16px;
-		flex-wrap: wrap;
-	}
-
-	legend {
-		font-size: 0.9rem;
-		color: var(--ink-soft);
-	}
-
-	.seg,
-	.stepper {
-		display: inline-flex;
-		border: 1.5px solid var(--line);
-		border-radius: 999px;
-		background: var(--paper);
-		overflow: hidden;
-	}
-
-	.seg button,
-	.stepper button {
-		min-width: 48px;
-		min-height: 44px;
-		border: 0;
-		background: transparent;
-		font: inherit;
-		font-weight: 650;
-		color: var(--ink);
-		cursor: pointer;
-	}
-
-	.seg button.on {
-		background: var(--brand);
-		color: var(--brand-ink);
-	}
-
-	.stepper button {
-		font-size: 1.3rem;
+	.headline span {
 		color: var(--brand);
 	}
 
-	.stepper output {
+	section + section {
+		margin-top: 20px;
+	}
+
+	/* ---------- House picker ---------- */
+
+	.strip {
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		padding: 4px 2px 10px;
+		margin: 0 -16px 10px;
+		padding-left: 16px;
+		padding-right: 16px;
+		scrollbar-width: none;
+	}
+
+	.strip::-webkit-scrollbar {
+		display: none;
+	}
+
+	.thumb {
+		position: relative;
+		flex: none;
+		width: 84px;
+		height: 58px;
+		padding: 0;
+		border: 2px solid transparent;
+		border-radius: 10px;
+		overflow: hidden;
+		background: var(--line);
+		scroll-snap-align: center;
+		cursor: pointer;
+		opacity: 0.75;
+		transition:
+			transform 0.15s ease,
+			opacity 0.15s ease;
+	}
+
+	.thumb img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.thumb.on {
+		border-color: var(--brand);
+		opacity: 1;
+		transform: translateY(-2px);
+		box-shadow: var(--shadow);
+	}
+
+	.thumb:focus-visible {
+		outline: 3px solid var(--accent);
+	}
+
+	.floors {
+		position: absolute;
+		right: 4px;
+		bottom: 4px;
+		display: flex;
+		flex-direction: column-reverse;
+		gap: 2px;
+	}
+
+	.floors i {
+		display: block;
+		width: 10px;
+		height: 4px;
+		border-radius: 1px;
+		background: #fbfaf7;
+		box-shadow: 0 0 2px rgb(0 0 0 / 0.5);
+	}
+
+	/* ---------- Toolbar ---------- */
+
+	.toolbar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 12px;
+	}
+
+	.round {
 		display: grid;
 		place-items: center;
-		min-width: 40px;
-		font-weight: 700;
-	}
-
-	.scene-actions {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 10px;
-	}
-
-	.scene-actions .btn {
-		min-height: 44px;
-	}
-
-	.problem {
-		display: grid;
-		grid-template-columns: 28px 1fr auto;
-		align-items: center;
-		gap: 12px;
-		width: 100%;
-		padding: 14px;
-		text-align: left;
-		font: inherit;
-		color: inherit;
-		background: var(--paper);
+		width: 44px;
+		height: 44px;
 		border: 1.5px solid var(--line);
-		border-radius: 12px;
+		border-radius: 50%;
+		background: var(--paper);
+		color: var(--brand);
 		cursor: pointer;
 	}
 
-	.problem + .problem {
-		margin-top: 10px;
+	.round:disabled {
+		color: var(--line);
+		cursor: default;
+	}
+
+	.score {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		margin-right: auto;
+		padding-left: 6px;
+		color: var(--ink);
+		font-size: 1.1rem;
+	}
+
+	.stepper {
+		display: inline-flex;
+		align-items: center;
+		border: 1.5px solid var(--line);
+		border-radius: 999px;
+		background: var(--paper);
+	}
+
+	.stepper button {
+		display: grid;
+		place-items: center;
+		width: 40px;
+		height: 42px;
+		border: 0;
+		background: transparent;
+		color: var(--brand);
+		cursor: pointer;
+	}
+
+	.stepper-mid {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		min-width: 46px;
+		justify-content: center;
+		color: var(--ink-soft);
+		font-weight: 700;
+	}
+
+	.stepper-mid output {
+		color: var(--ink);
+	}
+
+	/* ---------- Problems ---------- */
+
+	.problems {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 10px;
+	}
+
+	.problem {
+		position: relative;
+		display: grid;
+		justify-items: center;
+		gap: 6px;
+		padding: 14px 4px 10px;
+		font: inherit;
+		color: var(--ink-soft);
+		background: var(--paper);
+		border: 1.5px solid var(--line);
+		border-radius: 14px;
+		cursor: pointer;
+		transition:
+			transform 0.1s ease,
+			background 0.15s ease;
+	}
+
+	.problem:active {
+		transform: scale(0.96);
 	}
 
 	.problem.on {
+		color: var(--brand);
 		border-color: var(--brand);
 		background: var(--brand-soft);
 	}
@@ -459,58 +542,76 @@
 		outline-offset: 2px;
 	}
 
-	.tick {
-		display: grid;
-		place-items: center;
-		width: 28px;
-		height: 28px;
-		border-radius: 50%;
-		border: 1.5px solid var(--line);
-		color: var(--brand-ink);
-		font-weight: 800;
-	}
-
-	.problem.on .tick {
-		background: var(--brand);
-		border-color: var(--brand);
-	}
-
-	.what {
-		display: grid;
-		gap: 2px;
-	}
-
-	.what .muted {
-		font-size: 0.9rem;
-	}
-
 	.cost {
-		font-weight: 650;
-		color: var(--bark);
-		white-space: nowrap;
-	}
-
-	.result .eyebrow {
-		margin: 0;
 		font-size: 0.85rem;
 		font-weight: 650;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
+		color: var(--bark);
+	}
+
+	.tick {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		display: grid;
+		place-items: center;
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background: var(--brand);
+		color: var(--brand-ink);
+	}
+
+	/* ---------- Result ---------- */
+
+	.total {
+		display: flex;
+		align-items: center;
+		gap: 10px;
 		color: var(--brand);
 	}
 
-	.result .price {
-		margin: 4px 0 0;
+	.total .price {
+		margin: 0;
 		color: var(--brand);
+		margin-right: auto;
 	}
 
-	.empty {
-		margin: 4px 0 0;
-		font-size: 1.3rem;
+	.info {
+		display: grid;
+		place-items: center;
+		width: 40px;
+		height: 40px;
+		border: 0;
+		border-radius: 50%;
+		background: var(--sky);
+		color: var(--ink-soft);
+		cursor: pointer;
+	}
+
+	.result .lines {
+		margin: 12px 0;
+	}
+
+	.ico {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
 		color: var(--ink-soft);
 	}
 
+	.empty {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		color: var(--ink-soft);
+	}
+
+	.price.ghost {
+		color: var(--line);
+	}
+
 	.limits {
+		margin-bottom: 14px;
 		font-size: 0.92rem;
 		color: var(--ink-soft);
 		background: var(--sky);
@@ -518,38 +619,115 @@
 		padding: 10px 14px;
 	}
 
-	.limits summary {
-		font-weight: 650;
-		color: var(--ink);
-		cursor: pointer;
-	}
-
 	.limits ul {
 		padding-left: 1.1rem;
 		margin: 6px 0;
 	}
 
-	.small {
-		font-size: 0.9rem;
-		text-align: center;
+	/* ---------- Booking ---------- */
+
+	.sr {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 
-	.small-left {
-		font-size: 0.9rem;
+	.field {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin: 0;
+		padding-left: 12px;
+		font-weight: 400;
+		color: var(--ink-soft);
+		background: var(--paper);
+		border: 1.5px solid var(--line);
+		border-radius: 10px;
+	}
+
+	.field.bad {
+		border-color: var(--danger);
+	}
+
+	.field:focus-within {
+		border-color: var(--brand);
+		outline: 3px solid color-mix(in srgb, var(--brand) 25%, transparent);
+	}
+
+	.field input,
+	.field textarea {
+		border: 0;
+		background: transparent;
+		padding-left: 0;
+		outline: none;
+	}
+
+	.field.area {
+		align-items: flex-start;
+		padding-top: 12px;
+	}
+
+	.field.area textarea {
+		padding-top: 0;
+		min-height: 64px;
+	}
+
+	.row.addr {
+		grid-template-columns: 2fr 1fr;
+	}
+
+	.times {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+
+	.time {
+		position: relative;
 		margin: 0;
 	}
 
-	.row {
-		align-items: start;
+	.time input {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		margin: 0;
+		cursor: pointer;
 	}
 
-	.row .wide {
-		grid-column: auto;
+	.time span {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		min-height: 48px;
+		border: 1.5px solid var(--line);
+		border-radius: 10px;
+		background: var(--paper);
+		color: var(--ink-soft);
+		font-weight: 600;
 	}
 
-	.row:has(.wide) {
-		grid-template-columns: 2fr 1fr;
+	.time input:checked + span {
+		border-color: var(--brand);
+		background: var(--brand-soft);
+		color: var(--brand);
 	}
+
+	.time input:focus-visible + span {
+		outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent);
+	}
+
+	.fine {
+		margin: 0;
+		font-size: 0.85rem;
+		text-align: center;
+	}
+
+	/* ---------- Dock ---------- */
 
 	.dock {
 		position: sticky;
@@ -559,21 +737,29 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
-		padding: 10px 10px 10px 18px;
+		padding: 8px 8px 8px 18px;
 		background: var(--paper);
 		border: 1.5px solid var(--brand);
 		border-radius: 999px;
 		box-shadow: var(--shadow);
-		font-size: 1.1rem;
+		font-size: 1.25rem;
+	}
+
+	.dock-price {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		color: var(--brand);
 	}
 
 	.dock .btn {
 		min-height: 44px;
+		padding: 0 18px;
 	}
 
 	@media (max-width: 420px) {
 		.row,
-		.row:has(.wide) {
+		.row.addr {
 			grid-template-columns: 1fr;
 		}
 	}

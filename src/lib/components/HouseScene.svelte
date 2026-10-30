@@ -1,24 +1,39 @@
 <script lang="ts">
-	import type { AddOnKey, Stories } from '$lib/config';
-	import { housePhotos, type Rect } from '$lib/photos';
+	import Icon from '$lib/components/Icon.svelte';
+	import type { AddOnKey } from '$lib/config';
+	import { licenseUrl, type HousePhoto, type Rect } from '$lib/photos';
 
 	// The house photo is the quote form. Each window starts grimy (dirt = 1). Rubbing a window wipes
 	// it clean (dirt = 0), which hands it to LessPane; tapping a clean window puts it back.
 	// The first windows are the ones visible in the photo; the rest are "back and sides" tiles,
 	// each a close-up crop of a photo window.
 	let {
-		stories,
+		house,
 		dirt = $bindable(),
 		inside,
-		addons
-	}: { stories: Stories; dirt: number[]; inside: boolean; addons: AddOnKey[] } = $props();
+		addons,
+		onprev,
+		onnext
+	}: {
+		house: HousePhoto;
+		dirt: number[];
+		inside: boolean;
+		addons: AddOnKey[];
+		onprev: () => void;
+		onnext: () => void;
+	} = $props();
 
 	/** Pixels of rubbing it takes to wipe one window clean. */
 	const RUB_PX = 120;
 	/** A window this close to clean snaps to clean. */
 	const SNAP = 0.25;
 
-	const photo = $derived(housePhotos[stories]);
+	const photo = $derived(house);
+	const frontClean = $derived(dirt.slice(0, photo.windows.length).filter((d) => d === 0).length);
+	const allClean = $derived(dirt.length > 0 && dirt.every((d) => d === 0));
+	/** Until the first wipe, a hand glides over a window to show what to do. */
+	let touched = $state(false);
+	const hintAt = $derived(photo.windows[Math.floor(photo.windows.length / 2)]);
 	/** Frame the house, not the whole photo, so windows are big enough to rub on a phone. */
 	const view = $derived.by(() => {
 		const xs = photo.windows.flatMap(([x, , w]) => [x, x + w]);
@@ -67,7 +82,8 @@
 	}
 
 	function onDown(e: PointerEvent) {
-		if ((e.target as Element).closest('button')) return;
+		if ((e.target as Element).closest('button, a')) return;
+		touched = true;
 		dragging = true;
 		moved = 0;
 		last = { x: e.clientX, y: e.clientY };
@@ -147,6 +163,7 @@
 	onpointerup={onUp}
 	onpointercancel={onUp}
 >
+	<div class="frame">
 	<svg class="photo" viewBox={view}>
 		<defs>
 			<!-- Dust and road film: a soft brown haze with blotchy darker patches -->
@@ -185,15 +202,39 @@
 			</pattern>
 		</defs>
 		<image href={photo.src} width={photo.width} height={photo.height} preserveAspectRatio="xMidYMid slice">
-			<title>{photo.alt}</title>
+			<title>{photo.name}</title>
 		</image>
-		{#each photo.windows as rect, i (i)}
+		{#each photo.windows as rect, i (photo.id + i)}
 			{@render pane(i, rect, `Front window ${i + 1}`)}
 		{/each}
+		{#if !touched && frontClean === 0 && hintAt}
+			{@const [hx, hy, hw, hh] = hintAt}
+			{@const k = Math.max(hw, hh) / 14}
+			<g class="hint" style="--dx: {hw * 0.9}px" aria-hidden="true">
+				<g transform="translate({hx + hw * 0.1} {hy + hh * 0.45}) scale({k})">
+					<circle cx="9" cy="5" r="7" fill="#ffffff" opacity="0.35" />
+					<path
+						d="M9 11V5.5a1.5 1.5 0 013 0V10m0-1V7.5a1.5 1.5 0 013 0V11m0-1a1.5 1.5 0 013 0v4a6 6 0 01-6 6h-.5a6 6 0 01-5.2-3l-2.1-3.6a1.5 1.5 0 012.6-1.5L9 14"
+						fill="#fbfaf7"
+						stroke="#2a2b26"
+						stroke-width="1.4"
+						stroke-linejoin="round"
+					/>
+				</g>
+			</g>
+		{/if}
 	</svg>
+	<button type="button" class="nav prev" aria-label="Previous house" onclick={onprev}><Icon name="left" size={24} /></button>
+	<button type="button" class="nav next" aria-label="Next house" onclick={onnext}><Icon name="right" size={24} /></button>
+	{#if allClean}
+		{#key photo.id}
+			<div class="cheer" aria-hidden="true"><Icon name="sparkle" size={64} /></div>
+		{/key}
+	{/if}
+	</div>
 
 	{#if tiles.length}
-		<p class="tiles-label">Around the back and sides</p>
+		<p class="tiles-label"><Icon name="back" size={18} label="Around the back and sides" /></p>
 		<div class="tiles">
 			{#each tiles as t (t.i)}
 				<svg class="tile" viewBox={tileBox(t.rect)}>
@@ -206,13 +247,13 @@
 </div>
 
 <p class="credit">
-	Photo: <a href={photo.credit.source} rel="noopener" target="_blank">{photo.credit.author}</a>,
-	<a href={photo.credit.licenseUrl} rel="noopener license" target="_blank">{photo.credit.license}</a>, via Wikimedia
-	Commons. Dirt added.
+	<a href={photo.credit.source} rel="noopener" target="_blank">© {photo.credit.author}</a> ·
+	<a href={licenseUrl(photo.credit.license)} rel="noopener license" target="_blank">{photo.credit.license}</a> · dirt added
 </p>
 
 <style>
 	.stage {
+		position: relative;
 		/* Rubbing must not scroll the page. */
 		touch-action: none;
 		user-select: none;
@@ -234,9 +275,81 @@
 	}
 
 	.tiles-label {
-		margin: 14px 0 6px;
-		font-size: 0.9rem;
+		margin: 12px 0 6px;
 		color: var(--ink-soft);
+	}
+
+	.frame {
+		position: relative;
+	}
+
+	.nav {
+		position: absolute;
+		/* Bottom corners are usually lawn, not windows. */
+		bottom: 10px;
+		display: grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		border: 0;
+		border-radius: 50%;
+		background: rgb(251 250 247 / 0.85);
+		color: var(--ink);
+		box-shadow: var(--shadow);
+		cursor: pointer;
+	}
+
+	.nav.prev {
+		left: 8px;
+	}
+
+	.nav.next {
+		right: 8px;
+	}
+
+	.nav:focus-visible {
+		outline: 3px solid var(--accent);
+	}
+
+	.hint {
+		animation: glide 1.8s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	@keyframes glide {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		50% {
+			transform: translateX(var(--dx));
+		}
+	}
+
+	.cheer {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		color: #fbfaf7;
+		filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.35));
+		pointer-events: none;
+		animation: cheer 1.6s ease-out forwards;
+	}
+
+	@keyframes cheer {
+		0% {
+			opacity: 0;
+			transform: scale(0.4) rotate(-20deg);
+		}
+		30% {
+			opacity: 1;
+			transform: scale(1.3) rotate(10deg);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(1) rotate(0deg);
+		}
 	}
 
 	.tiles {
@@ -277,9 +390,14 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.shine {
+		.shine,
+		.cheer {
 			animation: none;
 			opacity: 0;
+		}
+
+		.hint {
+			animation: none;
 		}
 	}
 

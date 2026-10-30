@@ -3,8 +3,8 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The whole quote is **one screen**: a real house photo with grimy windows. Customers rub or tap away the
-windows they don't want to clean themselves, switch on other problems (inside smudges, screens, tracks,
+The whole quote is **one screen**, played like a game with pictures instead of words. Customers flip through
+12 house photos to find one like theirs, rub or tap away the windows they don't want to clean themselves, switch on other problems (inside smudges, screens, tracks,
 hard water), watch the price update live, then book on the same page. A confirmation page follows,
 plus a password-protected owner page at `/admin`.
 
@@ -134,14 +134,12 @@ DNS records at Squarespace (same for both domains; the Squarespace default A and
 
 ## Photo credits
 
-House photos are from Wikimedia Commons and are credited under the scene on the page. Dirt effects are drawn
-over them in the browser; the files are unmodified.
+House photos are freely licensed images from Wikimedia Commons, listed with author, license and source link in
+`src/lib/photos.ts` and credited under the scene on the page. Dirt effects are drawn over them in the browser; the
+files are unmodified. Two are from Maryland's Eastern Shore (Meredith House, Cambridge; Lednum House, Easton).
 
-- 1 story: Cape Cod style house, Ewing, NJ — Famartin, CC BY-SA 4.0
-- 2 stories: Meredith House, Cambridge, MD — Preservation Maryland, CC BY-SA 2.0
-- 3 stories: Lednum House, Easton, MD — Bmzuckerman, CC BY 4.0
-
-To swap a photo, replace the file and re-measure its window rectangles in `src/lib/photos.ts`.
+To add a house, save a 1280px-wide photo in `static/photos/`, then add an entry to `houses` with its story count
+and each window's rectangle in image pixels.
 
 ## Deliberately left out
 
