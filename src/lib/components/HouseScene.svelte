@@ -6,21 +6,17 @@
 	// The house photo is the quote form. Each window starts grimy (dirt = 1). Rubbing a window wipes
 	// it clean (dirt = 0), which hands it to LessPane; tapping a clean window puts it back.
 	// The first windows are the ones visible in the photo; the rest are "back and sides" tiles,
-	// each a close-up crop of a photo window.
+	// each a close-up crop of a photo window. The dirt effects come from <GrimeDefs>.
 	let {
 		house,
 		dirt = $bindable(),
 		inside,
-		addons,
-		onprev,
-		onnext
+		addons
 	}: {
 		house: HousePhoto;
 		dirt: number[];
 		inside: boolean;
 		addons: AddOnKey[];
-		onprev: () => void;
-		onnext: () => void;
 	} = $props();
 
 	/** Pixels of rubbing it takes to wipe one window clean. */
@@ -165,42 +161,6 @@
 >
 	<div class="frame">
 	<svg class="photo" viewBox={view}>
-		<defs>
-			<!-- Dust and road film: a soft brown haze with blotchy darker patches -->
-			<filter id="grime" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
-				<feFlood flood-color="#7f7462" flood-opacity="0.48" result="film" />
-				<!-- Stretched vertically, so the dirt runs in rain streaks -->
-				<feTurbulence type="fractalNoise" baseFrequency="0.035 0.16" numOctaves="4" seed="4" result="noise" />
-				<feColorMatrix
-					in="noise"
-					type="matrix"
-					values="0 0 0 0 0.33  0 0 0 0 0.29  0 0 0 0 0.23  2.4 0 0 0 -0.85"
-					result="blotches"
-				/>
-				<feMerge>
-					<feMergeNode in="film" />
-					<feMergeNode in="blotches" />
-				</feMerge>
-				<feComposite in2="SourceAlpha" operator="in" />
-			</filter>
-			<!-- Hard-water spots: scattered pale mineral specks -->
-			<filter id="mineral" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
-				<feTurbulence type="turbulence" baseFrequency="0.45" numOctaves="1" seed="9" result="noise" />
-				<feColorMatrix
-					in="noise"
-					type="matrix"
-					values="0 0 0 0 0.96  0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 7 -4.4"
-				/>
-				<feComposite in2="SourceAlpha" operator="in" />
-			</filter>
-			<radialGradient id="smear">
-				<stop offset="0" stop-color="#f1ede4" stop-opacity="0.45" />
-				<stop offset="1" stop-color="#f1ede4" stop-opacity="0" />
-			</radialGradient>
-			<pattern id="mesh" width="2.5" height="2.5" patternUnits="userSpaceOnUse">
-				<path d="M0 0H2.5M0 0V2.5" stroke="#2c2c28" stroke-width="0.5" opacity="0.45" />
-			</pattern>
-		</defs>
 		<image href={photo.src} width={photo.width} height={photo.height} preserveAspectRatio="xMidYMid slice">
 			<title>{photo.name}</title>
 		</image>
@@ -224,8 +184,6 @@
 			</g>
 		{/if}
 	</svg>
-	<button type="button" class="nav prev" aria-label="Previous house" onclick={onprev}><Icon name="left" size={24} /></button>
-	<button type="button" class="nav next" aria-label="Next house" onclick={onnext}><Icon name="right" size={24} /></button>
 	{#if allClean}
 		{#key photo.id}
 			<div class="cheer" aria-hidden="true"><Icon name="sparkle" size={64} /></div>
@@ -281,34 +239,6 @@
 
 	.frame {
 		position: relative;
-	}
-
-	.nav {
-		position: absolute;
-		/* Bottom corners are usually lawn, not windows. */
-		bottom: 10px;
-		display: grid;
-		place-items: center;
-		width: 44px;
-		height: 44px;
-		border: 0;
-		border-radius: 50%;
-		background: rgb(251 250 247 / 0.85);
-		color: var(--ink);
-		box-shadow: var(--shadow);
-		cursor: pointer;
-	}
-
-	.nav.prev {
-		left: 8px;
-	}
-
-	.nav.next {
-		right: 8px;
-	}
-
-	.nav:focus-visible {
-		outline: 3px solid var(--accent);
 	}
 
 	.hint {

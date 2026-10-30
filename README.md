@@ -3,10 +3,16 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The whole quote is **one screen**, played like a game with pictures instead of words. Customers flip through
-12 house photos to find one like theirs, rub or tap away the windows they don't want to clean themselves, switch on other problems (inside smudges, screens, tracks,
-hard water), watch the price update live, then book on the same page. A confirmation page follows,
-plus a password-protected owner page at `/admin`.
+The quote is a run of **swipeable card decks**, played like a dating app with pictures instead of words:
+
+1. **House deck**: swipe left for the next house photo, right when it looks like yours.
+2. **Wipe**: rub or tap away the windows you don't want to clean yourself.
+3. **Extras deck**: one card per problem (inside smudges, screens, tracks, hard water) showing a close-up
+   on your chosen house; swipe right to fix it, left to skip.
+4. **Price card**: swipe up to book. ⓘ shows what the instant estimate covers.
+5. **Book**: address, day, time and contact, then a confirmation page.
+
+Every swipe has a button twin (✕ / ♥ / ✓) and arrow-key support. plus a password-protected owner page at `/admin`.
 
 ## Run it locally
 
@@ -43,7 +49,9 @@ Commit `package-lock.json` after the first install.
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
+| `src/lib/components/SwipeCard.svelte` | A draggable card that flings left, right or up |
 | `src/lib/components/HouseScene.svelte` | The interactive house photo: rub or tap to wipe windows |
+| `src/lib/components/ProblemPreview.svelte`, `GrimeDefs.svelte` | Close-up problem cards and the shared dirt effects |
 | `src/lib/photos.ts`, `static/photos/` | House photos (1, 2, 3 stories), their window positions and credits |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
