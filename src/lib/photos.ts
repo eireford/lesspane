@@ -20,6 +20,41 @@ export type HousePhoto = {
 	credit: { author: string; license: string; source: string };
 };
 
+/** The house's biggest window, for close-ups. */
+export const biggestWindow = (h: HousePhoto): Rect =>
+	h.windows.reduce((a, b) => (b[2] * b[3] > a[2] * a[3] ? b : a));
+
+/** A viewBox around one window with some wall showing. */
+export function windowBox([x, y, w, h]: Rect, margin = 0.25) {
+	const m = Math.max(w, h) * margin;
+	return `${x - m} ${y - m} ${w + 2 * m} ${h + 2 * m}`;
+}
+
+/** Moves [a, b] inside [0, limit] without changing its length (unless it's longer than the limit). */
+function fit(a: number, b: number, limit: number): [number, number] {
+	if (b - a >= limit) return [0, limit];
+	if (a < 0) return [0, b - a];
+	if (b > limit) return [limit - (b - a), limit];
+	return [a, b];
+}
+
+/** A 4:3 viewBox that frames the house (all its windows) rather than the whole photo. */
+export function houseBox(h: HousePhoto) {
+	const xs = h.windows.flatMap(([x, , w]) => [x, x + w]);
+	const ys = h.windows.flatMap(([, y, , hh]) => [y, y + hh]);
+	let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+	const mx = (x1 - x0) * 0.22;
+	const my = (y1 - y0) * 0.22;
+	[x0, x1, y0, y1] = [x0 - mx, x1 + mx, y0 - my * 1.2, y1 + my];
+	// Grow the short side to make it exactly 4:3, so the card never has to crop into the house.
+	const w = Math.max(x1 - x0, ((y1 - y0) * 4) / 3);
+	const ht = (w * 3) / 4;
+	const [cx, cy] = [(x0 + x1) / 2, (y0 + y1) / 2];
+	[x0, x1] = fit(cx - w / 2, cx + w / 2, h.width);
+	[y0, y1] = fit(cy - ht / 2, cy + ht / 2, h.height);
+	return `${x0} ${y0} ${x1 - x0} ${y1 - y0}`;
+}
+
 const licenseUrls: Record<string, string> = {
 	'CC BY 3.0': 'https://creativecommons.org/licenses/by/3.0/',
 	'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0/',

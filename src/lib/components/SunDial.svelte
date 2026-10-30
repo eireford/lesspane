@@ -1,0 +1,249 @@
+<script lang="ts">
+	import Icon from '$lib/components/Icon.svelte';
+	import type { TimeWindow } from '$lib/config';
+	import { addDaysIso } from '$lib/validation';
+
+	// When: a strip of days to swipe through, and a sun you drag across the sky.
+	// Left of noon is the morning visit, right of noon the afternoon one.
+	let {
+		min,
+		max,
+		date = $bindable(),
+		time = $bindable()
+	}: { min: string; max: string; date: string; time: TimeWindow } = $props();
+
+	const days = $derived.by(() => {
+		const out: string[] = [];
+		for (let d = min; d <= max && out.length < 21; d = addDaysIso(d, 1)) out.push(d);
+		return out;
+	});
+	const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+		new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', opts);
+
+	// ---------- Sun ----------
+	const W = 300;
+	const H = 150;
+	const R = 120;
+	const CX = W / 2;
+	const CY = H - 10;
+	/** Angle in degrees: 180 is sunrise (left), 0 is sunset (right). */
+	let angle = $state(135);
+	let dragging = $state(false);
+	let sky = $state<SVGSVGElement>();
+
+	$effect(() => {
+		if (!dragging) angle = time === 'morning' ? 135 : 45;
+	});
+
+	const sun = $derived({
+		x: CX + R * Math.cos((angle * Math.PI) / 180),
+		y: CY - R * Math.sin((angle * Math.PI) / 180)
+	});
+
+	function aim(e: PointerEvent) {
+		if (!sky) return;
+		const r = sky.getBoundingClientRect();
+		const x = ((e.clientX - r.left) / r.width) * W - CX;
+		const y = CY - ((e.clientY - r.top) / r.height) * H;
+		angle = Math.min(170, Math.max(10, (Math.atan2(Math.max(y, 0), x) * 180) / Math.PI));
+		time = angle > 90 ? 'morning' : 'afternoon';
+	}
+
+	function onDown(e: PointerEvent) {
+		// Stop the browser starting a text selection, which would cancel the drag.
+		e.preventDefault();
+		dragging = true;
+		(e.currentTarget as Element).setPointerCapture(e.pointerId);
+		aim(e);
+	}
+
+	function onUp() {
+		dragging = false;
+		angle = time === 'morning' ? 135 : 45;
+	}
+
+	function onKey(e: KeyboardEvent) {
+		if (e.key === 'ArrowLeft') time = 'morning';
+		else if (e.key === 'ArrowRight') time = 'afternoon';
+		else return;
+		e.preventDefault();
+	}
+</script>
+
+<div class="when">
+	<div class="days" role="radiogroup" aria-label="Day">
+		{#each days as d (d)}
+			<button
+				type="button"
+				class="day"
+				class:on={d === date}
+				class:sun={fmt(d, { weekday: 'short' }) === 'Sun'}
+				role="radio"
+				aria-checked={d === date}
+				aria-label={fmt(d, { weekday: 'long', month: 'long', day: 'numeric' })}
+				onclick={() => (date = d)}
+			>
+				<small>{fmt(d, { weekday: 'narrow' })}</small>
+				<strong>{fmt(d, { day: 'numeric' })}</strong>
+				<small>{fmt(d, { month: 'short' })}</small>
+			</button>
+		{/each}
+	</div>
+
+	<svg
+		bind:this={sky}
+		class="sky"
+		class:pm={time === 'afternoon'}
+		viewBox="0 0 {W} {H}"
+		role="slider"
+		tabindex="0"
+		aria-label="Time of day"
+		aria-valuemin={0}
+		aria-valuemax={1}
+		aria-valuenow={time === 'morning' ? 0 : 1}
+		aria-valuetext={time === 'morning' ? 'Morning, 8am to noon' : 'Afternoon, noon to 5pm'}
+		onpointerdown={onDown}
+		onpointermove={(e) => dragging && aim(e)}
+		onpointerup={onUp}
+		onpointercancel={onUp}
+		onkeydown={onKey}
+	>
+		<defs>
+			<linearGradient id="am-sky" x1="0" y1="0" x2="0" y2="1">
+				<stop offset="0" stop-color="#cfe0e3" />
+				<stop offset="1" stop-color="#f4ead2" />
+			</linearGradient>
+			<linearGradient id="pm-sky" x1="0" y1="0" x2="0" y2="1">
+				<stop offset="0" stop-color="#d8d3c2" />
+				<stop offset="1" stop-color="#efcf9f" />
+			</linearGradient>
+		</defs>
+		<rect width={W} height={H} rx="14" fill="url(#am-sky)" />
+		<rect class="pm-wash" width={W} height={H} rx="14" fill="url(#pm-sky)" />
+		<path d="M{CX - R} {CY} A{R} {R} 0 0 1 {CX + R} {CY}" fill="none" stroke="#fbfaf7" stroke-width="2" stroke-dasharray="4 6" />
+		<line x1={CX} y1={CY - R - 4} x2={CX} y2={CY} stroke="#fbfaf7" stroke-width="1.5" opacity="0.7" />
+		<rect x="0" y={CY} width={W} height={H - CY} fill="#7d8f63" />
+		<text x="16" y={CY - 8} class="hours">8–12</text>
+		<text x={W - 16} y={CY - 8} class="hours" text-anchor="end">12–5</text>
+		<g class="sun" class:dragging style="transform: translate({sun.x}px, {sun.y}px)">
+			<circle r="22" fill="#e9b85a" opacity="0.25" />
+			<circle r="14" fill="#e9b85a" />
+		</g>
+	</svg>
+	<p class="legend" aria-hidden="true">
+		<span class:on={time === 'morning'}><Icon name="sun" size={18} /></span>
+		<span class:on={time === 'afternoon'}><Icon name="sunset" size={18} /></span>
+	</p>
+</div>
+
+<style>
+	.days {
+		display: flex;
+		gap: 6px;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		padding: 2px 2px 10px;
+		scrollbar-width: none;
+	}
+
+	.days::-webkit-scrollbar {
+		display: none;
+	}
+
+	.day {
+		flex: none;
+		display: grid;
+		justify-items: center;
+		width: 52px;
+		padding: 6px 0;
+		border: 1.5px solid var(--line);
+		border-radius: 12px;
+		background: var(--paper);
+		color: var(--ink);
+		scroll-snap-align: start;
+		cursor: pointer;
+		line-height: 1.2;
+	}
+
+	.day small {
+		font-size: 0.7rem;
+		color: var(--ink-soft);
+	}
+
+	.day strong {
+		font-size: 1.15rem;
+	}
+
+	.day.sun {
+		opacity: 0.6;
+	}
+
+	.day.on {
+		border-color: var(--brand);
+		background: var(--brand);
+		color: var(--brand-ink);
+		opacity: 1;
+	}
+
+	.day.on small {
+		color: var(--brand-soft);
+	}
+
+	.sky {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 14px;
+		touch-action: none;
+		user-select: none;
+		-webkit-user-select: none;
+		cursor: grab;
+		box-shadow: var(--shadow);
+	}
+
+	.sky:focus-visible {
+		outline: 3px solid var(--accent);
+		outline-offset: 3px;
+	}
+
+	.pm-wash {
+		opacity: 0;
+		transition: opacity 0.4s ease;
+	}
+
+	.pm .pm-wash {
+		opacity: 1;
+	}
+
+	.sun {
+		transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+	}
+
+	.sun.dragging {
+		transition: none;
+	}
+
+	.hours {
+		font-size: 13px;
+		font-weight: 700;
+		fill: #fbfaf7;
+	}
+
+	.legend {
+		display: flex;
+		justify-content: space-between;
+		margin: 6px 4px 0;
+		color: var(--line);
+	}
+
+	.legend .on {
+		color: var(--brand);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sun,
+		.pm-wash {
+			transition: none;
+		}
+	}
+</style>

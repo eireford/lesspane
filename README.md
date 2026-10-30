@@ -3,16 +3,19 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The quote is a run of **swipeable card decks**, played like a dating app with pictures instead of words:
+The quote is **one page with five things to play with**, each starting on a sensible choice so a price shows
+before anyone touches anything. The price stays pinned at the top.
 
-1. **House deck**: swipe left for the next house photo, right when it looks like yours.
-2. **Wipe**: rub or tap away the windows you don't want to clean yourself.
-3. **Extras deck**: one card per problem (inside smudges, screens, tracks, hard water) showing a close-up
-   on your chosen house; swipe right to fix it, left to skip.
-4. **Price card**: swipe up to book. ⓘ shows what the instant estimate covers.
-5. **Book**: address, day, time and contact, then a confirmation page.
+| Control | Gesture | Chooses | Starts at |
+| --- | --- | --- | --- |
+| House card | swipe left/right | house type and stories (12 photos) | two-story modern farmhouse |
+| Squeegee | pull the blade along the glass | number of windows (1–40) | 20 |
+| Flip window | tap or flick to flip | outside only, or both sides | outside only |
+| Stickers on a pane | peel off (drag or tap); tap the tray to undo | screens, tracks, hard water | none |
+| Sun dial | tap a day, drag the sun across the sky | day, morning or afternoon | a few days out (not Sunday), morning |
 
-Every swipe has a button twin (✕ / ♥ / ✓) and arrow-key support. plus a password-protected owner page at `/admin`.
+Below them: address, name, phone, email, and a send button showing the price. A confirmation page follows,
+plus a password-protected owner page at `/admin`.
 
 ## Run it locally
 
@@ -49,9 +52,7 @@ Commit `package-lock.json` after the first install.
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
-| `src/lib/components/SwipeCard.svelte` | A draggable card that flings left, right or up |
-| `src/lib/components/HouseScene.svelte` | The interactive house photo: rub or tap to wipe windows |
-| `src/lib/components/ProblemPreview.svelte`, `GrimeDefs.svelte` | Close-up problem cards and the shared dirt effects |
+| `src/lib/components/` | The controls: `HouseCard` + `SwipeCard`, `Squeegee`, `FlipWindow`, `PeelPane`, `SunDial`; `GrimeDefs` (shared dirt effects), `Icon` |
 | `src/lib/photos.ts`, `static/photos/` | House photos (1, 2, 3 stories), their window positions and credits |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
