@@ -2,31 +2,12 @@ import { fail, redirect } from '@sveltejs/kit';
 import { computeQuote } from '$lib/pricing';
 import { notifyNewRequest } from '$lib/server/email';
 import { saveRequest } from '$lib/server/store';
-import {
-	bookingDateRange,
-	homeToSearchParams,
-	parseContact,
-	parseHomeDetails
-} from '$lib/validation';
+import { bookingDateRange, parseContact, parseHomeDetails } from '$lib/validation';
 import type { Actions, PageServerLoad } from './$types';
 
-// Screen 4: "Time & contact".
-export const load: PageServerLoad = ({ url }) => {
-	const result = parseHomeDetails(url.searchParams);
-	if (!result.ok) {
-		const back = new URLSearchParams(url.searchParams);
-		back.set('err', '1');
-		redirect(303, `/quote?${back}`);
-	}
-
-	const details = result.value;
-	return {
-		details,
-		quote: computeQuote(details),
-		query: homeToSearchParams(details).toString(),
-		dateRange: bookingDateRange()
-	};
-};
+// The whole quote happens on this one screen: the house scene builds the job,
+// and the booking form below it sends the request.
+export const load: PageServerLoad = () => ({ dateRange: bookingDateRange() });
 
 export const actions: Actions = {
 	default: async ({ request, url }) => {
@@ -38,15 +19,20 @@ export const actions: Actions = {
 		}
 
 		const home = parseHomeDetails(form);
-		if (!home.ok) {
-			return fail(400, {
-				message: 'Something about your home details changed. Please go back and get a new quote.'
-			});
-		}
-
 		const contact = parseContact(form);
-		if (!contact.ok) {
-			return fail(400, { errors: contact.errors, values: contact.raw });
+		if (!home.ok || !contact.ok) {
+			const errors = { ...(home.ok ? {} : home.errors), ...(contact.ok ? {} : contact.errors) };
+			// The scene controls stories, windows, service and add-ons; only address and ZIP are typed.
+			const sceneProblem = ['stories', 'windows', 'service', 'addons'].some((k) => k in errors);
+			return fail(400, {
+				errors,
+				values: Object.fromEntries(
+					['address', 'zip', 'preferredDate', 'preferredWindow', 'name', 'phone', 'email', 'notes'].map(
+						(k) => [k, String(form.get(k) ?? '')]
+					)
+				),
+				message: sceneProblem ? 'Wipe at least one window on the house before booking.' : undefined
+			});
 		}
 
 		// Recompute: never trust a price sent from the browser.

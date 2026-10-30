@@ -3,7 +3,9 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The flow follows the prototype spec: **Landing → Your home → Your price → Pick a time → Confirmation**,
+The whole quote is **one screen**: a drawing of the house with grimy windows. Customers rub or tap away the
+windows they don't want to clean themselves, switch on other problems (inside smudges, screens, tracks,
+hard water), watch the price update live, then book on the same page. A confirmation page follows,
 plus a password-protected owner page at `/admin`.
 
 ## Run it locally
@@ -40,7 +42,8 @@ Commit `package-lock.json` after the first install.
 | `src/lib/server/store.ts` | `quote_requests` storage: Firestore or local JSON file |
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
-| `src/routes/` | The five screens and `/admin` |
+| `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
+| `src/lib/components/HouseScene.svelte` | The interactive house: rub or tap to wipe windows |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
 | `firestore.rules` | Denies all direct client access to Firestore |

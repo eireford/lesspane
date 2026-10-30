@@ -33,7 +33,7 @@
 		<h1>Request received</h1>
 		<p class="muted">We'll text you to confirm the exact time.</p>
 	{/if}
-	<a class="btn ghost block" href="/">Back to home</a>
+	<a class="btn ghost block" href="/">Start another house</a>
 </section>
 
 <style>

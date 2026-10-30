@@ -1,16 +1,19 @@
 :root {
-	--ink: #0f2a33;
-	--ink-soft: #4a6670;
-	--sky: #f3f9fb;
-	--paper: #ffffff;
-	--line: #d6e6ec;
-	--brand: #0e7490;
+	/* Natural outdoor palette: Eastern Shore marsh, sand, bay water and late-day sun. */
+	--ink: #1f2a1f; /* deep pine */
+	--ink-soft: #586755; /* lichen */
+	--sky: #f5f0e4; /* dune sand (page background) */
+	--paper: #fffdf7; /* shell white */
+	--line: #e0d6bf; /* dry beach grass */
+	--brand: #2f6b45; /* marsh green */
 	--brand-ink: #ffffff;
-	--brand-soft: #e0f2f7;
-	--accent: #f59e0b;
-	--danger: #b42318;
+	--brand-soft: #e3eedd; /* new spartina */
+	--accent: #c98a2b; /* goldenrod */
+	--water: #3d7a8a; /* Chesapeake blue */
+	--bark: #7a5a3e; /* loblolly bark */
+	--danger: #a3341f; /* brick */
 	--radius: 14px;
-	--shadow: 0 1px 2px rgb(15 42 51 / 0.06), 0 8px 24px rgb(15 42 51 / 0.06);
+	--shadow: 0 1px 2px rgb(31 42 31 / 0.06), 0 8px 24px rgb(31 42 31 / 0.07);
 	color-scheme: light;
 }
 
@@ -241,9 +244,9 @@ legend {
 .alert {
 	border-radius: 10px;
 	padding: 12px 14px;
-	background: #fef3f2;
+	background: #fbeee8;
 	color: var(--danger);
-	border: 1px solid #fecdca;
+	border: 1px solid #efc6b8;
 }
 
 .honeypot {

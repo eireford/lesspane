@@ -11,7 +11,7 @@
 			<img src="/icons/icon-192.png" alt="" width="28" height="28" />
 			<span>LessPane</span>
 		</a>
-		<a href="/quote" class="get-quote">Get a quote</a>
+		<span class="tagline">Window cleaning · Eastern Shore, MD</span>
 	</div>
 </header>
 
@@ -54,9 +54,9 @@
 		border-radius: 7px;
 	}
 
-	.get-quote {
-		font-weight: 650;
-		text-decoration: none;
+	.tagline {
+		font-size: 0.85rem;
+		color: var(--ink-soft);
 	}
 
 	main {
