@@ -6,11 +6,19 @@
   "description": "LessPane prototype: instant window washing quotes and booking requests.",
   "scripts": {
     "dev": "vite dev",
+    "dev:phone": "vite dev --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "start": "node build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "vitest run"
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "node scripts/smoke.mjs",
+    "seed": "node scripts/seed.mjs",
+    "verify": "npm run check && npm test && npm run build",
+    "docker:run": "export DOCKER_CONFIG=$(mktemp -d) && docker build -t lesspane . && docker run --rm -p 8080:8080 --env-file .env -e ORIGIN=http://localhost:8080 lesspane",
+    "deploy:staging": "gcloud builds submit --project lesspane --config cloudbuild.yaml --substitutions=_SERVICE=lesspane-staging,_APP_ENV=staging,_FIRESTORE_DATABASE=staging,_ADMIN_SECRET=lesspane-staging-admin-password"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.0"
