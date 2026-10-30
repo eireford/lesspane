@@ -6,10 +6,16 @@
 # and Service Account User on lesspane-run only). Requires the CLOUD_LOGGING_ONLY option below.
 serviceAccount: projects/$PROJECT_ID/serviceAccounts/lesspane-build@$PROJECT_ID.iam.gserviceaccount.com
 
+# Defaults are production (lesspane.com). The staging trigger overrides them:
+#   _SERVICE=lesspane-staging, _APP_ENV=staging, _FIRESTORE_DATABASE=staging,
+#   _ADMIN_SECRET=lesspane-staging-admin-password
 substitutions:
   _REGION: us-west1 # Oregon, closest region to Vancouver, WA
   _SERVICE: lesspane
   _REPO: lesspane
+  _APP_ENV: production
+  _FIRESTORE_DATABASE: '(default)'
+  _ADMIN_SECRET: lesspane-admin-password
 
 steps:
   - id: build
@@ -35,10 +41,10 @@ steps:
       - --min-instances=0
       - --max-instances=3
       # "update" keeps any other env vars you set in the console (OWNER_EMAIL, EMAIL_FROM).
-      - --update-env-vars=STORAGE=firestore,PROTOCOL_HEADER=x-forwarded-proto
+      - --update-env-vars=STORAGE=firestore,PROTOCOL_HEADER=x-forwarded-proto,APP_ENV=${_APP_ENV},FIRESTORE_DATABASE=${_FIRESTORE_DATABASE}
       # No Resend account yet, so emails are logged. Once you have one, create the
       # lesspane-resend-api-key secret and append: ,RESEND_API_KEY=lesspane-resend-api-key:latest
-      - --update-secrets=ADMIN_PASSWORD=lesspane-admin-password:latest
+      - --update-secrets=ADMIN_PASSWORD=${_ADMIN_SECRET}:latest
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID

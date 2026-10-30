@@ -62,22 +62,40 @@ One-time setup is already done:
 | --- | --- |
 | APIs | Run, Cloud Build, Artifact Registry, Firestore, Secret Manager |
 | Container registry | `us-west1-docker.pkg.dev/lesspane/lesspane` |
-| Firestore | `(default)` database, Native mode, `us-west1` |
-| Secret | `lesspane-admin-password` (random; read it with the command below) |
+| Firestore | `(default)` (production) and `staging` databases, Native mode, `us-west1` |
+| Secrets | `lesspane-admin-password`, `lesspane-staging-admin-password` (random; read them with the command below) |
 | Runtime account | `lesspane-run@`: Cloud Datastore User; Secret Accessor on its own secrets only |
 | Deployer account | `lesspane-build@`: Run Admin, Artifact Registry Writer, Log Writer, Storage Object Viewer, Service Account User on `lesspane-run` |
+| GitHub | `eireford/lesspane`, linked through the Cloud Build connection `lesspane-github` |
 
 Your gcloud default project may be a different one, so pass `--project lesspane` to every command.
 
-Deploy:
+### Staging and production
+
+| | Staging | Production |
+| --- | --- | --- |
+| Domain | https://lesspane.net | https://lesspane.com |
+| Cloud Run service | `lesspane-staging` | `lesspane` |
+| Firestore database | `staging` | `(default)` |
+| Admin secret | `lesspane-staging-admin-password` | `lesspane-admin-password` |
+| Deploys when | you push to `main` (trigger `lesspane-staging`) | you push a `v*` tag (trigger `lesspane-production`) |
+
+Staging sends `X-Robots-Tag: noindex` so it stays out of search results.
+
+Release to production after checking staging:
 
 ```bash
-gcloud builds submit --project lesspane --config cloudbuild.yaml
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Set the owner alert address once per service (deploys keep it):
+
+```bash
 gcloud run services update lesspane --project lesspane --region us-west1 \
   --update-env-vars OWNER_EMAIL=you@example.com,EMAIL_FROM="LessPane <hello@lesspane.com>"
 ```
 
-Admin password for the deployed `/admin` page:
+Admin password for the deployed `/admin` page (use `lesspane-staging-admin-password` for staging):
 
 ```bash
 gcloud secrets versions access latest --secret lesspane-admin-password --project lesspane
@@ -93,15 +111,22 @@ gcloud secrets add-iam-policy-binding lesspane-resend-api-key --project lesspane
 
 then append `,RESEND_API_KEY=lesspane-resend-api-key:latest` to the `--update-secrets` line in `cloudbuild.yaml`.
 
-To deploy on every push, connect the GitHub repo in Cloud Build → Triggers, pointing at `cloudbuild.yaml`.
-
 Also: set a **billing budget with alerts** before sharing the link.
 
-### lesspane.com and lesspane.net
+### Domains
 
-- Point **lesspane.com** at the service with Cloud Run domain mapping (if available in your region),
-  Firebase Hosting rewrites, or a global external Application Load Balancer. All give managed HTTPS.
-- Make **lesspane.net** a 301 redirect to `https://lesspane.com` at your registrar or DNS provider.
+Both domains are registered at Squarespace Domains, which also hosts their DNS. Each is mapped to its
+Cloud Run service with Cloud Run domain mapping, which provides managed HTTPS certificates.
+`www.` is mapped on both, too.
+
+DNS records at Squarespace (same for both domains; the Squarespace default A and `www` records are removed):
+
+| Host | Type | Data |
+| --- | --- | --- |
+| `@` | A | `216.239.32.21`, `216.239.34.21`, `216.239.36.21`, `216.239.38.21` |
+| `@` | AAAA | `2001:4860:4802:32::15`, `2001:4860:4802:34::15`, `2001:4860:4802:36::15`, `2001:4860:4802:38::15` |
+| `www` | CNAME | `ghs.googlehosted.com.` |
+| `@` | TXT | `google-site-verification=…` (proves ownership to Google; keep it) |
 
 ## Deliberately left out
 

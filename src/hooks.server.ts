@@ -30,6 +30,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		response.headers.set('X-Content-Type-Options', 'nosniff');
 		response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 		response.headers.set('X-Frame-Options', 'DENY');
+		// Keep the staging site (lesspane.net) out of search results.
+		if (env.APP_ENV === 'staging') response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 	} catch {
 		// Some responses have immutable headers; skip them.
 	}

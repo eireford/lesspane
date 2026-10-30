@@ -46,7 +46,11 @@ async function db(): Promise<Firestore> {
 	if (!firestore) {
 		const { Firestore } = await import('@google-cloud/firestore');
 		// On Cloud Run the project and credentials come from the environment automatically.
-		firestore = new Firestore(env.GOOGLE_CLOUD_PROJECT ? { projectId: env.GOOGLE_CLOUD_PROJECT } : {});
+		// FIRESTORE_DATABASE picks a named database (staging uses "staging"); unset means "(default)".
+		firestore = new Firestore({
+			...(env.GOOGLE_CLOUD_PROJECT && { projectId: env.GOOGLE_CLOUD_PROJECT }),
+			...(env.FIRESTORE_DATABASE && { databaseId: env.FIRESTORE_DATABASE })
+		});
 	}
 	return firestore;
 }
