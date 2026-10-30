@@ -1,0 +1,12 @@
+node_modules
+build
+.svelte-kit
+.data
+.env
+.env.*
+.git
+Dockerfile
+cloudbuild.yaml
+README.md
+env-check.txt
+check-env.sh

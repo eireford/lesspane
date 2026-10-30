@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// The app reads and writes Firestore only from the server (Cloud Run service account),
+// which bypasses these rules. Browsers and mobile clients get no direct access,
+// so customer addresses and contact details are never publicly readable.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

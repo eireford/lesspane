@@ -1,0 +1,39 @@
+# Builds the container, pushes it to Artifact Registry, and deploys to Cloud Run.
+# Run manually:  gcloud builds submit --config cloudbuild.yaml
+# Or attach to a Cloud Build trigger on pushes to main.
+
+substitutions:
+  _REGION: us-west1 # Oregon, closest region to Vancouver, WA
+  _SERVICE: lesspane
+  _REPO: lesspane
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID', '.']
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID']
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --allow-unauthenticated
+      - --min-instances=0
+      - --max-instances=3
+      # "update" keeps any other env vars you set in the console (OWNER_EMAIL, EMAIL_FROM).
+      - --update-env-vars=STORAGE=firestore,PROTOCOL_HEADER=x-forwarded-proto
+      - --update-secrets=ADMIN_PASSWORD=lesspane-admin-password:latest,RESEND_API_KEY=lesspane-resend-api-key:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+
+options:
+  logging: CLOUD_LOGGING_ONLY
