@@ -1,19 +1,19 @@
 :root {
-	/* Natural outdoor palette: Eastern Shore marsh, sand, bay water and late-day sun. */
-	--ink: #1f2a1f; /* deep pine */
-	--ink-soft: #586755; /* lichen */
-	--sky: #f5f0e4; /* dune sand (page background) */
-	--paper: #fffdf7; /* shell white */
-	--line: #e0d6bf; /* dry beach grass */
-	--brand: #2f6b45; /* marsh green */
+	/* Natural palette: weathered cedar, driftwood, oyster shell and muted pine. */
+	--ink: #2a2b26; /* charcoal */
+	--ink-soft: #66665b; /* driftwood */
+	--sky: #f3f1eb; /* oyster shell (page background) */
+	--paper: #fbfaf7;
+	--line: #e1ddd2; /* sand */
+	--brand: #4d5e47; /* muted pine */
 	--brand-ink: #ffffff;
-	--brand-soft: #e3eedd; /* new spartina */
-	--accent: #c98a2b; /* goldenrod */
-	--water: #3d7a8a; /* Chesapeake blue */
-	--bark: #7a5a3e; /* loblolly bark */
-	--danger: #a3341f; /* brick */
-	--radius: 14px;
-	--shadow: 0 1px 2px rgb(31 42 31 / 0.06), 0 8px 24px rgb(31 42 31 / 0.07);
+	--brand-soft: #e9ece4;
+	--accent: #a07a52; /* weathered cedar */
+	--water: #627e84; /* overcast bay */
+	--bark: #6f5b49;
+	--danger: #9a3b2a;
+	--radius: 12px;
+	--shadow: 0 1px 2px rgb(42 43 38 / 0.06), 0 6px 20px rgb(42 43 38 / 0.06);
 	color-scheme: light;
 }
 
@@ -46,6 +46,8 @@ a {
 h1,
 h2,
 h3 {
+	font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+	font-weight: 600;
 	line-height: 1.2;
 	margin: 0 0 0.5em;
 	letter-spacing: -0.01em;

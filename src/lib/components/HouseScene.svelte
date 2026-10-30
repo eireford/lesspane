@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { AddOnKey, Stories } from '$lib/config';
+	import { housePhotos, type Rect } from '$lib/photos';
 
-	// The house is the quote form. Each window starts grimy (dirt = 1). Rubbing a window wipes it
-	// clean (dirt = 0), which hands it to LessPane; tapping a clean window puts it back.
+	// The house photo is the quote form. Each window starts grimy (dirt = 1). Rubbing a window wipes
+	// it clean (dirt = 0), which hands it to LessPane; tapping a clean window puts it back.
+	// The first windows are the ones visible in the photo; the rest are "back and sides" tiles,
+	// each a close-up crop of a photo window.
 	let {
 		stories,
 		dirt = $bindable(),
@@ -10,43 +13,46 @@
 		addons
 	}: { stories: Stories; dirt: number[]; inside: boolean; addons: AddOnKey[] } = $props();
 
-	const WIN_W = 26;
-	const WIN_H = 34;
-	const GAP = 12;
-	const FLOOR_H = 62;
-	const PAD = 18;
-	const DOOR_W = 30;
-	const ROOF_H = 48;
-	const TOP = 34;
 	/** Pixels of rubbing it takes to wipe one window clean. */
-	const RUB_PX = 140;
+	const RUB_PX = 120;
 	/** A window this close to clean snaps to clean. */
 	const SNAP = 0.25;
 
-	const perFloor = $derived(Math.max(2, Math.ceil(dirt.length / stories)));
-	const houseW = $derived(PAD * 2 + perFloor * WIN_W + perFloor * GAP + DOOR_W);
-	const sceneW = $derived(Math.max(houseW + 130, 340));
-	const houseX = $derived((sceneW - houseW) / 2);
-	const houseTop = TOP + ROOF_H;
-	const groundY = $derived(houseTop + stories * FLOOR_H);
-	const sceneH = $derived(groundY + 40);
-
-	const windows = $derived(
-		dirt.map((_, i) => {
-			const floor = Math.min(Math.floor(i / perFloor), stories - 1);
-			const inRow = floor === stories - 1 ? dirt.length - floor * perFloor : perFloor;
-			const col = i - floor * perFloor;
-			const rowOffset = ((perFloor - inRow) * (WIN_W + GAP)) / 2;
-			return {
-				i,
-				floor,
-				x: houseX + PAD + rowOffset + col * (WIN_W + GAP),
-				y: groundY - (floor + 1) * FLOOR_H + (FLOOR_H - WIN_H) / 2 - 4
-			};
-		})
+	const photo = $derived(housePhotos[stories]);
+	/** Frame the house, not the whole photo, so windows are big enough to rub on a phone. */
+	const view = $derived.by(() => {
+		const xs = photo.windows.flatMap(([x, , w]) => [x, x + w]);
+		const ys = photo.windows.flatMap(([, y, , h]) => [y, y + h]);
+		let [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+		const mx = (x1 - x0) * 0.22;
+		const my = (y1 - y0) * 0.22;
+		[x0, x1, y0, y1] = [x0 - mx, x1 + mx, y0 - my * 1.2, y1 + my];
+		// Keep it at least 4:3 landscape.
+		const minW = ((y1 - y0) * 4) / 3;
+		if (x1 - x0 < minW) {
+			const grow = (minW - (x1 - x0)) / 2;
+			[x0, x1] = [x0 - grow, x1 + grow];
+		}
+		const shift = Math.max(0, -x0) - Math.max(0, x1 - photo.width);
+		[x0, x1] = [Math.max(0, x0 + shift), Math.min(photo.width, x1 + shift)];
+		[y0, y1] = [Math.max(0, y0), Math.min(photo.height, y1)];
+		return `${x0} ${y0} ${x1 - x0} ${y1 - y0}`;
+	});
+	const front = $derived(photo.windows.length);
+	const tiles = $derived(
+		Array.from({ length: Math.max(0, dirt.length - front) }, (_, j) => ({
+			i: front + j,
+			rect: photo.windows[j % front]
+		}))
 	);
 
 	const has = (key: AddOnKey) => addons.includes(key);
+
+	/** A tile shows its window plus a little of the wall around it. */
+	function tileBox([x, y, w, h]: Rect) {
+		const m = Math.max(w, h) * 0.18;
+		return `${x - m} ${y - m} ${w + 2 * m} ${h + 2 * m}`;
+	}
 
 	// ---------- Wiping ----------
 
@@ -61,6 +67,7 @@
 	}
 
 	function onDown(e: PointerEvent) {
+		if ((e.target as Element).closest('button')) return;
 		dragging = true;
 		moved = 0;
 		last = { x: e.clientX, y: e.clientY };
@@ -98,9 +105,41 @@
 	}
 </script>
 
-<svg
-	class="scene"
-	viewBox="0 0 {sceneW} {sceneH}"
+{#snippet pane(i: number, [x, y, w, h]: Rect, label: string)}
+	{@const d = dirt[i]}
+	{@const clean = d === 0}
+	<g
+		class="win"
+		data-win={i}
+		role="checkbox"
+		aria-checked={clean}
+		aria-label={label}
+		tabindex="0"
+		onkeydown={(e) => onKey(e, i)}
+	>
+		{#if !(clean && inside)}
+			<!-- Hand smears on the inside of the glass -->
+			<ellipse cx={x + w * 0.32} cy={y + h * 0.62} rx={w * 0.3} ry={h * 0.16} fill="url(#smear)" />
+		{/if}
+		{#if !(clean && has('hard_water'))}
+			<rect {x} {y} width={w} height={h} filter="url(#mineral)" />
+		{/if}
+		{#if !(clean && has('screens'))}
+			<rect {x} y={y + h / 2} width={w} height={h / 2} fill="url(#mesh)" />
+		{/if}
+		{#if !(clean && has('tracks'))}
+			<rect {x} y={y + h * 0.93} width={w} height={h * 0.07} fill="#4f4130" opacity="0.7" />
+		{/if}
+		<rect {x} {y} width={w} height={h} filter="url(#grime)" opacity={d} />
+		{#if clean}
+			<rect class="shine" {x} {y} width={w} height={h} fill="#ffffff" />
+		{/if}
+		<rect class="hit" {x} {y} width={w} height={h} fill="transparent" />
+	</g>
+{/snippet}
+
+<div
+	class="stage"
 	role="group"
 	aria-label="Your house. Rub or tap each window you want us to clean."
 	onpointerdown={onDown}
@@ -108,174 +147,149 @@
 	onpointerup={onUp}
 	onpointercancel={onUp}
 >
-	<defs>
-		<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-			<stop offset="0" stop-color="#cfe3e6" />
-			<stop offset="1" stop-color="#f3ead6" />
-		</linearGradient>
-		<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0" stop-color="#d9eef2" />
-			<stop offset="0.55" stop-color="#8fbfca" />
-			<stop offset="1" stop-color="#5d93a1" />
-		</linearGradient>
-		<pattern id="grime" width="10" height="10" patternUnits="userSpaceOnUse">
-			<rect width="10" height="10" fill="#8f7d58" opacity="0.82" />
-			<circle cx="3" cy="3" r="2.2" fill="#6c5c3f" opacity="0.7" />
-			<circle cx="8" cy="7" r="1.6" fill="#a6936b" opacity="0.8" />
-		</pattern>
-		<pattern id="mineral" width="7" height="7" patternUnits="userSpaceOnUse">
-			<circle cx="2" cy="2" r="1.1" fill="#ffffff" opacity="0.85" />
-			<circle cx="5.5" cy="5" r="0.8" fill="#ffffff" opacity="0.7" />
-		</pattern>
-		<pattern id="mesh" width="3" height="3" patternUnits="userSpaceOnUse">
-			<path d="M0 0H3M0 0V3" stroke="#4d4a40" stroke-width="0.6" opacity="0.6" />
-		</pattern>
-	</defs>
-
-	<!-- Sky, sun, far tree line and marsh -->
-	<rect width={sceneW} height={sceneH} fill="url(#sky)" />
-	<circle cx={sceneW - 42} cy="30" r="15" fill="#e8b452" opacity="0.9" />
-	<path
-		d="M0 {groundY - 18} Q {sceneW * 0.25} {groundY - 34} {sceneW * 0.5} {groundY - 20} T {sceneW} {groundY - 22} V {groundY} H 0 Z"
-		fill="#7f9a6a"
-		opacity="0.55"
-	/>
-
-	<!-- Loblolly pines -->
-	{#each [houseX - 34, houseX + houseW + 34] as tx}
-		<rect x={tx - 3} y={groundY - 42} width="6" height="42" fill="#6e5038" />
-		<path d="M{tx} {groundY - 110} l-20 34 h11 l-15 26 h48 l-15 -26 h11 Z" fill="#355e3b" />
-	{/each}
-
-	<!-- House -->
-	<path
-		d="M{houseX - 10} {houseTop} L{houseX + houseW / 2} {TOP} L{houseX + houseW + 10} {houseTop} Z"
-		fill="#5a4636"
-	/>
-	<rect x={houseX} y={houseTop} width={houseW} height={stories * FLOOR_H} fill="#efe6d2" />
-	{#each Array.from({ length: stories * 6 }, (_, k) => k) as k}
-		<line
-			x1={houseX}
-			x2={houseX + houseW}
-			y1={houseTop + (k + 1) * (FLOOR_H / 6)}
-			y2={houseTop + (k + 1) * (FLOOR_H / 6)}
-			stroke="#ddd1b6"
-			stroke-width="1"
-		/>
-	{/each}
-	<rect x={houseX + houseW - PAD - DOOR_W} y={groundY - 46} width={DOOR_W} height="46" rx="2" fill="#2f6b45" />
-	<circle cx={houseX + houseW - PAD - 7} cy={groundY - 22} r="1.8" fill="#e8b452" />
-
-	<!-- Windows -->
-	{#each windows as w (w.i)}
-		{@const d = dirt[w.i]}
-		{@const clean = d === 0}
-		<g
-			class="win"
-			class:clean
-			data-win={w.i}
-			role="checkbox"
-			aria-checked={clean}
-			aria-label="Window {w.i + 1}, floor {w.floor + 1}"
-			tabindex="0"
-			onkeydown={(e) => onKey(e, w.i)}
-		>
-			<rect x={w.x - 3} y={w.y - 3} width={WIN_W + 6} height={WIN_H + 6} rx="2" fill="#fffdf7" />
-			<rect x={w.x} y={w.y} width={WIN_W} height={WIN_H} fill="url(#glass)" />
-			<path
-				d="M{w.x + 4} {w.y + WIN_H - 6} L{w.x + WIN_W - 8} {w.y + 4} M{w.x + 10} {w.y + WIN_H - 4} L{w.x + WIN_W - 3} {w.y + 10}"
-				stroke="#ffffff"
-				stroke-width="2"
-				opacity={0.15 + 0.6 * (1 - d)}
-			/>
-			{#if !(clean && inside)}
-				<!-- Inside smudge (a hand print), gone when inside cleaning is on -->
-				<ellipse cx={w.x + 8} cy={w.y + 10} rx="4" ry="5" fill="#b9ad8e" opacity="0.55" />
-			{/if}
-			{#if !(clean && has('hard_water'))}
-				<rect x={w.x} y={w.y} width={WIN_W} height={WIN_H} fill="url(#mineral)" opacity="0.7" />
-			{/if}
-			{#if !(clean && has('screens'))}
-				<rect x={w.x} y={w.y + WIN_H / 2} width={WIN_W} height={WIN_H / 2} fill="url(#mesh)" />
-			{/if}
-			<rect x={w.x} y={w.y} width={WIN_W} height={WIN_H} fill="url(#grime)" opacity={d} />
-			<line x1={w.x} x2={w.x + WIN_W} y1={w.y + WIN_H / 2} y2={w.y + WIN_H / 2} stroke="#fffdf7" stroke-width="2" />
-			<!-- Sill and track -->
-			<rect
-				x={w.x - 5}
-				y={w.y + WIN_H + 3}
-				width={WIN_W + 10}
-				height="4"
-				rx="1"
-				fill={clean && has('tracks') ? '#fffdf7' : '#8a7550'}
-			/>
-			{#if clean}
-				<path
-					class="sparkle"
-					d="M{w.x + WIN_W - 3} {w.y - 8} l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 Z"
-					fill="#e8b452"
+	<svg class="photo" viewBox={view}>
+		<defs>
+			<!-- Dust and road film: a soft brown haze with blotchy darker patches -->
+			<filter id="grime" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+				<feFlood flood-color="#7f7462" flood-opacity="0.48" result="film" />
+				<!-- Stretched vertically, so the dirt runs in rain streaks -->
+				<feTurbulence type="fractalNoise" baseFrequency="0.035 0.16" numOctaves="4" seed="4" result="noise" />
+				<feColorMatrix
+					in="noise"
+					type="matrix"
+					values="0 0 0 0 0.33  0 0 0 0 0.29  0 0 0 0 0.23  2.4 0 0 0 -0.85"
+					result="blotches"
 				/>
-			{/if}
-		</g>
-	{/each}
+				<feMerge>
+					<feMergeNode in="film" />
+					<feMergeNode in="blotches" />
+				</feMerge>
+				<feComposite in2="SourceAlpha" operator="in" />
+			</filter>
+			<!-- Hard-water spots: scattered pale mineral specks -->
+			<filter id="mineral" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+				<feTurbulence type="turbulence" baseFrequency="0.45" numOctaves="1" seed="9" result="noise" />
+				<feColorMatrix
+					in="noise"
+					type="matrix"
+					values="0 0 0 0 0.96  0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 7 -4.4"
+				/>
+				<feComposite in2="SourceAlpha" operator="in" />
+			</filter>
+			<radialGradient id="smear">
+				<stop offset="0" stop-color="#f1ede4" stop-opacity="0.45" />
+				<stop offset="1" stop-color="#f1ede4" stop-opacity="0" />
+			</radialGradient>
+			<pattern id="mesh" width="2.5" height="2.5" patternUnits="userSpaceOnUse">
+				<path d="M0 0H2.5M0 0V2.5" stroke="#2c2c28" stroke-width="0.5" opacity="0.45" />
+			</pattern>
+		</defs>
+		<image href={photo.src} width={photo.width} height={photo.height} preserveAspectRatio="xMidYMid slice">
+			<title>{photo.alt}</title>
+		</image>
+		{#each photo.windows as rect, i (i)}
+			{@render pane(i, rect, `Front window ${i + 1}`)}
+		{/each}
+	</svg>
 
-	<!-- Lawn -->
-	<rect x="0" y={groundY} width={sceneW} height={sceneH - groundY} fill="#6f8f4f" />
-	<rect x="0" y={groundY} width={sceneW} height="4" fill="#5d7d42" />
-</svg>
+	{#if tiles.length}
+		<p class="tiles-label">Around the back and sides</p>
+		<div class="tiles">
+			{#each tiles as t (t.i)}
+				<svg class="tile" viewBox={tileBox(t.rect)}>
+					<image href={photo.src} width={photo.width} height={photo.height} />
+					{@render pane(t.i, t.rect, `Back or side window ${t.i - front + 1}`)}
+				</svg>
+			{/each}
+		</div>
+	{/if}
+</div>
+
+<p class="credit">
+	Photo: <a href={photo.credit.source} rel="noopener" target="_blank">{photo.credit.author}</a>,
+	<a href={photo.credit.licenseUrl} rel="noopener license" target="_blank">{photo.credit.license}</a>, via Wikimedia
+	Commons. Dirt added.
+</p>
 
 <style>
-	.scene {
-		display: block;
-		width: 100%;
-		height: auto;
-		max-height: 62vh;
-		border-radius: var(--radius);
+	.stage {
 		/* Rubbing must not scroll the page. */
 		touch-action: none;
 		user-select: none;
 		-webkit-user-select: none;
 		cursor: grab;
-		box-shadow: var(--shadow);
 	}
 
-	.scene:active {
+	.stage:active {
 		cursor: grabbing;
+	}
+
+	.photo {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+		background: var(--line);
+	}
+
+	.tiles-label {
+		margin: 14px 0 6px;
+		font-size: 0.9rem;
+		color: var(--ink-soft);
+	}
+
+	.tiles {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+		gap: 8px;
+	}
+
+	.tile {
+		display: block;
+		width: 100%;
+		aspect-ratio: 3 / 4;
+		border-radius: 6px;
+		background: var(--line);
 	}
 
 	.win {
 		outline: none;
 	}
 
-	.win:focus-visible rect:first-child {
+	.win:focus-visible .hit {
 		stroke: var(--accent);
-		stroke-width: 3;
+		stroke-width: 4;
 	}
 
-	.sparkle {
-		transform-box: fill-box;
-		transform-origin: center;
-		animation: pop 0.7s ease-out forwards;
+	.shine {
+		animation: shine 0.8s ease-out forwards;
+		pointer-events: none;
 	}
 
-	@keyframes pop {
-		0% {
-			transform: scale(0.2) rotate(0deg);
+	@keyframes shine {
+		from {
+			opacity: 0.55;
+		}
+		to {
 			opacity: 0;
-		}
-		40% {
-			transform: scale(1.4) rotate(30deg);
-			opacity: 1;
-		}
-		100% {
-			transform: scale(1) rotate(45deg);
-			opacity: 0.85;
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.sparkle {
+		.shine {
 			animation: none;
+			opacity: 0;
 		}
+	}
+
+	.credit {
+		margin: 6px 0 0;
+		font-size: 0.75rem;
+		color: var(--ink-soft);
+	}
+
+	.credit a {
+		color: inherit;
 	}
 </style>

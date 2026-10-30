@@ -3,16 +3,18 @@
 	import { tick } from 'svelte';
 	import HouseScene from '$lib/components/HouseScene.svelte';
 	import { pricing, timeWindowLabels, type AddOnKey, type Stories, type TimeWindow } from '$lib/config';
+	import { housePhotos } from '$lib/photos';
 	import { computeQuote, formatUsd } from '$lib/pricing';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	/** The scene can draw this many windows; bigger homes add a note and get sized up on site. */
-	const MAX_DRAWN = 48;
+	/** Back-and-side tiles the scene will draw; bigger homes add a note and get sized up on site. */
+	const MAX_EXTRA = 40;
 
 	let stories = $state<Stories>(2);
-	let dirt = $state<number[]>(Array(12).fill(1));
+	let extra = $state(6);
+	let dirt = $state<number[]>(Array(housePhotos[2].windows.length + 6).fill(1));
 	let inside = $state(false);
 	let addons = $state<AddOnKey[]>([]);
 	let booking = $state(false);
@@ -42,9 +44,16 @@
 		{ key: 'hard_water', title: 'Hard-water spots', how: 'Mineral spotting lifted from the glass.' }
 	];
 
-	function setWindowCount(n: number) {
-		n = Math.min(MAX_DRAWN, Math.max(1, n));
-		dirt = n > dirt.length ? [...dirt, ...Array(n - dirt.length).fill(1)] : dirt.slice(0, n);
+	function setStories(s: Stories) {
+		stories = s;
+		// A new photo has different windows; start it grimy.
+		dirt = Array(housePhotos[s].windows.length + extra).fill(1);
+	}
+
+	function setExtra(n: number) {
+		extra = Math.min(MAX_EXTRA, Math.max(0, n));
+		const total = housePhotos[stories].windows.length + extra;
+		dirt = total > dirt.length ? [...dirt, ...Array(total - dirt.length).fill(1)] : dirt.slice(0, total);
 	}
 
 	function toggleAddOn(key: AddOnKey) {
@@ -73,7 +82,7 @@
 
 <section class="intro">
 	<h1>Wipe away the windows you don't want to clean.</h1>
-	<p class="muted">Rub or tap each grimy window. We'll make it disappear, and the price updates as you go.</p>
+	<p class="muted">Pick the house most like yours, then rub or tap each grimy window you'd rather not clean yourself. The price updates as you go.</p>
 </section>
 
 <section class="stage stack">
@@ -86,19 +95,19 @@
 						type="button"
 						class:on={stories === s}
 						aria-pressed={stories === s}
-						onclick={() => (stories = s as Stories)}>{s}{s === 3 ? '+' : ''}</button
+						onclick={() => setStories(s as Stories)}>{s}{s === 3 ? '+' : ''}</button
 					>
 				{/each}
 			</div>
 		</fieldset>
 		<fieldset>
-			<legend>Windows on the house</legend>
+			<legend>More windows around back</legend>
 			<div class="stepper">
-				<button type="button" aria-label="Fewer windows" onclick={() => setWindowCount(dirt.length - 1)}
+				<button type="button" aria-label="Fewer back and side windows" onclick={() => setExtra(extra - 1)}
 					>−</button
 				>
-				<output aria-live="polite">{dirt.length}</output>
-				<button type="button" aria-label="More windows" onclick={() => setWindowCount(dirt.length + 1)}
+				<output aria-live="polite">{extra}</output>
+				<button type="button" aria-label="More back and side windows" onclick={() => setExtra(extra + 1)}
 					>+</button
 				>
 			</div>
@@ -113,8 +122,9 @@
 			>Start over</button
 		>
 	</div>
-	{#if dirt.length === MAX_DRAWN}
-		<p class="muted small">More than {MAX_DRAWN} windows? Wipe them all and mention it in your notes; we'll size it up on site.</p>
+	<p class="muted small">{dirt.length} windows in all · {wiped} for us</p>
+	{#if extra === MAX_EXTRA}
+		<p class="muted small">Even more? Wipe them all and mention it in your notes; we'll size it up on site.</p>
 	{/if}
 </section>
 

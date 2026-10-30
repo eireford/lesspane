@@ -3,7 +3,7 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The whole quote is **one screen**: a drawing of the house with grimy windows. Customers rub or tap away the
+The whole quote is **one screen**: a real house photo with grimy windows. Customers rub or tap away the
 windows they don't want to clean themselves, switch on other problems (inside smudges, screens, tracks,
 hard water), watch the price update live, then book on the same page. A confirmation page follows,
 plus a password-protected owner page at `/admin`.
@@ -43,7 +43,8 @@ Commit `package-lock.json` after the first install.
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
-| `src/lib/components/HouseScene.svelte` | The interactive house: rub or tap to wipe windows |
+| `src/lib/components/HouseScene.svelte` | The interactive house photo: rub or tap to wipe windows |
+| `src/lib/photos.ts`, `static/photos/` | House photos (1, 2, 3 stories), their window positions and credits |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
 | `firestore.rules` | Denies all direct client access to Firestore |
@@ -130,6 +131,17 @@ DNS records at Squarespace (same for both domains; the Squarespace default A and
 | `@` | AAAA | `2001:4860:4802:32::15`, `2001:4860:4802:34::15`, `2001:4860:4802:36::15`, `2001:4860:4802:38::15` |
 | `www` | CNAME | `ghs.googlehosted.com.` |
 | `@` | TXT | `google-site-verification=…` (proves ownership to Google; keep it) |
+
+## Photo credits
+
+House photos are from Wikimedia Commons and are credited under the scene on the page. Dirt effects are drawn
+over them in the browser; the files are unmodified.
+
+- 1 story: Cape Cod style house, Ewing, NJ — Famartin, CC BY-SA 4.0
+- 2 stories: Meredith House, Cambridge, MD — Preservation Maryland, CC BY-SA 2.0
+- 3 stories: Lednum House, Easton, MD — Bmzuckerman, CC BY 4.0
+
+To swap a photo, replace the file and re-measure its window rectangles in `src/lib/photos.ts`.
 
 ## Deliberately left out
 
