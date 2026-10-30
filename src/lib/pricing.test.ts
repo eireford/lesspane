@@ -10,9 +10,9 @@ const p = {
 	storyFactor: { 1: 1, 2: 1.2, 3: 1.5 },
 	serviceFactor: { exterior: 1, interior_exterior: 1.8 },
 	addOns: {
-		screens: { label: 'Screens', price: 25 },
-		tracks: { label: 'Tracks', price: 30 },
-		hard_water: { label: 'Hard water', price: 60 }
+		screens: { label: 'Screens', price: 25, per: 'visit' },
+		tracks: { label: 'Tracks', price: 30, per: 'visit' },
+		hard_water: { label: 'Hard water', price: 4, per: 'window' }
 	}
 } as typeof pricing;
 
@@ -33,6 +33,13 @@ describe('computeQuote', () => {
 		// 200 + 25 + 30
 		expect(q.total).toBe(255);
 		expect(q.lines).toHaveLength(3);
+	});
+
+	it('charges per-window add-ons for every window', () => {
+		const q = computeQuote({ windows: 20, stories: 2, service: 'exterior', addons: ['hard_water'] }, p);
+		// 20 × 10 × 1.2 = 240, plus 20 × 4 = 80; story factor does not apply to add-ons
+		expect(q.lines[1]).toEqual({ label: 'Hard water (20 × $4)', amount: 80 });
+		expect(q.total).toBe(320);
 	});
 
 	it('never goes below the minimum job price', () => {

@@ -23,6 +23,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
  * price = max(minimum, round(windows × rate × storyFactor × serviceFactor + Σ add-ons))
+ * where a per-window add-on costs windows × its price and a per-visit add-on its flat price.
  */
 export function computeQuote(input: QuoteInput, p: Pricing = defaultPricing): Quote {
 	const windowsAmount = round2(
@@ -39,7 +40,15 @@ export function computeQuote(input: QuoteInput, p: Pricing = defaultPricing): Qu
 	// De-duplicate add-ons so a repeated query param can't double-charge.
 	for (const key of [...new Set(input.addons)]) {
 		const addOn = p.addOns[key];
-		if (addOn) lines.push({ label: addOn.label, amount: addOn.price });
+		if (!addOn) continue;
+		lines.push(
+			addOn.per === 'window'
+				? {
+						label: `${addOn.label} (${input.windows} × ${formatUsd(addOn.price)})`,
+						amount: round2(input.windows * addOn.price)
+					}
+				: { label: addOn.label, amount: addOn.price }
+		);
 	}
 
 	const subtotal = round2(lines.reduce((sum, line) => sum + line.amount, 0));

@@ -34,8 +34,8 @@ Commit `package-lock.json` after the first install.
 
 | Path | What it is |
 | --- | --- |
-| `src/lib/config.ts` | **All business settings**: per-window rate, factors, add-ons, minimum, service-area ZIPs. Placeholder values. |
-| `src/lib/pricing.ts` | Quote formula: `max(minimum, round(windows × rate × story × service + add-ons))` |
+| `src/lib/config.ts` | **All business settings**: per-window rate, factors, add-ons, minimum, service-area ZIPs. Prices are market estimates; ZIPs are placeholders. |
+| `src/lib/pricing.ts` | Quote formula: `max(minimum, round(windows × rate × story × service + add-ons))`; add-ons are per window or per visit |
 | `src/lib/validation.ts` | Input checks shared by all screens |
 | `src/lib/server/store.ts` | `quote_requests` storage: Firestore or local JSON file |
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
@@ -49,7 +49,7 @@ Prices are always recomputed on the server; the browser never sends a price.
 
 ## Before the pilot
 
-- [ ] Set real prices and the service-area ZIP list in `src/lib/config.ts`
+- [ ] Confirm the estimated prices against local competitor quotes, and set the service-area ZIP list, in `src/lib/config.ts`
 - [ ] Replace placeholder copy on the price page (what's included, when payment is due)
 - [ ] Set `OWNER_EMAIL`, and verify `lesspane.com` as a sending domain in Resend
 

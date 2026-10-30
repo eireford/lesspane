@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { pricing, serviceLabels, type AddOnKey, type ServiceType } from '$lib/config';
+	import { pricing, serviceLabels, type AddOn, type AddOnKey, type ServiceType } from '$lib/config';
 	import { formatUsd } from '$lib/pricing';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	const addOnEntries = Object.entries(pricing.addOns) as [AddOnKey, { label: string; price: number }][];
+	const addOnEntries = Object.entries(pricing.addOns) as [AddOnKey, AddOn][];
 	const serviceEntries = Object.entries(serviceLabels) as [ServiceType, string][];
 </script>
 
@@ -105,7 +105,7 @@
 			{#each addOnEntries as [value, addOn]}
 				<label class="choice">
 					<input type="checkbox" name="addons" {value} checked={data.raw.addons.includes(value)} />
-					<span>{addOn.label} <span class="hint">+{formatUsd(addOn.price)}</span></span>
+					<span>{addOn.label} <span class="hint">+{formatUsd(addOn.price)}{addOn.per === 'window' ? '/window' : ''}</span></span>
 				</label>
 			{/each}
 		</div>
