@@ -55,40 +55,43 @@ Prices are always recomputed on the server; the browser never sends a price.
 
 ## Deploy to Google Cloud
 
-One-time setup (replace `PROJECT_ID`):
+The app has its own Google Cloud project, **`lesspane`** (billed to the "primary" billing account).
+One-time setup is already done:
 
-```bash
-gcloud config set project PROJECT_ID
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
-  artifactregistry.googleapis.com firestore.googleapis.com secretmanager.googleapis.com
+| Resource | Value |
+| --- | --- |
+| APIs | Run, Cloud Build, Artifact Registry, Firestore, Secret Manager |
+| Container registry | `us-west1-docker.pkg.dev/lesspane/lesspane` |
+| Firestore | `(default)` database, Native mode, `us-west1` |
+| Secret | `lesspane-admin-password` (random; read it with the command below) |
+| Runtime account | `lesspane-run@`: Cloud Datastore User; Secret Accessor on its own secrets only |
+| Deployer account | `lesspane-build@`: Run Admin, Artifact Registry Writer, Log Writer, Storage Object Viewer, Service Account User on `lesspane-run` |
 
-# Container registry
-gcloud artifacts repositories create lesspane --repository-format=docker --location=us-west1
-
-# Firestore database (Native mode)
-gcloud firestore databases create --location=us-west1
-
-# Secrets
-printf 'a-long-random-password' | gcloud secrets create lesspane-admin-password --data-file=-
-printf 're_your_resend_key'     | gcloud secrets create lesspane-resend-api-key --data-file=-
-```
-
-Grant permissions (find the numbers in IAM; the defaults are shown):
-
-- Cloud Run runtime service account (`PROJECT_NUMBER-compute@developer.gserviceaccount.com`):
-  **Cloud Datastore User** and **Secret Manager Secret Accessor**.
-- Cloud Build service account: **Cloud Run Admin**, **Service Account User**, **Artifact Registry Writer**.
+Your gcloud default project may be a different one, so pass `--project lesspane` to every command.
 
 Deploy:
 
 ```bash
-gcloud builds submit --config cloudbuild.yaml
-gcloud run services update lesspane --region us-west1 \
+gcloud builds submit --project lesspane --config cloudbuild.yaml
+gcloud run services update lesspane --project lesspane --region us-west1 \
   --update-env-vars OWNER_EMAIL=you@example.com,EMAIL_FROM="LessPane <hello@lesspane.com>"
 ```
 
-No Resend account yet? Remove `RESEND_API_KEY=…` from the `--update-secrets` line in
-`cloudbuild.yaml`; emails will be logged to Cloud Logging instead.
+Admin password for the deployed `/admin` page:
+
+```bash
+gcloud secrets versions access latest --secret lesspane-admin-password --project lesspane
+```
+
+Emails are logged to Cloud Logging until Resend is set up. To turn them on:
+
+```bash
+printf 're_your_resend_key' | gcloud secrets create lesspane-resend-api-key --data-file=- --project lesspane
+gcloud secrets add-iam-policy-binding lesspane-resend-api-key --project lesspane \
+  --member serviceAccount:lesspane-run@lesspane.iam.gserviceaccount.com --role roles/secretmanager.secretAccessor
+```
+
+then append `,RESEND_API_KEY=lesspane-resend-api-key:latest` to the `--update-secrets` line in `cloudbuild.yaml`.
 
 To deploy on every push, connect the GitHub repo in Cloud Build → Triggers, pointing at `cloudbuild.yaml`.
 
