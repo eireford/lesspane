@@ -18,8 +18,7 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 
 | Command | What it does | When |
 | --- | --- | --- |
-| `npm run dev` | Dev server at http://localhost:5173 with hot reload | Always running while you work |
-| `npm run dev:phone` | Same, but reachable from other devices on your network | Trying swipes and drags on a real phone |
+| `npm run dev` | Dev server at http://localhost:5173 with hot reload, also in your Windows browser | Always running while you work |
 | `npm run smoke` | Headless Chromium plays every control with real gestures and screenshots each step into `.shots/` | After any UI change |
 | `npm run smoke -- --book` | …and submits a booking (local servers only) | After touching the form or server code |
 | `npm run test:watch` | Unit tests (pricing, validation), rerun on save | Changing `src/lib/pricing.ts`, `validation.ts` or `config.ts` |
@@ -46,27 +45,32 @@ Screenshots are numbered by step, and a failing step saves `NN-FAILED-….png`. 
 a control, update the selectors in the script (`.house-stack .swipe`, `.glass`, `.flip`, `.sticker`,
 `.chip`, `.day`, `.sky`, `.amount`, `.send`).
 
+## Opening it from Windows (WSL)
+
+WSL runs in its default **NAT** networking mode, where Windows forwards `localhost` into WSL. So http://localhost:5173
+works in Chrome on Windows while `npm run dev` runs in WSL. The dev server listens on `::` (IPv6 and IPv4),
+because Chrome tries `localhost` as `::1` first.
+
+Don't switch WSL to `networkingMode=mirrored` in `C:\Users\eiref\.wslconfig`. On this PC, mirrored mode dropped
+every connection from Windows to WSL, even with the Hyper-V firewall opened.
+
+If http://localhost:5173 stops loading:
+
+1. Check the dev server is running in WSL: `ss -ltn | grep 5173`.
+2. Try http://127.0.0.1:5173.
+3. Restart WSL from PowerShell with `wsl --shutdown`, then reopen the terminal and run `npm run dev`.
+   Forwarding sometimes stops after Windows sleeps or the network changes.
+
 ## Testing on a phone
 
-Touch gestures behave differently from a mouse, so check swipes and drags on a real phone.
+Touch gestures behave differently from a mouse, so check swipes and drags on a real phone. In NAT mode
+your phone can't reach the dev server directly, so the quickest route is staging:
 
-1. Run `npm run dev:phone`. Vite prints `Network:` addresses.
-2. On a phone on the same Wi-Fi, open the address that matches your computer's LAN IP (for example
-   `http://10.0.0.71:5173`).
-
-On Windows with WSL, this works when WSL uses mirrored networking (the LAN address appears in the
-`Network:` list). If the phone can't connect, allow the port through the Windows firewall from an
-administrator PowerShell:
-
-```powershell
-New-NetFirewallRule -DisplayName "LessPane dev" -Direction Inbound -Protocol TCP -LocalPort 5173 -Action Allow
+```bash
+npm run deploy:staging     # current working tree to https://lesspane.net in about 2 minutes
 ```
 
-With mirrored networking you may also need to allow it through the Hyper-V firewall:
-
-```powershell
-Set-NetFirewallHyperVVMSetting -Name '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -DefaultInboundAction Allow
-```
+Then open https://lesspane.net on the phone (any network).
 
 ## The production container
 

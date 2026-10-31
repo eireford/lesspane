@@ -5,8 +5,7 @@
   "type": "module",
   "description": "LessPane prototype: instant window washing quotes and booking requests.",
   "scripts": {
-    "dev": "vite dev",
-    "dev:phone": "vite dev --host 0.0.0.0",
+    "dev": "vite dev --host ::",
     "build": "vite build",
     "preview": "vite preview",
     "start": "node build",

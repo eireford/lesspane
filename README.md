@@ -30,8 +30,8 @@ npm run dev               # http://localhost:5173
 Locally, requests are saved to `.data/requests.json` and emails are printed to the terminal,
 so you need no Google Cloud or email account to try the whole flow.
 
-**[docs/development.md](docs/development.md)** covers the fast loop: phone testing, the headless smoke
-test (`npm run smoke`), sample data for `/admin`, running the production container, and one-command
+**[docs/development.md](docs/development.md)** covers the fast loop: opening it from Windows, phone testing, the headless
+smoke test (`npm run smoke`), sample data for `/admin`, running the production container, and one-command
 staging deploys.
 
 ## Where things live
