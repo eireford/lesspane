@@ -43,6 +43,17 @@ so you need no Google Cloud or email account to try the whole flow.
 smoke test (`npm run smoke`), sample data for `/admin`, running the production container, and one-command
 staging deploys.
 
+### Manage your booking (no accounts)
+
+Customers never create an account. Each request gets a private link, `/manage/<token>`, shown on the thanks page
+and included in the confirmation email. It shows the booking and, until the visit day, lets the customer pick a
+new day and time (the request goes back to "new" for you to reconfirm) or cancel. You and the customer are
+emailed about every change.
+
+The token is 24 random bytes. Only its SHA-256 hash is stored (`manage_hash`), so the database alone can't open a
+booking; a wrong link returns 404. The page sends `noindex` and `no-store`. Older requests made before this
+feature have no link.
+
 ## Where things live
 
 | Path | What it is |
@@ -55,6 +66,7 @@ staging deploys.
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
 | `src/routes/+page.svelte`, `src/routes/quote/` | Landing page with packages; the quick-questions steps and summary |
+| `src/routes/manage/[token]/` | The customer's private manage page: view, reschedule, cancel |
 | `src/routes/book/` | Booking page: day and time, contact details, and the server action that saves the request |
 | `src/lib/components/` | `LayoutSketch` (the drawing for each step), `SketchWindow`, `SwipeCard`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
 | `src/lib/layout.ts` | The layout model: floors, sides, window buckets, defaults, and query-string encoding |

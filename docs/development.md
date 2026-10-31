@@ -20,7 +20,7 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 | --- | --- | --- |
 | `npm run dev` | Dev server at http://localhost:5173 with hot reload, also in your Windows browser | Always running while you work |
 | `npm run smoke` | Headless Chromium plays every control with real gestures and screenshots each step into `.shots/` | After any UI change |
-| `npm run smoke -- --book` | …and submits a booking (local servers only) | After touching the form or server code |
+| `npm run smoke -- --book` | …and submits a booking, then reschedules and cancels it from the manage link (local servers only) | After touching the form or server code |
 | `npm run test:watch` | Unit tests (pricing, validation), rerun on save | Changing `src/lib/pricing.ts`, `validation.ts` or `config.ts` |
 | `npm run check:watch` | Type check, rerun on save | Larger refactors |
 | `npm run seed` | Adds 8 sample requests so `/admin` has data (`-- --reset` replaces them) | Working on the owner page |
@@ -90,7 +90,7 @@ for all Docker use, remove `"credsStore": "desktop.exe"` from `~/.docker/config.
 | Thing | Where |
 | --- | --- |
 | Quote requests | `.data/requests.json` (delete the file to start fresh) |
-| Emails | The `npm run dev` terminal |
+| Emails (including the manage link) | The `npm run dev` terminal |
 | Owner page | http://localhost:5173/admin, password from `ADMIN_PASSWORD` in `.env` |
 | Smoke screenshots | `.shots/` (ignored by git) |
 

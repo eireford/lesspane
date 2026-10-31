@@ -19,6 +19,8 @@ See `README.md` for the product and infrastructure, and `docs/development.md` fo
   white, with short hand-lettered labels.
 - All prices are recomputed on the server (`src/routes/book/+page.server.ts`); the browser never sends one.
 - Business numbers live only in `src/lib/config.ts`.
+- No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
+  Store only the token's hash, never the token.
 - Pushing to `main` deploys staging (lesspane.net); only a `v*` tag deploys production (lesspane.com).
   Confirm with the user before tagging.
 - The snap-packaged Chromium can't read or write `/tmp`; keep browser profiles and screenshots under the project.

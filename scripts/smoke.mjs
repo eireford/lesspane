@@ -286,7 +286,35 @@ if (opts.book) {
 		expect((await js('location.pathname')) === '/quote/thanks', 'did not reach the confirmation page');
 		return await js(`document.querySelector('h1')?.textContent`);
 	});
+
+	await step('Manage link: reschedule, then cancel', async () => {
+		const href = await js(`document.querySelector('a[href^="/manage/"]')?.getAttribute('href')`);
+		expect(href, 'no manage link on the thanks page');
+		await tap(at(await box('a[href^="/manage/"]'), 0.5, 0.5));
+		for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.booking')`)); i++) await sleep(250);
+		await sleep(800);
+		const before = await js(`document.querySelector('.when').textContent.trim()`);
+		await js(`document.querySelectorAll('.day')[6].click()`);
+		await sleep(300);
+		await js(`document.querySelector('form.change button[type=submit]').click()`);
+		for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.notice')`)); i++) await sleep(250);
+		const after = await js(`document.querySelector('.when').textContent.trim()`);
+		expect(after !== before, `day did not change (${after})`);
+		await js(`document.querySelector('.cancel .link').click()`);
+		await sleep(300);
+		await js(`document.querySelector('.cancel .danger').click()`);
+		for (let i = 0; i < 40 && (await js(`document.querySelector('.status')?.textContent.trim()`)) !== 'Cancelled'; i++) await sleep(250);
+		expect((await js(`document.querySelector('.status').textContent.trim()`)) === 'Cancelled', 'not cancelled');
+		expect(!(await js(`!!document.querySelector('form.change')`)), 'still offers changes after cancelling');
+		return `${before} → ${after} → Cancelled`;
+	});
 }
+
+await step('A wrong manage link shows not found', async () => {
+	const res = await fetch(new URL('/manage/' + 'x'.repeat(32), opts.url));
+	expect(res.status === 404, `expected 404, got ${res.status}`);
+	return '404';
+});
 
 if (pageErrors.length) fail(`page errors:\n  ${pageErrors.join('\n  ')}`);
 console.log(`\nAll ${results.length} steps passed.`);

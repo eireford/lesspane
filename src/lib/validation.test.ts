@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDaysIso, parseContact, parseHomeDetails, parseJob, todayIso } from './validation';
+import { addDaysIso, parseContact, parseHomeDetails, parseJob, parseWhen, todayIso } from './validation';
 
 const home = (overrides: Record<string, string | string[]> = {}) => {
 	const base: Record<string, string | string[]> = {
@@ -76,5 +76,18 @@ describe('parseJob', () => {
 	it('rejects a job with no windows', () => {
 		const job = parseJob(new URLSearchParams('stories=2&windows=0&service=exterior'));
 		expect(job.ok).toBe(false);
+	});
+});
+
+describe('parseWhen', () => {
+	const now = new Date('2026-06-01T15:00:00Z');
+	it('accepts a day in the booking window and a time of day', () => {
+		const r = parseWhen(new URLSearchParams('preferredDate=2026-06-05&preferredWindow=afternoon'), now);
+		expect(r.ok && r.value).toEqual({ preferredDate: '2026-06-05', preferredWindow: 'afternoon' });
+	});
+	it('rejects today and unknown times', () => {
+		const r = parseWhen(new URLSearchParams('preferredDate=2026-06-01&preferredWindow=evening'), now);
+		expect(r.ok).toBe(false);
+		if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(['preferredDate', 'preferredWindow']);
 	});
 });

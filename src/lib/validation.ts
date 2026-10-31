@@ -128,6 +128,26 @@ export function bookingDateRange(now = new Date()) {
 	};
 }
 
+/** Just the day and time: used when booking and when rescheduling from a "manage your booking" link. */
+export function parseWhen(
+	src: Source,
+	now = new Date()
+): Result<{ preferredDate: string; preferredWindow: TimeWindow }, { preferredDate: string; preferredWindow: string }> {
+	const raw = { preferredDate: str(src, 'preferredDate'), preferredWindow: str(src, 'preferredWindow') };
+	const errors: FieldErrors = {};
+	const { min, max } = bookingDateRange(now);
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(raw.preferredDate)) {
+		errors.preferredDate = 'Pick a preferred day.';
+	} else if (raw.preferredDate < min || raw.preferredDate > max) {
+		errors.preferredDate = 'Pick a day between tomorrow and two months from now.';
+	}
+	if (raw.preferredWindow !== 'morning' && raw.preferredWindow !== 'afternoon') {
+		errors.preferredWindow = 'Choose morning or afternoon.';
+	}
+	if (Object.keys(errors).length) return { ok: false, errors, raw };
+	return { ok: true, value: { preferredDate: raw.preferredDate, preferredWindow: raw.preferredWindow as TimeWindow } };
+}
+
 export function parseContact(src: Source, now = new Date()): Result<ContactDetails, RawContact> {
 	const raw: RawContact = {
 		preferredDate: str(src, 'preferredDate'),
@@ -137,18 +157,8 @@ export function parseContact(src: Source, now = new Date()): Result<ContactDetai
 		email: str(src, 'email'),
 		notes: str(src, 'notes')
 	};
-	const errors: FieldErrors = {};
-	const { min, max } = bookingDateRange(now);
-
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(raw.preferredDate)) {
-		errors.preferredDate = 'Pick a preferred day.';
-	} else if (raw.preferredDate < min || raw.preferredDate > max) {
-		errors.preferredDate = 'Pick a day between tomorrow and two months from now.';
-	}
-
-	if (raw.preferredWindow !== 'morning' && raw.preferredWindow !== 'afternoon') {
-		errors.preferredWindow = 'Choose morning or afternoon.';
-	}
+	const when = parseWhen(src, now);
+	const errors: FieldErrors = when.ok ? {} : { ...when.errors };
 
 	if (raw.name.length < 2 || raw.name.length > 80) errors.name = 'Enter your name.';
 

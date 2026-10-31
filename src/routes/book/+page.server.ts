@@ -69,7 +69,7 @@ export const actions: Actions = {
 		// Recompute: never trust a price sent from the browser.
 		const quote = computeQuote(home.value);
 
-		const record = await saveRequest({
+		const { record, manageToken } = await saveRequest({
 			address: home.value.address,
 			zip: home.value.zip,
 			stories: home.value.stories,
@@ -85,8 +85,9 @@ export const actions: Actions = {
 			notes: contact.value.notes
 		});
 
-		await notifyNewRequest(record, url.origin);
+		await notifyNewRequest(record, url.origin, manageToken);
 
-		redirect(303, `/quote/thanks?id=${record.id}`);
+		// The thanks page shows the manage link once, so it can be used before the email arrives.
+		redirect(303, `/quote/thanks?id=${record.id}&t=${manageToken}`);
 	}
 };

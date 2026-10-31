@@ -48,7 +48,9 @@ function summary(r: QuoteRequest): string {
 	].join('\n');
 }
 
-export async function notifyNewRequest(r: QuoteRequest, origin: string): Promise<void> {
+const manageLink = (origin: string, token: string) => `${origin}/manage/${token}`;
+
+export async function notifyNewRequest(r: QuoteRequest, origin: string, manageToken: string): Promise<void> {
 	const firstName = r.name.split(' ')[0];
 
 	await send({
@@ -62,6 +64,11 @@ export async function notifyNewRequest(r: QuoteRequest, origin: string): Promise
 			summary(r),
 			'',
 			"We'll text you at the number you gave us to confirm the exact time.",
+			'',
+			'Need to change the day or cancel? Use your private link (no account needed):',
+			manageLink(origin, manageToken),
+			'',
+			'Keep this email: anyone with the link can change your booking.',
 			'',
 			'LessPane'
 		].join('\n')
@@ -81,6 +88,46 @@ export async function notifyNewRequest(r: QuoteRequest, origin: string): Promise
 				'',
 				`All requests: ${origin}/admin`
 			].join('\n')
+		});
+	}
+}
+
+/** Tells the customer and the owner when a booking is rescheduled or cancelled from the customer's link. */
+export async function notifyCustomerChange(
+	r: QuoteRequest,
+	origin: string,
+	change: 'rescheduled' | 'cancelled'
+): Promise<void> {
+	const firstName = r.name.split(' ')[0];
+	const what =
+		change === 'cancelled'
+			? 'Your window cleaning request is cancelled.'
+			: `Your window cleaning is now requested for ${r.preferred_date}, ${timeWindowLabels[r.preferred_window].toLowerCase()}.`;
+
+	await send({
+		to: r.email,
+		subject: change === 'cancelled' ? 'Your LessPane request is cancelled' : 'Your LessPane request has a new time',
+		text: [
+			`Hi ${firstName},`,
+			'',
+			what,
+			change === 'cancelled' ? 'Changed your mind? Start a new request any time.' : "We'll text you to confirm the exact time.",
+			'',
+			change === 'cancelled' ? origin : summary(r),
+			'',
+			'LessPane'
+		].join('\n')
+	});
+
+	if (env.OWNER_EMAIL) {
+		await send({
+			to: env.OWNER_EMAIL,
+			replyTo: r.email,
+			subject:
+				change === 'cancelled'
+					? `Cancelled by customer: ${r.name}, ${r.preferred_date}`
+					: `Rescheduled by customer: ${r.name}, now ${r.preferred_date} ${r.preferred_window}`,
+			text: [`${r.name} · ${r.phone} · ${r.email}`, '', summary(r), '', `All requests: ${origin}/admin`].join('\n')
 		});
 	}
 }

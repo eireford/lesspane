@@ -29,6 +29,10 @@
 		<p class="muted">
 			A copy is on its way to {data.summary.email}. We'll text you to confirm the exact time.
 		</p>
+		{#if data.manageUrl}
+			<a class="btn block ghost" href={data.manageUrl}>Change the day or cancel</a>
+			<p class="muted small">The same private link is in your email. No account needed.</p>
+		{/if}
 	{:else}
 		<h1>Request received</h1>
 		<p class="muted">We'll text you to confirm the exact time.</p>
@@ -37,6 +41,12 @@
 </section>
 
 <style>
+	.small {
+		margin: 0;
+		font-size: 0.85rem;
+		text-align: center;
+	}
+
 	.check {
 		width: 56px;
 		height: 56px;

@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Firestore } from '@google-cloud/firestore';
@@ -26,6 +26,13 @@ export type QuoteRequest = {
 	email: string;
 	notes: string;
 	status: RequestStatus;
+	/**
+	 * SHA-256 of the secret in the customer's "manage your booking" link. The link itself is only ever emailed
+	 * and shown once; with just the database, nobody can open a booking. Missing on older requests.
+	 */
+	manage_hash?: string;
+	/** Set when the customer reschedules or cancels from their link. */
+	updated_at?: string;
 };
 
 export type NewQuoteRequest = Omit<QuoteRequest, 'id' | 'created_at' | 'status'>;
@@ -37,6 +44,8 @@ interface Store {
 	get(id: string): Promise<QuoteRequest | null>;
 	list(limit: number): Promise<QuoteRequest[]>;
 	setStatus(id: string, status: RequestStatus): Promise<void>;
+	update(id: string, fields: Partial<QuoteRequest>): Promise<void>;
+	findByManageHash(hash: string): Promise<QuoteRequest | null>;
 }
 
 // ---------- Firestore (Cloud Run) ----------
@@ -73,6 +82,13 @@ const firestoreStore: Store = {
 	},
 	async setStatus(id, status) {
 		await (await db()).collection(COLLECTION).doc(id).update({ status });
+	},
+	async update(id, fields) {
+		await (await db()).collection(COLLECTION).doc(id).update(fields);
+	},
+	async findByManageHash(hash) {
+		const snap = await (await db()).collection(COLLECTION).where('manage_hash', '==', hash).limit(1).get();
+		return snap.empty ? null : (snap.docs[0].data() as QuoteRequest);
 	}
 };
 
@@ -108,12 +124,18 @@ const fileStore: Store = {
 			.slice(0, limit);
 	},
 	async setStatus(id, status) {
+		await this.update(id, { status });
+	},
+	async update(id, fields) {
 		const rows = await readAll();
 		const row = rows.find((r) => r.id === id);
 		if (row) {
-			row.status = status;
+			Object.assign(row, fields);
 			await writeAll(rows);
 		}
+	},
+	async findByManageHash(hash) {
+		return (await readAll()).find((r) => r.manage_hash === hash) ?? null;
 	}
 };
 
@@ -121,15 +143,30 @@ const store = (): Store => (env.STORAGE === 'firestore' ? firestoreStore : fileS
 
 // ---------- Public API ----------
 
-export async function saveRequest(input: NewQuoteRequest): Promise<QuoteRequest> {
+const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
+
+/** Saves a new request. Returns it with the one-time secret for its "manage your booking" link. */
+export async function saveRequest(input: NewQuoteRequest): Promise<{ record: QuoteRequest; manageToken: string }> {
+	const manageToken = randomBytes(24).toString('base64url');
 	const record: QuoteRequest = {
 		...input,
 		id: randomUUID(),
 		created_at: new Date().toISOString(),
-		status: 'new'
+		status: 'new',
+		manage_hash: hashToken(manageToken)
 	};
 	await store().save(record);
-	return record;
+	return { record, manageToken };
+}
+
+/** The request a "manage your booking" link points to, or null for a wrong or malformed link. */
+export async function getRequestByManageToken(token: string): Promise<QuoteRequest | null> {
+	if (!/^[A-Za-z0-9_-]{32}$/.test(token)) return null;
+	return store().findByManageHash(hashToken(token));
+}
+
+export async function updateRequest(id: string, fields: Partial<QuoteRequest>): Promise<void> {
+	await store().update(id, { ...fields, updated_at: new Date().toISOString() });
 }
 
 export const getRequest = (id: string) => store().get(id);
