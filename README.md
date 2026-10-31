@@ -109,7 +109,8 @@ Your gcloud default project may be a different one, so pass `--project lesspane`
 | Admin secret | `lesspane-staging-admin-password` | `lesspane-admin-password` |
 | Deploys when | you push to `main` (trigger `lesspane-staging`) | you push a `v*` tag (trigger `lesspane-production`) |
 
-Staging sends `X-Robots-Tag: noindex` so it stays out of search results.
+Staging sends `X-Robots-Tag: noindex` so it stays out of search results. It also serves a feature tour for demos
+at https://lesspane.net/deck (`/deck#3` opens slide 3); production returns 404 there.
 
 Release to production after checking staging:
 
