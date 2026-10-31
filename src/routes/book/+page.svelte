@@ -3,6 +3,7 @@
 	import { untrack } from 'svelte';
 	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
+	import Journey from '$lib/components/Journey.svelte';
 	import SketchDefs from '$lib/components/SketchDefs.svelte';
 	import SunDial from '$lib/components/SunDial.svelte';
 	import type { AddOnKey, TimeWindow } from '$lib/config';
@@ -36,6 +37,8 @@
 </svelte:head>
 
 <SketchDefs />
+
+<Journey stage={2} />
 
 <!-- What's being booked, with a way back to change it -->
 <section class="summary">
@@ -73,6 +76,7 @@
 	<!-- When: pick a day, drag the sun -->
 	<section class="play" aria-label="When: pick a day and drag the sun">
 		<p class="cue"><Icon name="calendar" size={18} /><span class="label">When</span><span class="hint">pick a day, drag the sun ☀</span></p>
+		<p class="why"><Icon name="info" size={16} /> Pick what suits you. We’ll text to confirm the exact time within that window.</p>
 		<SunDial min={data.dateRange.min} max={data.dateRange.max} bind:date bind:time />
 		{#if errors.preferredDate}<p class="error">{errors.preferredDate}</p>{/if}
 	</section>
@@ -103,6 +107,11 @@
 	<section class="card who" aria-label="Where and who">
 		<div class="stack">
 			<p class="cue"><Icon name="pin" size={18} /><span class="label">Where and who</span></p>
+			<ul class="whys">
+				<li><Icon name="pin" size={15} /> Address: to check we serve your area and plan the visit.</li>
+				<li><Icon name="phone" size={15} /> Mobile: we text to confirm the time. No marketing.</li>
+				<li><Icon name="mail" size={15} /> Email: a copy of your request and estimate.</li>
+			</ul>
 			<div class="row addr">
 				{@render field('address', 'pin', 'Street address', { type: 'text', autocomplete: 'street-address', required: true })}
 				{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5, required: true })}
@@ -197,6 +206,31 @@
 
 	.who {
 		margin-top: 22px;
+	}
+
+	.why {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		margin: -4px 0 10px;
+		font-size: 0.92rem;
+		color: var(--ink-soft);
+	}
+
+	.whys {
+		display: grid;
+		gap: 2px;
+		margin: -6px 0 4px;
+		padding: 0;
+		list-style: none;
+		font-size: 0.88rem;
+		color: var(--ink-soft);
+	}
+
+	.whys li {
+		display: flex;
+		align-items: center;
+		gap: 6px;
 	}
 
 	.sr {

@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
+	import Journey from '$lib/components/Journey.svelte';
 	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
 	import SketchDefs from '$lib/components/SketchDefs.svelte';
 	import SwipeCard, { type SwipeDir } from '$lib/components/SwipeCard.svelte';
@@ -107,6 +108,15 @@
 		step.kind === 'floors' ? 'home' : step.kind === 'sides' ? 'back' : step.kind === 'windows' ? 'window' : 'sparkle'
 	);
 
+	/** One line under each step's title: why we're asking. */
+	const why = $derived.by(() => {
+		if (step.kind === 'floors') return 'Upper floors need ladders and take longer, so they cost a little more per window.';
+		if (step.kind === 'sides') return 'We only price the walls you want cleaned. Skip any you don’t.';
+		if (step.kind === 'windows')
+			return 'Count the windows you can see on this floor. A rough range is fine; your technician confirms on arrival.';
+		return 'This is your estimate. Nothing is booked yet, and there’s nothing to pay now.';
+	});
+
 	function next() {
 		at = Math.min(at + 1, steps.length - 1);
 	}
@@ -147,6 +157,18 @@
 
 <SketchDefs />
 
+<!-- What this is and how it works, before anyone is asked anything -->
+{#if at === 0}
+	<section class="intro">
+		<h1>Clean windows, priced in a minute.</h1>
+		<p>
+			Answer a few quick questions about your house and see your price right away. Then pick a time and we’ll text
+			you to confirm. No account, no payment up front, no waiting for a callback.
+		</p>
+	</section>
+{/if}
+<Journey stage={step.kind === 'summary' ? 1 : 0} />
+
 <!-- Live estimate, always in view -->
 <div class="price-bar" aria-live="polite">
 	<span class="label-stack">
@@ -185,6 +207,7 @@
 
 <section class="flow" aria-live="polite">
 	<p class="cue"><Icon name={icon} size={20} /><span class="title">{title}</span></p>
+	<p class="why"><Icon name="info" size={16} /> {why}</p>
 
 	{#if step.kind !== 'summary'}
 		{#key `${at}-${options.index}`}
@@ -338,6 +361,32 @@
 	.limits ul {
 		padding-left: 1.1rem;
 		margin: 6px 0;
+	}
+
+	/* ---------- Intro and journey ---------- */
+
+	.intro h1 {
+		margin: 0 0 6px;
+		font-size: clamp(1.9rem, 8vw, 2.5rem);
+		line-height: 1.05;
+	}
+
+	.intro p {
+		margin: 0 0 14px;
+		color: var(--ink-soft);
+	}
+
+	.why {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		margin: -4px 0 12px;
+		font-size: 0.92rem;
+		color: var(--ink-soft);
+	}
+
+	.why :global(svg) {
+		margin-top: 3px;
 	}
 
 	/* ---------- Progress ---------- */
