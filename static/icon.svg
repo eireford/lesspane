@@ -11,13 +11,13 @@
 		</linearGradient>
 	</defs>
 	<rect width="512" height="512" rx="112" fill="url(#bg)" />
-	<!-- Glass with one shine streak in a lower pane, then the frame, muntins and sill -->
+	<!-- Glass with one shine streak in a lower pane, then the frame, muntins and sill in thin black lines -->
 	<path d="M156 408 V222 A100 100 0 0 1 356 222 V408 Z" fill="url(#glass)" />
 	<path d="M282 330 L328 376" stroke="#ffffff" stroke-width="11" stroke-linecap="round" opacity="0.9" />
-	<g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
-		<path d="M156 408 V222 A100 100 0 0 1 356 222 V408 Z" stroke-width="24" />
-		<path d="M256 122 V408 M156 222 H356 M156 312 H356" stroke-width="13" />
-		<path d="M256 222 L186 152 M256 222 L326 152" stroke-width="10" />
-		<path d="M128 428 H384" stroke-width="24" />
+	<g fill="none" stroke="#2b2a26" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M156 408 V222 A100 100 0 0 1 356 222 V408 Z" stroke-width="12" />
+		<path d="M256 122 V408 M156 222 H356 M156 312 H356" stroke-width="7" />
+		<path d="M256 222 L186 152 M256 222 L326 152" stroke-width="6" />
+		<path d="M128 426 H384" stroke-width="12" />
 	</g>
 </svg>
