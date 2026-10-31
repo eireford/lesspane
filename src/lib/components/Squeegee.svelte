@@ -57,6 +57,7 @@
 		onkeydown={onKey}
 	>
 		<svg class="dirt" preserveAspectRatio="none" aria-hidden="true">
+			<rect width="100%" height="100%" fill="#c9b48e" opacity="0.55" />
 			<rect width="100%" height="100%" fill="url(#hatch)" opacity="0.8" />
 		</svg>
 		<div class="wiped" style="width: {pct}%"></div>
@@ -69,8 +70,8 @@
 			<!-- A pencil squeegee: handle, head, and the rubber blade across the glass -->
 			<svg viewBox="0 0 40 90" class="tool" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round">
 				<g filter="url(#pencil)">
-					<rect x="15" y="1" width="10" height="30" rx="5" fill="var(--paper)" />
-					<rect x="5" y="30" width="30" height="9" rx="2" fill="var(--paper)" />
+					<rect x="15" y="1" width="10" height="30" rx="5" fill="var(--sun)" />
+					<rect x="5" y="30" width="30" height="9" rx="2" fill="var(--coral)" />
 					<path d="M20 39 V89" stroke-width="3.5" />
 				</g>
 			</svg>
@@ -116,8 +117,8 @@
 		border-radius: 255px 0 0 15px / 15px 0 0 255px;
 		/* Clean paper with a few shine strokes */
 		background:
-			repeating-linear-gradient(120deg, transparent 0 34px, #9fb5b9 34px 35.5px, transparent 35.5px 46px),
-			var(--paper);
+			repeating-linear-gradient(120deg, transparent 0 34px, #ffffff 34px 37px, transparent 37px 46px),
+			var(--glass);
 	}
 
 	.panes i {
@@ -162,7 +163,7 @@
 		padding: 0 8px;
 		border: 1.5px solid var(--ink);
 		border-radius: var(--sketchy);
-		background: var(--paper);
+		background: var(--highlight);
 		color: var(--ink);
 		font-family: var(--hand);
 		font-size: 1.1rem;

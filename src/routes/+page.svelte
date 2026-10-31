@@ -98,7 +98,7 @@
 
 <!-- 1. House: swipe the card -->
 <section class="play" aria-label="Your kind of house: swipe to change">
-	<p class="cue" aria-hidden="true"><Icon name="home" size={18} /><span class="gesture">⟷</span></p>
+	<p class="cue" aria-hidden="true" style="color: var(--coral)"><Icon name="home" size={18} /><span class="gesture">⟷</span></p>
 	<div class="house-stack">
 		{#key pick}
 			<SwipeCard bind:this={card} dirs={['left', 'right']} onswipe={onHouseSwipe} label={`${house.name}. Swipe for another house.`}>
@@ -117,18 +117,18 @@
 
 <!-- 2. How many windows: pull the squeegee -->
 <section class="play" aria-label="How many windows: pull the squeegee">
-	<p class="cue" aria-hidden="true"><Icon name="window" size={18} /><span class="gesture">⟶</span></p>
+	<p class="cue" aria-hidden="true" style="color: var(--lake)"><Icon name="window" size={18} /><span class="gesture">⟶</span></p>
 	<Squeegee bind:value={windows} max={MAX_WINDOWS} />
 </section>
 
 <!-- 3 + 4. Both sides? Flip the window. Extras? Peel the stickers. -->
 <section class="play pair">
 	<div aria-label="Inside too: flip the window">
-		<p class="cue" aria-hidden="true"><Icon name="hand" size={18} /><span class="gesture">↻</span></p>
+		<p class="cue" aria-hidden="true" style="color: var(--berry)"><Icon name="hand" size={18} /><span class="gesture">↻</span></p>
 		<FlipWindow bind:inside extra={insideCost} />
 	</div>
 	<div aria-label="Extra problems: peel off the stickers">
-		<p class="cue" aria-hidden="true"><Icon name="sparkle" size={18} /><span class="gesture">⤴</span></p>
+		<p class="cue" aria-hidden="true" style="color: var(--marigold)"><Icon name="sparkle" size={18} /><span class="gesture">⤴</span></p>
 		<PeelPane bind:addons cost={addOnCost} />
 	</div>
 </section>
@@ -166,6 +166,9 @@
 		font-weight: 400;
 		letter-spacing: -0.02em;
 		color: var(--brand);
+		/* Highlighter swipe under the price */
+		padding: 0 4px;
+		background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 92%, transparent 92%);
 	}
 
 	.parts {

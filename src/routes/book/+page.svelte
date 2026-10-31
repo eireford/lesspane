@@ -145,11 +145,15 @@
 	}
 
 	.amount {
+		display: inline-block;
 		margin: 0;
 		font-family: var(--hand);
 		font-size: 2.4rem;
 		line-height: 1;
 		color: var(--brand);
+		/* Highlighter swipe under the price */
+		padding: 0 4px;
+		background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 92%, transparent 92%);
 	}
 
 	.parts {

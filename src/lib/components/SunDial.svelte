@@ -109,8 +109,12 @@
 		onkeydown={onKey}
 	>
 		<rect width={W} height={H} fill="var(--paper)" />
-		<!-- Afternoon: the sky gets a light pencil shading -->
-		<rect class="pm-wash" width={W} height={CY} fill="url(#shade)" />
+		<g filter="url(#wash)">
+			<rect width={W} height={CY} fill="var(--sky-wash)" />
+			<!-- Afternoon: the sky warms to peach -->
+			<rect class="pm-wash" width={W} height={CY} fill="#fcd2a8" />
+			<rect y={CY} width={W} height={H - CY} fill="var(--grass)" opacity="0.8" />
+		</g>
 		<g fill="none" stroke="var(--ink)" stroke-linecap="round" filter="url(#pencil)">
 			<path d="M{CX - R} {CY} A{R} {R} 0 0 1 {CX + R} {CY}" stroke-width="1.4" stroke-dasharray="5 7" />
 			<line x1={CX} y1={CY - R - 6} x2={CX} y2={CY} stroke-width="1" opacity="0.6" />
@@ -123,7 +127,7 @@
 		<text x="16" y={CY - 12} class="hours">8–12</text>
 		<text x={W - 16} y={CY - 12} class="hours" text-anchor="end">12–5</text>
 		<g class="sun" class:dragging style="transform: translate({sun.x}px, {sun.y}px)">
-			<g fill="var(--paper)" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" filter="url(#pencil)">
+			<g fill="var(--sun)" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" filter="url(#pencil)">
 				<circle r="13" />
 				{#each Array(8) as _, k}
 					{@const a = (k * Math.PI) / 4}

@@ -1,13 +1,13 @@
 :root {
-	/* Sketchbook: graphite on paper, with a muted pine for actions. */
+	/* Sketchbook: graphite lines with watercolor washes on white; leaf green for actions. */
 	--ink: #2b2a26; /* graphite */
 	--ink-soft: #6b675d;
 	--sky: #ffffff; /* page background */
 	--paper: #ffffff;
 	--line: #d9d3c4;
-	--brand: #4d5e47; /* muted pine */
+	--brand: #2f8f6a; /* leaf green */
 	--brand-ink: #ffffff;
-	--brand-soft: #ebeee5;
+	--brand-soft: #dcf2e6;
 	--accent: #a07a52;
 	--water: #627e84;
 	--bark: #6f5b49;
@@ -17,6 +17,17 @@
 	--sketchy: 255px 15px 225px 15px / 15px 225px 15px 255px;
 	--shadow: 2px 3px 0 rgb(43 42 38 / 0.12);
 	--hand: 'Patrick Hand', 'Comic Neue', 'Segoe Print', cursive;
+	/* Watercolor box: cheerful washes under the pencil lines */
+	--sky-wash: #cfeaf7;
+	--glass: #dff1fa;
+	--sun: #ffc93c;
+	--grass: #8cc96b;
+	--coral: #ef7b5f;
+	--berry: #d65a8a;
+	--teal: #2fa59a;
+	--lake: #3a8fc7;
+	--marigold: #f2a33a;
+	--highlight: #fff1a8;
 	color-scheme: light;
 }
 

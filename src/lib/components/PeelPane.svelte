@@ -7,10 +7,10 @@
 	// away, or tap it) and that problem gets fixed; it drops into the tray below, where a tap sticks it back.
 	let { addons = $bindable(), cost }: { addons: AddOnKey[]; cost: (key: AddOnKey) => string } = $props();
 
-	const stickers: { key: AddOnKey; icon: IconName; label: string; at: [number, number] }[] = [
-		{ key: 'hard_water', icon: 'drop', label: 'Hard-water spots', at: [66, 22] },
-		{ key: 'screens', icon: 'mesh', label: 'Dusty screens', at: [32, 56] },
-		{ key: 'tracks', icon: 'track', label: 'Grimy tracks and sills', at: [64, 82] }
+	const stickers: { key: AddOnKey; icon: IconName; label: string; at: [number, number]; color: string }[] = [
+		{ key: 'hard_water', icon: 'drop', label: 'Hard-water spots', at: [66, 22], color: '#bfe3f7' },
+		{ key: 'screens', icon: 'mesh', label: 'Dusty screens', at: [32, 56], color: '#c9ecc0' },
+		{ key: 'tracks', icon: 'track', label: 'Grimy tracks and sills', at: [64, 82], color: '#ffd59e' }
 	];
 
 	const peeled = (key: AddOnKey) => addons.includes(key);
@@ -68,7 +68,7 @@
 					type="button"
 					class="sticker"
 					class:lifting={!!d}
-					style="left: {s.at[0]}%; top: {s.at[1]}%; transform: translate(calc(-50% + {d?.dx ?? 0}px), calc(-50% + {d?.dy ?? 0}px)) rotate({(d?.dx ?? 0) / 6}deg) scale({d ? 1.15 : 1})"
+					style="--tint: {s.color}; left: {s.at[0]}%; top: {s.at[1]}%; transform: translate(calc(-50% + {d?.dx ?? 0}px), calc(-50% + {d?.dy ?? 0}px)) rotate({(d?.dx ?? 0) / 6}deg) scale({d ? 1.15 : 1})"
 					aria-label={`${s.label}: peel off to fix, adds ${cost(s.key)}`}
 					onpointerdown={(e) => onDown(e, s.key)}
 					onpointermove={onMove}
@@ -117,12 +117,12 @@
 		display: grid;
 		justify-items: center;
 		gap: 0;
-		width: 70px;
-		height: 70px;
+		width: 78px;
+		height: 78px;
 		padding: 9px 0 0;
 		border: 2px solid var(--ink);
 		border-radius: 52% 48% 55% 45% / 47% 53% 46% 54%;
-		background: #ffffff;
+		background: var(--tint);
 		color: var(--ink);
 		box-shadow: 2px 2px 0 rgb(43 42 38 / 0.18);
 		cursor: grab;

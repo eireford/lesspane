@@ -3,7 +3,7 @@
 	import type { AddOnKey } from '$lib/config';
 	import { SKETCH_H, SKETCH_W, type HouseSketch } from '$lib/sketches';
 
-	// A pencil sketch of the house. The first `clean` windows are wiped; the rest stay hatched with dirt,
+	// A watercolor-and-pencil sketch of the house. The first `clean` windows are wiped; the rest stay hatched with dirt,
 	// so the squeegee's count shows on the house itself. Fixed problems vanish from clean windows.
 	let {
 		house,
@@ -20,9 +20,17 @@
 <div class="house">
 	<svg viewBox="0 0 {SKETCH_W} {SKETCH_H}" role="img" aria-label={house.name}>
 		<rect width={SKETCH_W} height={SKETCH_H} fill="var(--paper)" />
-		<!-- Roof shading, then the outline twice with different wobble so it looks drawn -->
+		<!-- Watercolor washes: sky, grass, walls, roof, door. Then shading and the pencil outline. -->
+		<g filter="url(#wash)">
+			<path d="M0 0 H{SKETCH_W} V190 Q{SKETCH_W * 0.5} 150 0 196 Z" fill="var(--sky-wash)" opacity="0.8" />
+			<circle cx="350" cy="44" r="20" fill="var(--sun)" opacity="0.85" />
+			<path d="M0 270 Q120 262 200 268 T{SKETCH_W} 266 V{SKETCH_H} H0 Z" fill="var(--grass)" opacity="0.75" />
+			{#each house.walls as [d, color]}<path {d} fill={color} opacity="0.9" />{/each}
+			{#each house.lines.filter((d) => d.trim().endsWith('Z')) as d}<path {d} fill={house.roof} opacity="0.85" />{/each}
+			<rect x={dx} y={dy} width={dw} height={dh} fill={house.doorColor} opacity="0.9" />
+		</g>
 		{#each house.lines.filter((d) => d.trim().endsWith('Z')) as d}
-			<path {d} fill="url(#shade)" />
+			<path {d} fill="url(#shade)" opacity="0.6" />
 		{/each}
 		<g fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
 			<g filter="url(#pencil)">

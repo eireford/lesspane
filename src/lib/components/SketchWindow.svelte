@@ -30,7 +30,7 @@
 </script>
 
 <g class="window">
-	<rect {x} {y} width={w} height={h} fill="#ffffff" />
+	<rect {x} {y} width={w} height={h} fill="var(--glass)" />
 	<g opacity={faint}>
 	{#if smudges}
 		<!-- A hand print smeared on the inside -->
@@ -46,13 +46,13 @@
 	{#if screens}<rect {x} y={y + h / 2} width={w} height={h / 2} fill="url(#mesh)" />{/if}
 	</g>
 	<rect class="dirt" {x} {y} width={w} height={h} fill="url(#hatch)" opacity={dirt * 0.85} />
-	<rect class="dirt" {x} {y} width={w} height={h} fill="#8b8170" opacity={dirt * 0.14} />
+	<rect class="dirt" {x} {y} width={w} height={h} fill="#9c8462" opacity={dirt * 0.35} />
 	{#if dirt === 0}
 		<!-- A couple of shine strokes on clean glass -->
 		<path
 			d="M{x + w * 0.62} {y + h * 0.12} l{w * 0.22} {h * 0.16} M{x + w * 0.56} {y + h * 0.24} l{w * 0.14} {h * 0.1}"
-			stroke="#9fb5b9"
-			stroke-width={stroke * 0.9}
+			stroke="#ffffff"
+			stroke-width={stroke * 1.4}
 			stroke-linecap="round"
 		/>
 	{/if}

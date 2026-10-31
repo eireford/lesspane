@@ -10,6 +10,12 @@
 			<feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="11" result="n" />
 			<feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G" />
 		</filter>
+		<!-- Watercolor: soft wobbly edges so fills look painted, not printed -->
+		<filter id="wash" x="-5%" y="-5%" width="110%" height="110%">
+			<feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="7" result="n" />
+			<feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G" result="d" />
+			<feGaussianBlur in="d" stdDeviation="0.7" />
+		</filter>
 		<!-- Dirt: dense diagonal pencil hatching -->
 		<pattern id="hatch" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
 			<line x1="0" y1="0" x2="0" y2="3.2" stroke="#5d564a" stroke-width="0.9" />

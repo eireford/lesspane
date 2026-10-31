@@ -37,6 +37,12 @@
 	<span class="card">
 		<span class="face front">
 			<svg viewBox="0 0 120 160" aria-hidden="true">
+				<g filter="url(#wash)">
+					<rect width="120" height="128" fill="var(--sky-wash)" />
+					<rect y="126" width="120" height="34" fill="#f7df8f" opacity="0.9" />
+					<circle cx="98" cy="18" r="9" fill="var(--sun)" />
+					<path d="M6 160 q6 -20 16 -6 q6 -14 14 2 q6 -10 10 4 Z M84 160 q6 -16 14 -4 q6 -12 12 2 q4 -6 8 2 Z" fill="var(--grass)" />
+				</g>
 				<g fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" filter="url(#pencil)">
 					<!-- Sun, siding and a shrub: we're outside -->
 					<circle cx="98" cy="18" r="8" />
@@ -51,7 +57,12 @@
 		</span>
 		<span class="face back">
 			<svg viewBox="0 0 120 160" aria-hidden="true">
+				<rect width="120" height="160" fill="#fde3c8" filter="url(#wash)" />
 				<SketchWindow rect={[26, 30, 68, 92]} smudges />
+				<g filter="url(#wash)" opacity="0.85">
+					<path d="M14 24 H34 q4 40 -4 104 H12 q6 -50 2 -104 Z" fill="var(--berry)" />
+					<path d="M106 24 H86 q-4 40 4 104 H108 q-6 -50 -2 -104 Z" fill="var(--berry)" />
+				</g>
 				<g fill="none" stroke="var(--ink)" stroke-width="1.4" stroke-linecap="round" filter="url(#pencil)">
 					<!-- Curtains and a rod: we're inside -->
 					<path d="M14 24 H106" stroke-width="2" />
@@ -137,7 +148,7 @@
 		padding: 0 8px;
 		border: 1.5px solid var(--ink);
 		border-radius: var(--sketchy);
-		background: var(--paper);
+		background: var(--highlight);
 		font-family: var(--hand);
 		font-size: 1.05rem;
 	}

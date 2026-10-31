@@ -12,6 +12,10 @@ export type HouseSketch = {
 	/** Outline strokes: ground, walls, roof, chimneys, porch. Closed paths (ending in Z) get roof shading. */
 	lines: string[];
 	door: Rect;
+	/** Watercolor: each wall as a closed path with its paint, then the roof and door paint. */
+	walls: [path: string, color: string][];
+	roof: string;
+	doorColor: string;
 	/** In wiping order: ground floor first, so a low squeegee count cleans the easy ones. */
 	windows: Rect[];
 };
@@ -34,6 +38,9 @@ export const houses: HouseSketch[] = [
 			'M176 210 L200 196 L224 210'
 		],
 		door: [186, 212, 28, 60],
+		walls: [['M70 272 V122 H330 V272 Z', '#f7df8f']],
+		roof: '#d9604c',
+		doorColor: '#3a8fc7',
 		windows: [
 			[88, 214, 34, 44], [140, 214, 34, 44], [226, 214, 34, 44], [278, 214, 34, 44],
 			[88, 142, 34, 44], [140, 142, 34, 44], [186, 144, 28, 38], [226, 142, 34, 44], [278, 142, 34, 44]
@@ -53,6 +60,9 @@ export const houses: HouseSketch[] = [
 			'M80 205 V272 M220 205 V272'
 		],
 		door: [155, 218, 30, 54],
+		walls: [['M70 272 V122 H230 V272 Z', '#bfe3b4'], ['M230 272 V176 H340 V272 Z', '#d7eecf']],
+		roof: '#5b77a8',
+		doorColor: '#ef7b5f',
 		windows: [
 			[90, 220, 36, 44], [250, 196, 34, 40], [296, 196, 34, 40],
 			[94, 140, 34, 46], [172, 140, 34, 46], [137, 82, 26, 28]
@@ -72,6 +82,9 @@ export const houses: HouseSketch[] = [
 			'M188 272 L178 296 M212 272 L222 296'
 		],
 		door: [185, 214, 30, 58],
+		walls: [['M110 272 V170 H290 V272 Z', '#f9c3b0']],
+		roof: '#6c8fc7',
+		doorColor: '#f2a33a',
 		windows: [
 			[128, 192, 38, 44], [234, 192, 38, 44], [189, 130, 22, 24]
 		]
@@ -89,6 +102,9 @@ export const houses: HouseSketch[] = [
 			'M180 160 V138 L200 124 L220 138 V160'
 		],
 		door: [200, 218, 30, 54],
+		walls: [['M80 272 V178 H320 V272 Z', '#a9d8ea']],
+		roof: '#9a6a4f',
+		doorColor: '#d65a5a',
 		windows: [
 			[110, 218, 36, 40], [150, 218, 36, 40], [252, 218, 40, 40], [188, 140, 24, 18]
 		]
@@ -106,6 +122,9 @@ export const houses: HouseSketch[] = [
 			'M282 124 V96 H298 V124'
 		],
 		door: [186, 212, 28, 60],
+		walls: [['M90 272 V192 H310 V272 Z', '#dcc8f0']],
+		roof: '#4f7f8f',
+		doorColor: '#ffc93c',
 		windows: [
 			[104, 210, 34, 42], [142, 210, 34, 42], [224, 210, 34, 42], [262, 210, 34, 42],
 			[142, 148, 24, 24], [234, 148, 24, 24]
@@ -123,6 +142,9 @@ export const houses: HouseSketch[] = [
 			'M48 190 H140'
 		],
 		door: [178, 204, 24, 68],
+		walls: [['M60 272 V190 H300 V272 Z', '#f6b26b'], ['M140 190 V110 H360 V190 Z', '#8fd0cf']],
+		roof: '#4a4a4a',
+		doorColor: '#2fa59a',
 		windows: [
 			[74, 204, 88, 52], [214, 204, 72, 52], [156, 124, 122, 50], [290, 124, 56, 50]
 		]
@@ -139,6 +161,9 @@ export const houses: HouseSketch[] = [
 			'M250 229 H340 M250 244 H340 M250 258 H340'
 		],
 		door: [150, 220, 26, 52],
+		walls: [['M40 272 V198 H360 V272 Z', '#f3d59a']],
+		roof: '#b9513c',
+		doorColor: '#3a8fc7',
 		windows: [
 			[58, 216, 40, 34], [102, 216, 40, 34], [192, 216, 44, 34]
 		]
@@ -158,6 +183,9 @@ export const houses: HouseSketch[] = [
 			'M120 222 V272 M310 222 V272'
 		],
 		door: [222, 230, 28, 42],
+		walls: [['M110 272 V102 H300 V272 Z', '#c3aee6'], ['M70 272 V92 H120 V272 Z', '#f5a9bf']],
+		roof: '#4b5d8f',
+		doorColor: '#2f8f6a',
 		windows: [
 			[140, 232, 30, 34], [82, 226, 26, 34],
 			[140, 170, 30, 38], [240, 170, 30, 38], [82, 168, 26, 34],
@@ -175,6 +203,9 @@ export const houses: HouseSketch[] = [
 			'M206 272 V264 H258 V272 M210 264 V258 H254 V264'
 		],
 		door: [214, 204, 36, 54],
+		walls: [['M130 272 V72 H270 V272 Z', '#e8836a']],
+		roof: '#7a4a3a',
+		doorColor: '#2d5d7b',
 		windows: [
 			[150, 210, 36, 46], [150, 150, 36, 46], [214, 150, 36, 46], [150, 90, 36, 46], [214, 90, 36, 46]
 		]
