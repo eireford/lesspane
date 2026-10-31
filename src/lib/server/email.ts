@@ -1,38 +1,54 @@
 import { env } from '$env/dynamic/private';
 import { pricing, serviceLabels, timeWindowLabels } from '$lib/config';
 import { formatUsd } from '$lib/pricing';
+import { googleFetch, SCOPES } from './google';
+import { rawEmail } from './mime';
 import type { QuoteRequest } from './store';
 
 type Email = { to: string; subject: string; text: string; replyTo?: string };
 
+const FROM = () => env.EMAIL_FROM || 'LessPane <hello@lesspane.com>';
+
 /**
- * Sends through Resend's HTTP API. Without RESEND_API_KEY it logs instead,
- * so local development works with no email account.
- * Never throws: a failed email must not lose a booking request.
+ * Sends one email, picking the first that's configured:
+ *   GMAIL_USER     → Gmail API as that Google Workspace user (domain-wide delegation; see google.ts). The
+ *                    From address (EMAIL_FROM) must be one of that user's send-as addresses.
+ *   RESEND_API_KEY → Resend's HTTP API.
+ *   neither        → logged, so local development works with no email account.
+ * Never throws: a failed email must not lose a booking request. Failures log the email so it isn't lost.
  */
 async function send(email: Email): Promise<void> {
-	if (!env.RESEND_API_KEY) {
-		console.info(`[email:dev] to=${email.to} subject="${email.subject}"\n${email.text}`);
-		return;
-	}
+	const log = (why: string) => console.info(`[email:${why}] to=${email.to} subject="${email.subject}"\n${email.text}`);
 	try {
-		const res = await fetch('https://api.resend.com/emails', {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${env.RESEND_API_KEY}`,
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				from: env.EMAIL_FROM || 'LessPane <hello@lesspane.com>',
-				to: [email.to],
-				subject: email.subject,
-				text: email.text,
-				...(email.replyTo ? { reply_to: email.replyTo } : {})
-			})
-		});
-		if (!res.ok) console.error(`[email] send failed: ${res.status} ${await res.text()}`);
+		if (env.GMAIL_USER) {
+			await googleFetch(env.GMAIL_USER, SCOPES.gmail, `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`, {
+				method: 'POST',
+				body: JSON.stringify({ raw: rawEmail({ from: FROM(), ...email }) })
+			});
+			return;
+		}
+		if (env.RESEND_API_KEY) {
+			const res = await fetch('https://api.resend.com/emails', {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					from: FROM(),
+					to: [email.to],
+					subject: email.subject,
+					text: email.text,
+					...(email.replyTo ? { reply_to: email.replyTo } : {})
+				})
+			});
+			if (!res.ok) {
+				console.error(`[email] Resend failed: ${res.status} ${await res.text()}`);
+				log('unsent');
+			}
+			return;
+		}
+		log('dev');
 	} catch (err) {
 		console.error('[email] send error', err);
+		log('unsent');
 	}
 }
 

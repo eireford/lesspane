@@ -8,7 +8,7 @@ serviceAccount: projects/$PROJECT_ID/serviceAccounts/lesspane-build@$PROJECT_ID.
 
 # Defaults are production (lesspane.com). The staging trigger overrides them:
 #   _SERVICE=lesspane-staging, _APP_ENV=staging, _FIRESTORE_DATABASE=staging,
-#   _ADMIN_SECRET=lesspane-staging-admin-password
+#   _ADMIN_SECRET=lesspane-staging-admin-password, _SESSION_SECRET=lesspane-staging-session-secret
 substitutions:
   _REGION: us-west1 # Oregon; Firestore databases are fixed to us-west1, so keep this here
   _SERVICE: lesspane
@@ -16,6 +16,7 @@ substitutions:
   _APP_ENV: production
   _FIRESTORE_DATABASE: '(default)'
   _ADMIN_SECRET: lesspane-admin-password
+  _SESSION_SECRET: lesspane-session-secret
 
 steps:
   - id: build
@@ -44,7 +45,9 @@ steps:
       - --update-env-vars=STORAGE=firestore,PROTOCOL_HEADER=x-forwarded-proto,APP_ENV=${_APP_ENV},FIRESTORE_DATABASE=${_FIRESTORE_DATABASE}
       # No Resend account yet, so emails are logged. Once you have one, create the
       # lesspane-resend-api-key secret and append: ,RESEND_API_KEY=lesspane-resend-api-key:latest
-      - --update-secrets=ADMIN_PASSWORD=${_ADMIN_SECRET}:latest
+      # Google Workspace settings (GMAIL_USER, EMAIL_FROM, CALENDAR_ID, ADMIN_EMAILS, GOOGLE_CLIENT_ID and the
+      # GOOGLE_CLIENT_SECRET secret) are set once per service and kept across deploys; see README "Google Workspace".
+      - --update-secrets=ADMIN_PASSWORD=${_ADMIN_SECRET}:latest,SESSION_SECRET=${_SESSION_SECRET}:latest
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID

@@ -21,7 +21,8 @@
     "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^7.11.0"
+    "@google-cloud/firestore": "^7.11.0",
+    "google-auth-library": "^9.15.1"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.12",

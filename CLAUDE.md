@@ -21,6 +21,8 @@ See `README.md` for the product and infrastructure, and `docs/development.md` fo
 - Business numbers live only in `src/lib/config.ts`.
 - No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
   Store only the token's hash, never the token.
+- Google Workspace (Gmail send, Calendar, /admin sign-in) is optional and env-driven; locally it's all off
+  (emails log, /admin uses ADMIN_PASSWORD). Gmail/Calendar use keyless domain-wide delegation (`google.ts`).
 - Pushing to `main` deploys staging (lesspane.net); only a `v*` tag deploys production (lesspane.com).
   Confirm with the user before tagging.
 - The snap-packaged Chromium can't read or write `/tmp`; keep browser profiles and screenshots under the project.

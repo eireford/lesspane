@@ -33,6 +33,8 @@ export type QuoteRequest = {
 	manage_hash?: string;
 	/** Set when the customer reschedules or cancels from their link. */
 	updated_at?: string;
+	/** The booking's event on the owner's Google Calendar, when calendar sync is on. */
+	calendar_event_id?: string;
 };
 
 export type NewQuoteRequest = Omit<QuoteRequest, 'id' | 'created_at' | 'status'>;

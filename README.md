@@ -157,6 +157,53 @@ DNS records at Squarespace (same for both domains; the Squarespace default A and
 | `www` | CNAME | `ghs.googlehosted.com.` |
 | `@` | TXT | `google-site-verification=…` (proves ownership to Google; keep it) |
 
+## Google Workspace
+
+LessPane uses the **wedocompute.com** Google Workspace for four things. Each is off until configured, and none
+can lose a booking: failures are logged.
+
+| Feature | Setting (Cloud Run env var) | Status |
+| --- | --- | --- |
+| Owner alerts (new, rescheduled, cancelled) | `OWNER_EMAIL=eire@wedocompute.com` | set on both services |
+| Send email through Gmail, from hello@lesspane.com | `GMAIL_USER=eire@wedocompute.com`, `EMAIL_FROM=LessPane <hello@lesspane.com>` | after setup below |
+| Bookings on Google Calendar (tentative until confirmed; moved on reschedule; removed on cancel) | `CALENDAR_ID` (default: primary calendar of `CALENDAR_USER`, default `GMAIL_USER`) | after setup below |
+| Google sign-in for `/admin` | `GOOGLE_CLIENT_ID`, secret `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAILS=eire@wedocompute.com`, secret `SESSION_SECRET` | `ADMIN_EMAILS` and `SESSION_SECRET` set; client after setup below |
+
+How it connects: Gmail and Calendar calls run as `lesspane-run@lesspane.iam.gserviceaccount.com` using **keyless
+domain-wide delegation** (`src/lib/server/google.ts`): the service account signs a short-lived token naming the
+Workspace user, through the IAM Credentials API. No key files exist.
+
+### One-time setup
+
+1. **Let the service account sign its own tokens** (Google Cloud):
+   ```bash
+   gcloud iam service-accounts add-iam-policy-binding lesspane-run@lesspane.iam.gserviceaccount.com --project lesspane --member=serviceAccount:lesspane-run@lesspane.iam.gserviceaccount.com --role=roles/iam.serviceAccountTokenCreator
+   ```
+2. **Domain-wide delegation** (admin.google.com → Security → Access and data control → API controls → Manage
+   domain-wide delegation → Add new): client ID `101238317875828045942`, scopes
+   `https://www.googleapis.com/auth/gmail.send,https://www.googleapis.com/auth/calendar.events`.
+3. **lesspane.com mail in Workspace** (admin.google.com → Account → Domains → Manage domains → Add a domain →
+   lesspane.com as a **secondary domain**, verify it with the TXT record it shows). Then Directory → Users →
+   eire@wedocompute.com → Add alternate email: `hello@lesspane.com`. In Gmail as eire@wedocompute.com:
+   Settings → Accounts → Send mail as → Add `LessPane <hello@lesspane.com>`.
+4. **lesspane.com DNS at Squarespace**: MX `@` → `1 smtp.google.com`; replace the TXT `v=spf1 -all` with
+   `v=spf1 include:_spf.google.com ~all`; DKIM TXT at `google._domainkey` from admin.google.com → Apps → Gmail →
+   Authenticate email (domain lesspane.com); DMARC TXT at `_dmarc`: `v=DMARC1; p=none; rua=mailto:hello@lesspane.com`.
+5. **OAuth client for /admin sign-in** (console.cloud.google.com, project lesspane → Google Auth Platform):
+   app name LessPane, audience External, publish; Clients → Create client → Web application, redirect URIs
+   `https://lesspane.com/auth/callback`, `https://lesspane.net/auth/callback`. Then:
+   ```bash
+   printf '%s' 'CLIENT_SECRET' | gcloud secrets create lesspane-google-client-secret --data-file=- --project lesspane
+   gcloud secrets add-iam-policy-binding lesspane-google-client-secret --project lesspane --member=serviceAccount:lesspane-run@lesspane.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor
+   ```
+6. **Turn it on** (per service, kept across deploys):
+   ```bash
+   gcloud run services update lesspane-staging --project lesspane --region us-west1 \
+     --update-env-vars GMAIL_USER=eire@wedocompute.com,EMAIL_FROM="LessPane <hello@lesspane.com>",GOOGLE_CLIENT_ID=CLIENT_ID \
+     --update-secrets GOOGLE_CLIENT_SECRET=lesspane-google-client-secret:latest
+   ```
+   Repeat for `lesspane` (production) after staging works.
+
 ## Look and feel
 
 Everything is a pencil sketch with watercolor color on a white page: the house front for the floors step, a

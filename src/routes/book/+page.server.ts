@@ -1,7 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { computeQuote } from '$lib/pricing';
 import { notifyNewRequest } from '$lib/server/email';
-import { saveRequest } from '$lib/server/store';
+import { syncEvent } from '$lib/server/calendar';
+import { saveRequest, updateRequest } from '$lib/server/store';
 import { describeLayout, layoutToSearchParams, parseLayout, totalWindows, type Layout } from '$lib/layout';
 import { bookingDateRange, parseContact, parseHomeDetails, parseJob } from '$lib/validation';
 import type { Actions, PageServerLoad } from './$types';
@@ -86,6 +87,8 @@ export const actions: Actions = {
 		});
 
 		await notifyNewRequest(record, url.origin, manageToken);
+		const eventId = await syncEvent(record, url.origin);
+		if (eventId) await updateRequest(record.id, { calendar_event_id: eventId });
 
 		// The thanks page shows the manage link once, so it can be used before the email arrives.
 		redirect(303, `/quote/thanks?id=${record.id}&t=${manageToken}`);
