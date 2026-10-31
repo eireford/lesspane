@@ -53,7 +53,7 @@
 				</g>
 				<SketchWindow rect={[26, 30, 68, 92]} />
 			</svg>
-			<span class="badge"><Icon name="sun" size={24} /></span>
+			<span class="badge"><Icon name="sun" size={20} /> Outside only</span>
 		</span>
 		<span class="face back">
 			<svg viewBox="0 0 120 160" aria-hidden="true">
@@ -71,7 +71,7 @@
 					<path d="M8 140 H112" stroke-width="2" />
 				</g>
 			</svg>
-			<span class="badge"><Icon name="sun" size={20} /><Icon name="hand" size={20} /></span>
+			<span class="badge"><Icon name="sun" size={18} /><Icon name="hand" size={18} /> Inside + out</span>
 			<span class="extra">{extra}</span>
 		</span>
 	</span>
@@ -133,8 +133,12 @@
 		left: 8px;
 		bottom: 8px;
 		display: inline-flex;
-		gap: 2px;
-		padding: 6px;
+		align-items: center;
+		gap: 3px;
+		padding: 3px 8px;
+		font-family: var(--hand);
+		font-size: 1rem;
+		line-height: 1.1;
 		border: 1.5px solid var(--ink);
 		border-radius: var(--sketchy);
 		background: var(--paper);

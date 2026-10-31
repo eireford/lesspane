@@ -7,10 +7,10 @@
 	// away, or tap it) and that problem gets fixed; it drops into the tray below, where a tap sticks it back.
 	let { addons = $bindable(), cost }: { addons: AddOnKey[]; cost: (key: AddOnKey) => string } = $props();
 
-	const stickers: { key: AddOnKey; icon: IconName; label: string; at: [number, number]; color: string }[] = [
-		{ key: 'hard_water', icon: 'drop', label: 'Hard-water spots', at: [66, 22], color: '#bfe3f7' },
-		{ key: 'screens', icon: 'mesh', label: 'Dusty screens', at: [32, 56], color: '#c9ecc0' },
-		{ key: 'tracks', icon: 'track', label: 'Grimy tracks and sills', at: [64, 82], color: '#ffd59e' }
+	const stickers: { key: AddOnKey; icon: IconName; label: string; short: string; at: [number, number]; color: string }[] = [
+		{ key: 'hard_water', icon: 'drop', label: 'Hard-water spots', short: 'Hard water', at: [66, 22], color: '#bfe3f7' },
+		{ key: 'screens', icon: 'mesh', label: 'Dusty screens', short: 'Screens', at: [32, 56], color: '#c9ecc0' },
+		{ key: 'tracks', icon: 'track', label: 'Grimy tracks and sills', short: 'Tracks', at: [64, 82], color: '#ffd59e' }
 	];
 
 	const peeled = (key: AddOnKey) => addons.includes(key);
@@ -76,7 +76,8 @@
 					onpointercancel={() => (drag = null)}
 					onkeydown={(e) => onKey(e, s.key)}
 				>
-					<Icon name={s.icon} size={26} />
+					<Icon name={s.icon} size={22} />
+					<span class="name">{s.short}</span>
 					<small>{cost(s.key)}</small>
 				</button>
 			{/if}
@@ -86,10 +87,10 @@
 		{#each stickers as s (s.key)}
 			{#if peeled(s.key)}
 				<button type="button" class="chip" aria-label={`${s.label} fixed, ${cost(s.key)}. Tap to undo.`} onclick={() => stickBack(s.key)}>
-					<Icon name="check" size={16} /><Icon name={s.icon} size={20} /><small>{cost(s.key)}</small>
+					<Icon name="check" size={14} /><span class="name">{s.short}</span><small>{cost(s.key)}</small>
 				</button>
 			{:else}
-				<span class="slot" aria-hidden="true"></span>
+				<span class="slot" aria-hidden="true">{s.short}</span>
 			{/if}
 		{/each}
 	</div>
@@ -149,6 +150,14 @@
 		z-index: 2;
 	}
 
+	.sticker .name,
+	.chip .name {
+		font-family: var(--hand);
+		font-size: 0.85rem;
+		line-height: 1;
+		white-space: nowrap;
+	}
+
 	.sticker small {
 		font-family: var(--hand);
 		font-size: 0.85rem;
@@ -192,8 +201,14 @@
 	}
 
 	.slot {
+		display: grid;
+		place-items: center;
 		border: 1.5px dashed var(--line);
 		border-radius: var(--sketchy);
+		font-family: var(--hand);
+		font-size: 0.85rem;
+		color: var(--ink-soft);
+		opacity: 0.6;
 	}
 
 	@keyframes drop {

@@ -137,8 +137,8 @@
 		</g>
 	</svg>
 	<p class="legend" aria-hidden="true">
-		<span class:on={time === 'morning'}><Icon name="sun" size={18} /></span>
-		<span class:on={time === 'afternoon'}><Icon name="sunset" size={18} /></span>
+		<span class:on={time === 'morning'}><Icon name="sun" size={18} /> Morning</span>
+		<span class:on={time === 'afternoon'}>Afternoon <Icon name="sunset" size={18} /></span>
 	</p>
 </div>
 
@@ -239,9 +239,17 @@
 
 	.legend {
 		display: flex;
+		font-family: var(--hand);
+		font-size: 1.05rem;
 		justify-content: space-between;
 		margin: 6px 4px 0;
-		color: var(--line);
+		color: var(--ink-soft);
+	}
+
+	.legend span {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	.legend .on {

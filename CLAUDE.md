@@ -13,7 +13,8 @@ See `README.md` for the product and infrastructure, and `docs/development.md` fo
 
 ## Conventions
 
-- The quote page speaks in icons and imagery; words go in `aria-label`s. Keep every gesture paired with a
+- The UI is pencil sketches with watercolor color. Each control has an icon, a short hand-lettered label and a
+  gesture hint ("slide the squeegee"); fuller descriptions go in `aria-label`s. Keep every gesture paired with a
   tap or keyboard path.
 - All prices are recomputed on the server (`src/routes/+page.server.ts`); the browser never sends one.
 - Business numbers live only in `src/lib/config.ts`.

@@ -44,6 +44,7 @@
 		<HouseCard {house} clean={data.job.windows} inside={data.job.service === 'interior_exterior'} addons={data.job.addons} />
 	</div>
 	<div class="what">
+		<small class="tag">Your estimate</small>
 		<p class="amount">{formatUsd(data.quote.total)}</p>
 		<p class="parts" aria-label={`${data.job.windows} windows`}>
 			<Icon name="window" size={16} />{data.job.windows}
@@ -71,7 +72,7 @@
 
 	<!-- When: pick a day, drag the sun -->
 	<section class="play" aria-label="When: pick a day and drag the sun">
-		<p class="cue" aria-hidden="true"><Icon name="calendar" size={18} /><span class="gesture">☀</span></p>
+		<p class="cue"><Icon name="calendar" size={18} /><span class="label">When</span><span class="hint">pick a day, drag the sun ☀</span></p>
 		<SunDial min={data.dateRange.min} max={data.dateRange.max} bind:date bind:time />
 		{#if errors.preferredDate}<p class="error">{errors.preferredDate}</p>{/if}
 	</section>
@@ -103,6 +104,7 @@
 
 	<section class="card who" aria-label="Where and who">
 		<div class="stack">
+			<p class="cue"><Icon name="pin" size={18} /><span class="label">Where and who</span></p>
 			<div class="row addr">
 				{@render field('address', 'pin', 'Street address', { type: 'text', autocomplete: 'street-address', required: true })}
 				{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5, required: true })}
@@ -114,7 +116,7 @@
 			</div>
 
 			<button class="btn block send" type="submit" disabled={submitting} aria-label={`Request my visit, ${formatUsd(data.quote.total)}`}>
-				{#if submitting}…{:else}<Icon name="check" /> {formatUsd(data.quote.total)}{/if}
+				{#if submitting}…{:else}<Icon name="check" /> Request my visit · {formatUsd(data.quote.total)}{/if}
 			</button>
 			<p class="fine muted">No payment now · we text to confirm</p>
 		</div>
@@ -173,8 +175,23 @@
 		color: var(--brand);
 	}
 
-	.gesture {
-		font-size: 1.1rem;
+	.label {
+		font-family: var(--hand);
+		font-size: 1.3rem;
+		line-height: 1;
+	}
+
+	.hint {
+		margin-left: auto;
+		font-family: var(--hand);
+		font-size: 1rem;
+		color: var(--ink-soft);
+	}
+
+	.tag {
+		display: block;
+		font-family: var(--hand);
+		font-size: 0.95rem;
 		color: var(--ink-soft);
 	}
 

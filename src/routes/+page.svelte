@@ -66,7 +66,10 @@
 
 <!-- Live price, always in view -->
 <div class="price-bar" aria-live="polite">
-	<span class="amount"><Icon name="sparkle" size={22} />{formatUsd(quote.total)}</span>
+	<span class="label-stack">
+		<small class="tag">Estimate</small>
+		<span class="amount"><Icon name="sparkle" size={22} />{formatUsd(quote.total)}</span>
+	</span>
 	<span class="parts" aria-hidden="true">
 		<Icon name="window" size={16} />{windows}
 		{#if inside}<Icon name="hand" size={16} />{/if}
@@ -98,7 +101,7 @@
 
 <!-- 1. House: swipe the card -->
 <section class="play" aria-label="Your kind of house: swipe to change">
-	<p class="cue" aria-hidden="true" style="color: var(--coral)"><Icon name="home" size={18} /><span class="gesture">⟷</span></p>
+	<p class="cue" style="color: var(--coral)"><Icon name="home" size={18} /><span class="label">Your house</span><span class="hint">swipe to change ⟷</span></p>
 	<div class="house-stack">
 		{#key pick}
 			<SwipeCard bind:this={card} dirs={['left', 'right']} onswipe={onHouseSwipe} label={`${house.name}. Swipe for another house.`}>
@@ -117,25 +120,25 @@
 
 <!-- 2. How many windows: pull the squeegee -->
 <section class="play" aria-label="How many windows: pull the squeegee">
-	<p class="cue" aria-hidden="true" style="color: var(--lake)"><Icon name="window" size={18} /><span class="gesture">⟶</span></p>
+	<p class="cue" style="color: var(--lake)"><Icon name="window" size={18} /><span class="label">How many windows</span><span class="hint">slide the squeegee ⟶</span></p>
 	<Squeegee bind:value={windows} max={MAX_WINDOWS} />
 </section>
 
 <!-- 3 + 4. Both sides? Flip the window. Extras? Peel the stickers. -->
 <section class="play pair">
 	<div aria-label="Inside too: flip the window">
-		<p class="cue" aria-hidden="true" style="color: var(--berry)"><Icon name="hand" size={18} /><span class="gesture">↻</span></p>
+		<p class="cue" style="color: var(--berry)"><Icon name="hand" size={18} /><span class="label">Inside too?</span><span class="hint">flip ↻</span></p>
 		<FlipWindow bind:inside extra={insideCost} />
 	</div>
 	<div aria-label="Extra problems: peel off the stickers">
-		<p class="cue" aria-hidden="true" style="color: var(--marigold)"><Icon name="sparkle" size={18} /><span class="gesture">⤴</span></p>
+		<p class="cue" style="color: var(--marigold)"><Icon name="sparkle" size={18} /><span class="label">Extras</span><span class="hint">peel off ⤴</span></p>
 		<PeelPane bind:addons cost={addOnCost} />
 	</div>
 </section>
 
 <!-- Next: pick a time and say where, on the booking page -->
 <a class="btn block book-cta" href={bookHref} aria-label={`Book this, ${formatUsd(quote.total)}`}>
-	<Icon name="calendar" /> {formatUsd(quote.total)} <Icon name="right" />
+	<Icon name="calendar" /> Book a time · {formatUsd(quote.total)} <Icon name="right" />
 </a>
 
 <style>
@@ -176,6 +179,8 @@
 		align-items: center;
 		gap: 3px;
 		margin-right: auto;
+		align-self: flex-end;
+		padding-bottom: 6px;
 		color: var(--ink-soft);
 		font-weight: 650;
 	}
@@ -217,10 +222,30 @@
 		color: var(--brand);
 	}
 
-	.gesture {
-		font-size: 1.1rem;
+	.label {
+		font-family: var(--hand);
+		font-size: 1.3rem;
+		line-height: 1;
+	}
+
+	.hint {
+		margin-left: auto;
+		font-family: var(--hand);
+		font-size: 1rem;
 		color: var(--ink-soft);
+		white-space: nowrap;
 		animation: cue 1.8s ease-in-out infinite;
+	}
+
+	.label-stack {
+		display: grid;
+		line-height: 1;
+	}
+
+	.tag {
+		font-family: var(--hand);
+		font-size: 0.95rem;
+		color: var(--ink-soft);
 	}
 
 	@keyframes cue {
@@ -281,7 +306,7 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.gesture {
+		.hint {
 			animation: none;
 		}
 	}
