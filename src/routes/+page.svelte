@@ -9,6 +9,7 @@
 	import {
 		BUCKETS,
 		FLOOR_NAMES,
+		MAX_SIDES,
 		SIDE_CHOICES,
 		SIDE_NAMES,
 		defaultLayout,
@@ -72,7 +73,7 @@
 		if (step.kind === 'floors')
 			return { count: 3, index: layout.floors - 1, label: (i: number) => `${i + 1} floor${i ? 's' : ''}` };
 		if (step.kind === 'sides')
-			return { count: 4, index: layout.sides - 1, label: (i: number) => SIDE_CHOICES[(i + 1) as Sides] };
+			return { count: MAX_SIDES, index: layout.sides - 1, label: (i: number) => SIDE_CHOICES[(i + 1) as Sides] };
 		if (step.kind === 'windows') {
 			const s = step;
 			return {

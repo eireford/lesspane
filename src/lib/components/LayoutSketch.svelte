@@ -18,7 +18,7 @@
 	const H = 300;
 	const GROUND = 268;
 	const FLOOR_H = 58;
-	const walls = ['#f7df8f', '#bfe3b4', '#a9d8ea', '#f9c3b0'];
+	const walls = ['#f7df8f', '#bfe3b4', '#a9d8ea', '#f9c3b0', '#dcc8f0', '#f6b26b', '#8fd0cf', '#f5a9bf'];
 
 	/** Up to this many windows are drawn per floor; more show as "+". */
 	const MAX_DRAWN = 8;
@@ -32,42 +32,80 @@
 	}
 
 	// ---------- House front (floors and wall modes) ----------
-	const wallW = $derived(mode === 'wall' && side >= 2 ? 200 : 280);
+	/** Front and back are long walls, the ends shorter, the walls of a wing shorter still. */
+	const wallW = $derived(mode !== 'wall' ? 280 : side < 2 ? 280 : side < 4 ? 200 : 160);
 	const bx = $derived((W - wallW) / 2);
 	const top = $derived(GROUND - layout.floors * FLOOR_H);
-	const roofPeak = $derived(mode === 'wall' && side >= 2 ? top - 70 : top - 50);
+	const roofPeak = $derived(mode === 'wall' && side >= 2 && side < 4 ? top - 70 : top - 50);
 	const floorsToDraw = $derived(Array.from({ length: layout.floors }, (_, f) => f));
 	/** The floors step shows three windows a floor; walls show their chosen bucket. */
 	const bucketsFor = (f: number) => (mode === 'floors' ? 3 : BUCKETS[layout.windows[side][f]].count);
 
 	// ---------- Plan view (sides mode) ----------
-	const plan = { x: 120, y: 70, w: 160, h: 130 };
-	const planSides = [
-		{ d: `M${plan.x} ${plan.y + plan.h} H${plan.x + plan.w}`, lx: W / 2, ly: plan.y + plan.h + 26 },
-		{ d: `M${plan.x} ${plan.y} H${plan.x + plan.w}`, lx: W / 2, ly: plan.y - 12 },
-		{ d: `M${plan.x} ${plan.y} V${plan.y + plan.h}`, lx: plan.x - 50, ly: plan.y + plan.h / 2 + 5 },
-		{ d: `M${plan.x + plan.w} ${plan.y} V${plan.y + plan.h}`, lx: plan.x + plan.w + 50, ly: plan.y + plan.h / 2 + 5 }
-	];
+	// Looking down on the house. Up to four sides it's a rectangle with the chosen walls in color; past four
+	// the footprint itself changes so it has that many walls: a cut corner (5), an L (6), an L with an angled
+	// corner (7), a T (8). Each edge is [side index, from, to]: 0 front, 1 back, 2 left, 3 right, 4+ extra walls.
+	type Pt = [number, number];
+	type Footprint = { points: Pt[]; edges: [number, Pt, Pt][] };
+	const footprints: Record<number, Footprint> = {
+		4: {
+			points: [[120, 205], [280, 205], [280, 75], [120, 75]],
+			edges: [[0, [120, 205], [280, 205]], [3, [280, 205], [280, 75]], [1, [280, 75], [120, 75]], [2, [120, 75], [120, 205]]]
+		},
+		5: {
+			points: [[120, 205], [280, 205], [280, 120], [235, 75], [120, 75]],
+			edges: [[0, [120, 205], [280, 205]], [3, [280, 205], [280, 120]], [4, [280, 120], [235, 75]], [1, [235, 75], [120, 75]], [2, [120, 75], [120, 205]]]
+		},
+		6: {
+			points: [[100, 210], [300, 210], [300, 145], [235, 145], [235, 75], [100, 75]],
+			edges: [[0, [100, 210], [300, 210]], [3, [300, 210], [300, 145]], [4, [300, 145], [235, 145]], [5, [235, 145], [235, 75]], [1, [235, 75], [100, 75]], [2, [100, 75], [100, 210]]]
+		},
+		7: {
+			points: [[100, 210], [300, 210], [300, 172], [276, 145], [235, 145], [235, 75], [100, 75]],
+			edges: [[0, [100, 210], [300, 210]], [3, [300, 210], [300, 172]], [4, [300, 172], [276, 145]], [5, [276, 145], [235, 145]], [6, [235, 145], [235, 75]], [1, [235, 75], [100, 75]], [2, [100, 75], [100, 210]]]
+		},
+		8: {
+			points: [[90, 210], [310, 210], [310, 140], [240, 140], [240, 70], [160, 70], [160, 140], [90, 140]],
+			edges: [[0, [90, 210], [310, 210]], [3, [310, 210], [310, 140]], [4, [310, 140], [240, 140]], [5, [240, 140], [240, 70]], [1, [240, 70], [160, 70]], [6, [160, 70], [160, 140]], [7, [160, 140], [90, 140]], [2, [90, 140], [90, 210]]]
+		}
+	};
+	const foot = $derived(footprints[Math.max(4, layout.sides)]);
+	/**
+	 * Where an edge's label goes: its midpoint, pushed outward. The footprints run counterclockwise on screen,
+	 * so for an edge a→b the outward direction is (-dy, dx). That also works for the inner corners of an L or T.
+	 */
+	function labelAt(a: Pt, b: Pt): Pt {
+		const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
+		const len = Math.hypot(dx, dy) || 1;
+		const [nx, ny] = [-dy / len, dx / len];
+		return [(a[0] + b[0]) / 2 + nx * 22, (a[1] + b[1]) / 2 + ny * 18 + 6];
+	}
+	const shortName = (i: number) => (i < 4 ? SIDE_NAMES[i].split(' ')[0] : String(i + 1));
 </script>
 
 <svg viewBox="0 0 {W} {H}" role="img" aria-hidden="true">
 	<rect width={W} height={H} fill="var(--paper)" />
 	{#if mode === 'sides'}
-		<!-- Looking down on the house: chosen sides in color with little windows, the rest dashed -->
-		<g filter="url(#wash)">
-			<rect x={plan.x} y={plan.y} width={plan.w} height={plan.h} fill="#f3e3c4" />
-			<path d="M{plan.x} {plan.y} L{plan.x + plan.w} {plan.y + plan.h} M{plan.x + plan.w} {plan.y} L{plan.x} {plan.y + plan.h}" stroke="#d9c39a" stroke-width="2" />
-		</g>
-		{#each planSides as p, i}
+		<!-- Looking down on the house: chosen walls in color, the rest dashed -->
+		<polygon points={foot.points.map((p) => p.join(',')).join(' ')} fill="#f3e3c4" filter="url(#wash)" />
+		{#each foot.edges as [i, a, b] (i)}
 			{@const on = i < layout.sides}
+			{@const [lx, ly] = labelAt(a, b)}
 			<!-- No pencil filter here: a filter on a single straight line has a zero-height box and draws nothing -->
-			<path d={p.d} fill="none" stroke-linecap="round" stroke={on ? 'var(--lake)' : 'var(--line)'} stroke-width={on ? 9 : 3} stroke-dasharray={on ? undefined : '6 8'} />
-			<text x={p.lx} y={p.ly} text-anchor="middle" class="side-label" class:on>{SIDE_NAMES[i].split(' ')[0]}</text>
+			<path
+				d="M{a[0]} {a[1]} L{b[0]} {b[1]}"
+				fill="none"
+				stroke-linecap="round"
+				stroke={on ? 'var(--lake)' : 'var(--line)'}
+				stroke-width={on ? 9 : 3}
+				stroke-dasharray={on ? undefined : '6 8'}
+			/>
+			<text x={lx} y={ly} text-anchor="middle" class="side-label" class:on>{shortName(i)}</text>
 		{/each}
 		<g filter="url(#pencil)" fill="none" stroke="var(--ink)" stroke-width="1.6">
-			<rect x={plan.x} y={plan.y} width={plan.w} height={plan.h} />
+			<polygon points={foot.points.map((p) => p.join(',')).join(' ')} />
 			<!-- The front door, so "front" is obvious -->
-			<path d="M{W / 2 - 10} {plan.y + plan.h} v10 h20 v-10" />
+			<path d="M{W / 2 - 10} {foot.edges[0][1][1]} v10 h20 v-10" />
 		</g>
 	{:else}
 		<g filter="url(#wash)">

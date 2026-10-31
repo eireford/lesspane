@@ -23,6 +23,13 @@ describe('layout', () => {
 		expect(parseLayout(layoutToSearchParams(l))).toEqual(l);
 	});
 
+	it('handles houses with wings: up to eight sides, extra walls default to 1–2', () => {
+		const l = resize(defaultLayout(3, 4), 3, 8);
+		expect(l.windows[7]).toEqual([1, 1, 1]);
+		expect(parseLayout(layoutToSearchParams(l))).toEqual(l);
+		expect(parseLayout(new URLSearchParams('f=1&s=9&w=1,1,1,1,1,1,1,1,1'))).toBeNull();
+	});
+
 	it('rejects a layout whose window list does not match floors × sides', () => {
 		expect(parseLayout(new URLSearchParams('f=2&s=2&w=1,1,1'))).toBeNull();
 		expect(parseLayout(new URLSearchParams('f=2&s=1&w=1,9'))).toBeNull();

@@ -36,7 +36,8 @@ export const pricing = {
 	minimum: 150,
 	/** Final price is rounded to the nearest multiple of this. */
 	roundTo: 5,
-	maxWindows: 200
+	/** Up to 8 sides × 3 floors × a "10+" bucket (12) each = 288. */
+	maxWindows: 300
 };
 
 export const serviceLabels: Record<ServiceType, string> = {

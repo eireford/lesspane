@@ -13,7 +13,7 @@ See `README.md` for the product and infrastructure, and `docs/development.md` fo
 
 ## Conventions
 
-- The quote is a step-by-step process (floors → sides → windows per side and floor, in buckets → summary).
+- The quote is a step-by-step process (floors → sides, up to 8 → windows per side and floor, in buckets → summary).
   Every step starts on a sensible default; the user accepts it or changes it by swiping or tapping ‹ ›.
   Keep every gesture paired with a tap or keyboard path. The look is pencil sketches with watercolor color on
   white, with short hand-lettered labels.

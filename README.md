@@ -9,7 +9,7 @@ with **✓ Looks right**, or change it by swiping the card or tapping ‹ ›. T
 | Step | Options | Starts at |
 | --- | --- | --- |
 | How many floors? | 1, 2, 3 | 2 |
-| Which sides get cleaned? | front only, front & back, three sides, all four | all four |
+| Which sides get cleaned? | 1 to 8 sides (past four: a cut corner, an L, an angled L, a T) | four |
 | Each side × each floor | None, 1–2, 3–4, 5–6, 7–9, 10+ windows | front and back 3–4, the ends 1–2 |
 | Your estimate | summary with "change" links, plus extras: inside, screens, tracks, hard water | no extras |
 

@@ -4,7 +4,9 @@ import type { Stories } from './config';
 // and floor a bucket of windows. Buckets keep it quick ("3–4" rather than an exact count); each bucket
 // prices at its `count`, which leans to the top of the range so the estimate doesn't come in low.
 
-export type Sides = 1 | 2 | 3 | 4;
+/** Walls to clean. Past four, the house has wings, bump-outs or angled walls (an L or T shape). */
+export type Sides = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export const MAX_SIDES = 8;
 
 /** x, y, width, height of something drawn on a sketch canvas. */
 export type Rect = [number, number, number, number];
@@ -25,16 +27,21 @@ export const BUCKETS = [
 	{ label: '10+', count: 12 }
 ] as const;
 
-export const SIDE_NAMES = ['Front', 'Back', 'Left side', 'Right side'] as const;
+/** The four main walls, then the extra walls of wings and bump-outs, numbered as on the plan sketch. */
+export const SIDE_NAMES = ['Front', 'Back', 'Left side', 'Right side', 'Side 5', 'Side 6', 'Side 7', 'Side 8'] as const;
 export const SIDE_CHOICES: Record<Sides, string> = {
 	1: 'Front only',
 	2: 'Front & back',
 	3: 'Three sides',
-	4: 'All four sides'
+	4: 'Four sides',
+	5: 'Five sides',
+	6: 'Six sides',
+	7: 'Seven sides',
+	8: 'Eight sides'
 };
 export const FLOOR_NAMES = ['Ground floor', '2nd floor', '3rd floor'] as const;
 
-/** Front and back usually have more windows than the ends of a house. */
+/** Front and back usually have more windows than the ends of a house or the walls of a wing. */
 export const defaultBucket = (side: number): number => (side < 2 ? 2 : 1);
 
 export function defaultLayout(floors: Stories = 2, sides: Sides = 4): Layout {
@@ -71,7 +78,7 @@ type Source = URLSearchParams | FormData;
 export function parseLayout(src: Source): Layout | null {
 	const floors = Number(src.get('f'));
 	const sides = Number(src.get('s'));
-	if (![1, 2, 3].includes(floors) || ![1, 2, 3, 4].includes(sides)) return null;
+	if (![1, 2, 3].includes(floors) || !Number.isInteger(sides) || sides < 1 || sides > MAX_SIDES) return null;
 	const flat = String(src.get('w') ?? '').split(',').map(Number);
 	if (flat.length !== floors * sides) return null;
 	if (flat.some((b) => !Number.isInteger(b) || b < 0 || b >= BUCKETS.length)) return null;
