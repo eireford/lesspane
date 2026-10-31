@@ -1,6 +1,8 @@
 <script lang="ts">
 	import '../app.css';
+	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
 	let { children }: { children: Snippet } = $props();
 </script>
@@ -20,6 +22,10 @@
 </main>
 
 <footer class="wrap site-footer muted">
+	{#if page.url.pathname !== '/' && !page.url.pathname.startsWith('/admin')}
+		<!-- Back to the landing page with nothing chosen: a plain link drops the quote's query string and state -->
+		<a class="start-over" href="/" data-sveltekit-reload><Icon name="undo" size={18} /> Start over</a>
+	{/if}
 	<p>LessPane · Eastern Shore, MD · <a href="mailto:hello@lesspane.com">hello@lesspane.com</a></p>
 </footer>
 
@@ -67,5 +73,25 @@
 	.site-footer {
 		font-size: 0.9rem;
 		padding-bottom: calc(24px + env(safe-area-inset-bottom));
+	}
+
+	.start-over {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		margin: 8px 0 18px;
+		padding: 10px;
+		border: 1.5px dashed var(--line);
+		border-radius: var(--sketchy);
+		font-family: var(--hand);
+		font-size: 1.2rem;
+		color: var(--ink-soft);
+		text-decoration: none;
+	}
+
+	.start-over:hover {
+		color: var(--ink);
+		border-color: var(--ink);
 	}
 </style>

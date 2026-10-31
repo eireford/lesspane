@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Smoke test: opens the quote page in headless Chromium at phone size and walks the quote process with
+// Smoke test: opens the landing page in headless Chromium at phone size, checks the packages (one opens its
+// estimate), then takes the quick-questions path and walks the quote process with
 // real gestures (arrow, swipe, accept, skip to summary, extras), checks the price reacts, moves on to the
 // booking page (day and sun), and saves a screenshot per step. Exits non-zero on any failure
 // or page error. Needs a running server (npm run dev) and Chromium or Chrome installed.
@@ -159,10 +160,35 @@ await cmd('Page.enable');
 await cmd('Runtime.enable');
 console.log(`Smoke test: ${opts.url} at ${opts.width}×${opts.height}, screenshots in ${path.relative(process.cwd(), out) || '.'}/`);
 
-await step('Page loads with a price', async () => {
+await step('Landing offers packages and the quick questions', async () => {
 	await cmd('Page.navigate', { url: opts.url });
-	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.amount')`)); i++) await sleep(250);
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.package')`)); i++) await sleep(250);
 	await sleep(800); // let hydration finish
+	const names = await js(`[...document.querySelectorAll('.package .name')].map(n => n.textContent.trim()).join(', ')`);
+	expect(names === 'Cottage, Family home, Large home', `packages: ${names}`);
+	expect(await js(`!!document.querySelector('a.questions[href="/quote"]')`), 'no quick-questions link');
+	return names;
+});
+
+await step('A package opens its estimate', async () => {
+	const want = await js(`document.querySelector('[data-package="family"] .price').textContent.trim()`);
+	await tap(at(await box('[data-package="family"]'), 0.5, 0.5));
+	for (let i = 0; i < 40 && (await js('location.pathname')) !== '/quote'; i++) await sleep(250);
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.summary')`)); i++) await sleep(250);
+	await sleep(500);
+	expect((await js(`document.querySelector('.flow .title')?.textContent.trim()`)) === 'Your estimate', 'package did not open the summary');
+	expect((await price()) === want, `summary price ${await price()} differs from package ${want}`);
+	expect(await js(`!!document.querySelector('a.start-over[href="/"]')`), 'no Start over link at the bottom');
+	return `Family home → ${want}`;
+});
+
+await step('Quick questions start with a price', async () => {
+	await cmd('Page.navigate', { url: opts.url });
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('a.questions')`)); i++) await sleep(250);
+	await sleep(800);
+	await tap(at(await box('a.questions'), 0.5, 0.5));
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.flow .swipe')`)); i++) await sleep(250);
+	await sleep(800);
 	const p = await price();
 	expect(/^\$\d/.test(p ?? ''), `no price shown (got ${p})`);
 	return p;

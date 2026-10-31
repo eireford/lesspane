@@ -39,3 +39,12 @@ describe('layout', () => {
 		expect(describeLayout(defaultLayout(1, 2))).toBe('Front: ground 3–4; Back: ground 3–4');
 	});
 });
+
+describe('packages', () => {
+	it('are valid layouts that survive the query string, smallest first', async () => {
+		const { PACKAGES } = await import('./layout');
+		const totals = PACKAGES.map((p) => totalWindows(p.layout));
+		expect(totals).toEqual([12, 24, 60]);
+		for (const p of PACKAGES) expect(parseLayout(layoutToSearchParams(p.layout))).toEqual(p.layout);
+	});
+});

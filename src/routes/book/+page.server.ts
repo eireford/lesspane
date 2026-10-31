@@ -33,7 +33,7 @@ export const load: PageServerLoad = ({ url }) => {
 		job: job.value,
 		quote: computeQuote(job.value),
 		summary: describeLayout(layout),
-		back: `/?${back}`,
+		back: `/quote?${back}`,
 		dateRange: bookingDateRange()
 	};
 };

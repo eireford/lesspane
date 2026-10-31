@@ -32,7 +32,8 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 ## The smoke test
 
 `scripts/smoke.mjs` drives Chromium over the DevTools protocol using only Node built-ins. It swipes
-walks the quote process: changes the floors with the arrow, swipes the sides card, swipes a window bucket,
+checks the landing page's packages (one opens its estimate with the same price), then
+walks the quick-questions process: changes the floors with the arrow, swipes the sides card, swipes a window bucket,
 skips to the summary with suggested counts, adds two extras, opens the booking page (checking the price
 carried over), picks a day and drags the sun, checking the price reacts at each step. It fails on any page error.
 
@@ -105,5 +106,5 @@ for all Docker use, remove `"credsStore": "desktop.exe"` from `~/.docker/config.
 - Prices, add-ons, service-area ZIPs, time windows: `src/lib/config.ts`. Unit tests cover the formula
   in `src/lib/pricing.ts`.
 - The quote steps: window buckets, side names and defaults in `src/lib/layout.ts` (unit-tested); the step
-  flow in `src/routes/+page.svelte`; the drawings in `src/lib/components/LayoutSketch.svelte`.
-- Estimate terms (the ⓘ panel): `src/routes/+page.svelte`. Booking page and its server action: `src/routes/book/`.
+  flow in `src/routes/quote/+page.svelte`; packages (also in `layout.ts`) on the landing page `src/routes/+page.svelte`; the drawings in `src/lib/components/LayoutSketch.svelte`.
+- Estimate terms (the ⓘ panel): `src/routes/quote/+page.svelte`. Booking page and its server action: `src/routes/book/`.

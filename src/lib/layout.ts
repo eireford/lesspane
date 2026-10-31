@@ -95,3 +95,16 @@ export function describeLayout(l: Layout): string {
 		)
 		.join('; ');
 }
+
+/** Ready-made layouts for the landing page: pick one and go straight to the estimate. */
+export type Package = { id: string; name: string; blurb: string; layout: Layout };
+
+function uniform(floors: Stories, frontBack: number, ends: number): Layout {
+	return { floors, sides: 4, windows: [0, 1, 2, 3].map((s) => Array(floors).fill(s < 2 ? frontBack : ends)) };
+}
+
+export const PACKAGES: Package[] = [
+	{ id: 'cottage', name: 'Cottage', blurb: 'One floor, all four sides', layout: uniform(1, 2, 1) },
+	{ id: 'family', name: 'Family home', blurb: 'Two floors, all four sides', layout: uniform(2, 2, 1) },
+	{ id: 'large', name: 'Large home', blurb: 'Three floors, lots of glass', layout: uniform(3, 3, 2) }
+];

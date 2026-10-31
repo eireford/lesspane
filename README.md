@@ -3,7 +3,11 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The quote is a **short process**. Each step shows a sketch with a sensible default already chosen: accept it
+The landing page (`/`) explains how it works and offers **two ways in**: pick a **ready-made package**
+(Cottage, Family home, Large home: each a sketch, a typical window count and its price; it opens the estimate
+summary), or **answer a few quick questions** on `/quote`.
+
+The quick questions are a **short process**. Each step shows a sketch with a sensible default already chosen: accept it
 with **✓ Looks right**, or change it by swiping the card or tapping ‹ ›. The estimate stays pinned at the top.
 
 | Step | Options | Starts at |
@@ -50,6 +54,7 @@ staging deploys.
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
+| `src/routes/+page.svelte`, `src/routes/quote/` | Landing page with packages; the quick-questions steps and summary |
 | `src/routes/book/` | Booking page: day and time, contact details, and the server action that saves the request |
 | `src/lib/components/` | `LayoutSketch` (the drawing for each step), `SketchWindow`, `SwipeCard`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
 | `src/lib/layout.ts` | The layout model: floors, sides, window buckets, defaults, and query-string encoding |
