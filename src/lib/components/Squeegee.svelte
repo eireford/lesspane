@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 
-	// A strip of grimy glass with a squeegee on it. Pull the squeegee right to wipe more windows;
+	// A sketched strip of grimy glass with a squeegee on it. Pull the squeegee right to wipe more windows;
 	// everything behind the blade is clean. It's a slider: arrow keys, Home and End work too.
 	let { value = $bindable(), min = 1, max = 40 }: { value: number; min?: number; max?: number } = $props();
 
@@ -57,7 +57,7 @@
 		onkeydown={onKey}
 	>
 		<svg class="dirt" preserveAspectRatio="none" aria-hidden="true">
-			<rect width="100%" height="100%" filter="url(#grime)" />
+			<rect width="100%" height="100%" fill="url(#hatch)" opacity="0.8" />
 		</svg>
 		<div class="wiped" style="width: {pct}%"></div>
 		<!-- Mullions every five windows, like a run of panes -->
@@ -66,10 +66,13 @@
 		</div>
 		<div class="blade" class:dragging style="left: {pct}%" aria-hidden="true">
 			<span class="count"><Icon name="window" size={16} />{value}</span>
-			<svg viewBox="0 0 40 90" class="tool">
-				<rect x="16" y="0" width="8" height="34" rx="4" fill="#6f5b49" />
-				<rect x="6" y="30" width="28" height="10" rx="3" fill="#4d5e47" />
-				<rect x="18" y="38" width="4" height="52" rx="2" fill="#2a2b26" />
+			<!-- A pencil squeegee: handle, head, and the rubber blade across the glass -->
+			<svg viewBox="0 0 40 90" class="tool" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round">
+				<g filter="url(#pencil)">
+					<rect x="15" y="1" width="10" height="30" rx="5" fill="var(--paper)" />
+					<rect x="5" y="30" width="30" height="9" rx="2" fill="var(--paper)" />
+					<path d="M20 39 V89" stroke-width="3.5" />
+				</g>
 			</svg>
 		</div>
 	</div>
@@ -83,13 +86,11 @@
 	.glass {
 		position: relative;
 		height: 64px;
-		border-radius: 10px;
+		border-radius: var(--sketchy);
 		overflow: visible;
-		background: linear-gradient(160deg, #d9e8ea, #9fc0c7 55%, #6d97a1);
-		border: 4px solid #fbfaf7;
-		box-shadow:
-			0 0 0 1px var(--line),
-			var(--shadow);
+		background: var(--paper);
+		border: 2px solid var(--ink);
+		box-shadow: var(--shadow);
 		touch-action: none;
 		user-select: none;
 		-webkit-user-select: none;
@@ -106,25 +107,26 @@
 		inset: 0;
 		width: 100%;
 		height: 100%;
-		border-radius: 6px;
+		border-radius: var(--sketchy);
 	}
 
 	.wiped {
 		position: absolute;
 		inset: 0 auto 0 0;
-		border-radius: 6px 0 0 6px;
+		border-radius: 255px 0 0 15px / 15px 0 0 255px;
+		/* Clean paper with a few shine strokes */
 		background:
-			linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.55) 38%, transparent 46%),
-			linear-gradient(160deg, #e3f0f2, #a9ccd3 55%, #78a2ac);
+			repeating-linear-gradient(120deg, transparent 0 34px, #9fb5b9 34px 35.5px, transparent 35.5px 46px),
+			var(--paper);
 	}
 
 	.panes i {
 		position: absolute;
 		top: 0;
 		bottom: 0;
-		width: 3px;
-		margin-left: -1.5px;
-		background: #fbfaf7;
+		width: 2px;
+		margin-left: -1px;
+		background: var(--ink);
 	}
 
 	.blade {
@@ -147,7 +149,7 @@
 		left: 0;
 		width: 40px;
 		height: calc(100% - 0px);
-		filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.25));
+		filter: drop-shadow(2px 2px 0 rgb(43 42 38 / 0.15));
 	}
 
 	.count {
@@ -157,12 +159,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 3px;
-		padding: 2px 8px;
-		border-radius: 999px;
-		background: var(--brand);
-		color: var(--brand-ink);
-		font-weight: 700;
-		font-size: 0.9rem;
+		padding: 0 8px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--paper);
+		color: var(--ink);
+		font-family: var(--hand);
+		font-size: 1.1rem;
 		white-space: nowrap;
 		transform: translate(-50%, -100%);
 	}

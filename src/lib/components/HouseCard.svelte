@@ -1,58 +1,65 @@
 <script lang="ts">
+	import SketchWindow from '$lib/components/SketchWindow.svelte';
 	import type { AddOnKey } from '$lib/config';
-	import { houseBox, licenseUrl, type HousePhoto } from '$lib/photos';
+	import { SKETCH_H, SKETCH_W, type HouseSketch } from '$lib/sketches';
 
-	// A house photo with its windows drawn grimy or clean. The first `clean` windows sparkle,
-	// so the squeegee's count shows up on the house itself. Dirt effects come from <GrimeDefs>.
+	// A pencil sketch of the house. The first `clean` windows are wiped; the rest stay hatched with dirt,
+	// so the squeegee's count shows on the house itself. Fixed problems vanish from clean windows.
 	let {
 		house,
 		clean,
 		inside,
 		addons,
 		lean = 0
-	}: { house: HousePhoto; clean: number; inside: boolean; addons: AddOnKey[]; lean?: number } = $props();
+	}: { house: HouseSketch; clean: number; inside: boolean; addons: AddOnKey[]; lean?: number } = $props();
 
 	const has = (key: AddOnKey) => addons.includes(key);
+	const [dx, dy, dw, dh] = $derived(house.door);
 </script>
 
 <div class="house">
-	<svg viewBox={houseBox(house)} preserveAspectRatio="xMidYMid slice" role="img" aria-label={house.name}>
-		<image href={house.src} width={house.width} height={house.height} />
-		{#each house.windows as [x, y, w, h], i (house.id + i)}
+	<svg viewBox="0 0 {SKETCH_W} {SKETCH_H}" role="img" aria-label={house.name}>
+		<rect width={SKETCH_W} height={SKETCH_H} fill="var(--paper)" />
+		<!-- Roof shading, then the outline twice with different wobble so it looks drawn -->
+		{#each house.lines.filter((d) => d.trim().endsWith('Z')) as d}
+			<path {d} fill="url(#shade)" />
+		{/each}
+		<g fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+			<g filter="url(#pencil)">
+				{#each house.lines as d}<path {d} />{/each}
+				<rect x={dx} y={dy} width={dw} height={dh} />
+			</g>
+			<g filter="url(#pencil2)" opacity="0.35" transform="translate(0.8 0.6)">
+				{#each house.lines as d}<path {d} />{/each}
+			</g>
+			<circle cx={dx + dw - 6} cy={dy + dh / 2} r="1.6" />
+		</g>
+		{#each house.windows as rect, i (house.id + i)}
 			{@const ok = i < clean}
-			{#if !(ok && inside)}
-				<ellipse cx={x + w * 0.32} cy={y + h * 0.62} rx={w * 0.3} ry={h * 0.16} fill="url(#smear)" />
-			{/if}
-			{#if !(ok && has('hard_water'))}
-				<rect {x} {y} width={w} height={h} filter="url(#mineral)" />
-			{/if}
-			{#if !(ok && has('screens'))}
-				<rect {x} y={y + h / 2} width={w} height={h / 2} fill="url(#mesh)" />
-			{/if}
-			{#if !(ok && has('tracks'))}
-				<rect {x} y={y + h * 0.93} width={w} height={h * 0.07} fill="#4f4130" opacity="0.7" />
-			{/if}
-			<rect class="grime" class:gone={ok} {x} {y} width={w} height={h} filter="url(#grime)" />
+			<SketchWindow
+				{rect}
+				dirt={ok ? 0 : 1}
+				smudges={!(ok && inside)}
+				screens={!(ok && has('screens'))}
+				tracks={!(ok && has('tracks'))}
+				spots={!(ok && has('hard_water'))}
+				faint={0.3}
+			/>
 		{/each}
 	</svg>
 	<span class="floors" aria-hidden="true">{#each Array(house.stories) as _}<i></i>{/each}</span>
 	<span class="side left" style="opacity: {Math.max(0, -lean)}" aria-hidden="true">›</span>
 	<span class="side right" style="opacity: {Math.max(0, lean)}" aria-hidden="true">‹</span>
-	<a class="credit" href={house.credit.source} rel="noopener" target="_blank" title={`Photo: ${house.credit.author}, ${house.credit.license}`}
-		>© {house.credit.author} · <span>{house.credit.license}</span></a
-	>
-	<a class="sr" href={licenseUrl(house.credit.license)} rel="license">{house.credit.license} license</a>
 </div>
 
 <style>
 	.house {
 		position: relative;
-		border-radius: 20px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
 		overflow: hidden;
-		background: var(--line);
-		box-shadow:
-			0 2px 4px rgb(42 43 38 / 0.08),
-			0 14px 34px rgb(42 43 38 / 0.14);
+		background: var(--paper);
+		box-shadow: var(--shadow);
 	}
 
 	svg {
@@ -60,14 +67,6 @@
 		width: 100%;
 		aspect-ratio: 4 / 3;
 		pointer-events: none;
-	}
-
-	.grime {
-		transition: opacity 0.35s ease;
-	}
-
-	.grime.gone {
-		opacity: 0;
 	}
 
 	.floors {
@@ -81,20 +80,19 @@
 
 	.floors i {
 		display: block;
-		width: 22px;
+		width: 20px;
 		height: 7px;
-		border-radius: 2px;
-		background: #fbfaf7;
-		box-shadow: 0 0 3px rgb(0 0 0 / 0.4);
+		border: 1.5px solid var(--ink);
+		border-radius: 2px 4px 2px 3px;
 	}
 
 	.side {
 		position: absolute;
 		top: 50%;
-		font-size: 3rem;
+		font-family: var(--hand);
+		font-size: 3.2rem;
 		line-height: 1;
-		color: #fbfaf7;
-		text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
+		color: var(--ink);
 		transform: translateY(-50%);
 	}
 
@@ -104,23 +102,5 @@
 
 	.side.right {
 		right: 14px;
-	}
-
-	.credit {
-		position: absolute;
-		right: 10px;
-		bottom: 8px;
-		font-size: 0.7rem;
-		color: #fbfaf7;
-		text-decoration: none;
-		text-shadow: 0 1px 3px rgb(0 0 0 / 0.7);
-	}
-
-	.sr {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
 	}
 </style>

@@ -108,26 +108,28 @@
 		onpointercancel={onUp}
 		onkeydown={onKey}
 	>
-		<defs>
-			<linearGradient id="am-sky" x1="0" y1="0" x2="0" y2="1">
-				<stop offset="0" stop-color="#cfe0e3" />
-				<stop offset="1" stop-color="#f4ead2" />
-			</linearGradient>
-			<linearGradient id="pm-sky" x1="0" y1="0" x2="0" y2="1">
-				<stop offset="0" stop-color="#d8d3c2" />
-				<stop offset="1" stop-color="#efcf9f" />
-			</linearGradient>
-		</defs>
-		<rect width={W} height={H} rx="14" fill="url(#am-sky)" />
-		<rect class="pm-wash" width={W} height={H} rx="14" fill="url(#pm-sky)" />
-		<path d="M{CX - R} {CY} A{R} {R} 0 0 1 {CX + R} {CY}" fill="none" stroke="#fbfaf7" stroke-width="2" stroke-dasharray="4 6" />
-		<line x1={CX} y1={CY - R - 4} x2={CX} y2={CY} stroke="#fbfaf7" stroke-width="1.5" opacity="0.7" />
-		<rect x="0" y={CY} width={W} height={H - CY} fill="#7d8f63" />
-		<text x="16" y={CY - 8} class="hours">8–12</text>
-		<text x={W - 16} y={CY - 8} class="hours" text-anchor="end">12–5</text>
+		<rect width={W} height={H} fill="var(--paper)" />
+		<!-- Afternoon: the sky gets a light pencil shading -->
+		<rect class="pm-wash" width={W} height={CY} fill="url(#shade)" />
+		<g fill="none" stroke="var(--ink)" stroke-linecap="round" filter="url(#pencil)">
+			<path d="M{CX - R} {CY} A{R} {R} 0 0 1 {CX + R} {CY}" stroke-width="1.4" stroke-dasharray="5 7" />
+			<line x1={CX} y1={CY - R - 6} x2={CX} y2={CY} stroke-width="1" opacity="0.6" />
+			<path d="M6 {CY} H{W - 6}" stroke-width="1.8" />
+			<!-- Grass tufts along the horizon -->
+			{#each [20, 58, 104, 196, 242, 280] as gx}
+				<path d="M{gx} {CY} l3 -7 M{gx + 4} {CY} l1 -9 M{gx + 8} {CY} l-2 -6" stroke-width="1.2" />
+			{/each}
+		</g>
+		<text x="16" y={CY - 12} class="hours">8–12</text>
+		<text x={W - 16} y={CY - 12} class="hours" text-anchor="end">12–5</text>
 		<g class="sun" class:dragging style="transform: translate({sun.x}px, {sun.y}px)">
-			<circle r="22" fill="#e9b85a" opacity="0.25" />
-			<circle r="14" fill="#e9b85a" />
+			<g fill="var(--paper)" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" filter="url(#pencil)">
+				<circle r="13" />
+				{#each Array(8) as _, k}
+					{@const a = (k * Math.PI) / 4}
+					<line x1={Math.cos(a) * 18} y1={Math.sin(a) * 18} x2={Math.cos(a) * 25} y2={Math.sin(a) * 25} />
+				{/each}
+			</g>
 		</g>
 	</svg>
 	<p class="legend" aria-hidden="true">
@@ -156,10 +158,11 @@
 		justify-items: center;
 		width: 52px;
 		padding: 6px 0;
-		border: 1.5px solid var(--line);
-		border-radius: 12px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
 		background: var(--paper);
 		color: var(--ink);
+		font-family: var(--hand);
 		scroll-snap-align: start;
 		cursor: pointer;
 		line-height: 1.2;
@@ -179,7 +182,7 @@
 	}
 
 	.day.on {
-		border-color: var(--brand);
+		border-color: var(--ink);
 		background: var(--brand);
 		color: var(--brand-ink);
 		opacity: 1;
@@ -193,7 +196,8 @@
 		display: block;
 		width: 100%;
 		height: auto;
-		border-radius: 14px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
 		touch-action: none;
 		user-select: none;
 		-webkit-user-select: none;
@@ -224,9 +228,9 @@
 	}
 
 	.hours {
-		font-size: 13px;
-		font-weight: 700;
-		fill: #fbfaf7;
+		font-family: var(--hand);
+		font-size: 17px;
+		fill: var(--ink);
 	}
 
 	.legend {

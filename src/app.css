@@ -1,19 +1,22 @@
 :root {
-	/* Natural palette: weathered cedar, driftwood, oyster shell and muted pine. */
-	--ink: #2a2b26; /* charcoal */
-	--ink-soft: #66665b; /* driftwood */
-	--sky: #f3f1eb; /* oyster shell (page background) */
-	--paper: #fbfaf7;
-	--line: #e1ddd2; /* sand */
+	/* Sketchbook: graphite on paper, with a muted pine for actions. */
+	--ink: #2b2a26; /* graphite */
+	--ink-soft: #6b675d;
+	--sky: #f6f3ea; /* paper (page background) */
+	--paper: #fffdf7;
+	--line: #d9d3c4;
 	--brand: #4d5e47; /* muted pine */
 	--brand-ink: #ffffff;
-	--brand-soft: #e9ece4;
-	--accent: #a07a52; /* weathered cedar */
-	--water: #627e84; /* overcast bay */
+	--brand-soft: #ebeee5;
+	--accent: #a07a52;
+	--water: #627e84;
 	--bark: #6f5b49;
 	--danger: #9a3b2a;
 	--radius: 12px;
-	--shadow: 0 1px 2px rgb(42 43 38 / 0.06), 0 6px 20px rgb(42 43 38 / 0.06);
+	/* Irregular corners read as a hand-drawn box. */
+	--sketchy: 255px 15px 225px 15px / 15px 225px 15px 255px;
+	--shadow: 2px 3px 0 rgb(43 42 38 / 0.12);
+	--hand: 'Patrick Hand', 'Comic Neue', 'Segoe Print', cursive;
 	color-scheme: light;
 }
 
@@ -46,8 +49,8 @@ a {
 h1,
 h2,
 h3 {
-	font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-	font-weight: 600;
+	font-family: var(--hand);
+	font-weight: 400;
 	line-height: 1.2;
 	margin: 0 0 0.5em;
 	letter-spacing: -0.01em;
@@ -62,8 +65,8 @@ h3 {
 
 .card {
 	background: var(--paper);
-	border: 1px solid var(--line);
-	border-radius: var(--radius);
+	border: 2px solid var(--ink);
+	border-radius: var(--sketchy);
 	box-shadow: var(--shadow);
 	padding: 20px;
 }
@@ -94,10 +97,11 @@ h3 {
 	gap: 8px;
 	min-height: 52px;
 	padding: 0 22px;
-	border-radius: 999px;
-	border: 0;
+	border-radius: var(--sketchy);
+	border: 2px solid var(--ink);
 	font: inherit;
-	font-weight: 650;
+	font-family: var(--hand);
+	font-size: 1.25rem;
 	text-decoration: none;
 	cursor: pointer;
 	background: var(--brand);

@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import FlipWindow from '$lib/components/FlipWindow.svelte';
-	import GrimeDefs from '$lib/components/GrimeDefs.svelte';
+	import SketchDefs from '$lib/components/SketchDefs.svelte';
 	import HouseCard from '$lib/components/HouseCard.svelte';
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
 	import PeelPane from '$lib/components/PeelPane.svelte';
@@ -10,7 +10,7 @@
 	import SunDial from '$lib/components/SunDial.svelte';
 	import SwipeCard, { type SwipeDir } from '$lib/components/SwipeCard.svelte';
 	import { pricing, type AddOnKey, type TimeWindow } from '$lib/config';
-	import { houses } from '$lib/photos';
+	import { houses } from '$lib/sketches';
 	import { computeQuote, formatUsd } from '$lib/pricing';
 	import { addDaysIso } from '$lib/validation';
 	import type { ActionData, PageData } from './$types';
@@ -73,7 +73,7 @@
 	<title>LessPane · Play with it, see the price</title>
 </svelte:head>
 
-<GrimeDefs />
+<SketchDefs />
 
 <!-- Live price, always in view -->
 <div class="price-bar" aria-live="polite">
@@ -136,11 +136,11 @@
 <section class="play pair">
 	<div aria-label="Inside too: flip the window">
 		<p class="cue" aria-hidden="true"><Icon name="hand" size={18} /><span class="gesture">↻</span></p>
-		<FlipWindow {house} bind:inside extra={insideCost} />
+		<FlipWindow bind:inside extra={insideCost} />
 	</div>
 	<div aria-label="Extra problems: peel off the stickers">
 		<p class="cue" aria-hidden="true"><Icon name="sparkle" size={18} /><span class="gesture">⤴</span></p>
-		<PeelPane {house} bind:addons cost={addOnCost} />
+		<PeelPane bind:addons cost={addOnCost} />
 	</div>
 </section>
 
@@ -223,8 +223,8 @@
 		gap: 12px;
 		margin-bottom: 14px;
 		padding: 8px 8px 8px 16px;
-		border: 1.5px solid var(--brand);
-		border-radius: 999px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
 		background: rgb(251 250 247 / 0.95);
 		backdrop-filter: blur(6px);
 		box-shadow: var(--shadow);
@@ -234,8 +234,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		font-size: 1.6rem;
-		font-weight: 750;
+		font-family: var(--hand);
+		font-size: 2rem;
+		font-weight: 400;
 		letter-spacing: -0.02em;
 		color: var(--brand);
 	}
@@ -364,8 +365,8 @@
 		font-weight: 400;
 		color: var(--ink-soft);
 		background: var(--paper);
-		border: 1.5px solid var(--line);
-		border-radius: 10px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
 	}
 
 	.field.bad {

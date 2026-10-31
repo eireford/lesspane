@@ -1,15 +1,11 @@
 <script lang="ts">
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
+	import SketchWindow from '$lib/components/SketchWindow.svelte';
 	import type { AddOnKey } from '$lib/config';
-	import { biggestWindow, windowBox, type HousePhoto } from '$lib/photos';
 
-	// A close-up pane of glass with a sticker for each problem stuck on it. Peel a sticker off (drag it
+	// A sketched pane of glass with a sticker for each problem stuck on it. Peel a sticker off (drag it
 	// away, or tap it) and that problem gets fixed; it drops into the tray below, where a tap sticks it back.
-	let {
-		house,
-		addons = $bindable(),
-		cost
-	}: { house: HousePhoto; addons: AddOnKey[]; cost: (key: AddOnKey) => string } = $props();
+	let { addons = $bindable(), cost }: { addons: AddOnKey[]; cost: (key: AddOnKey) => string } = $props();
 
 	const stickers: { key: AddOnKey; icon: IconName; label: string; at: [number, number] }[] = [
 		{ key: 'hard_water', icon: 'drop', label: 'Hard-water spots', at: [66, 22] },
@@ -17,7 +13,6 @@
 		{ key: 'tracks', icon: 'track', label: 'Grimy tracks and sills', at: [64, 82] }
 	];
 
-	const rect = $derived(biggestWindow(house));
 	const peeled = (key: AddOnKey) => addons.includes(key);
 
 	let drag = $state<{ key: AddOnKey; dx: number; dy: number } | null>(null);
@@ -57,14 +52,14 @@
 
 <div class="peel">
 	<div class="pane">
-		<svg viewBox={windowBox(rect, 0.12)} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-			<image href={house.src} width={house.width} height={house.height} />
-			{#if rect}
-				{@const [x, y, w, h] = rect}
-				{#if !peeled('hard_water')}<rect {x} {y} width={w} height={h} filter="url(#mineral)" />{/if}
-				{#if !peeled('screens')}<rect {x} y={y + h / 2} width={w} height={h / 2} fill="url(#mesh)" />{/if}
-				{#if !peeled('tracks')}<rect {x} y={y + h * 0.9} width={w} height={h * 0.1} fill="#4f4130" opacity="0.8" />{/if}
-			{/if}
+		<svg viewBox="0 0 120 160" aria-hidden="true">
+			<SketchWindow
+				rect={[14, 12, 92, 128]}
+				spots={!peeled('hard_water')}
+				screens={!peeled('screens')}
+				tracks={!peeled('tracks')}
+				stroke={1.8}
+			/>
 		</svg>
 		{#each stickers as s (s.key)}
 			{#if !peeled(s.key)}
@@ -104,9 +99,10 @@
 	.pane {
 		position: relative;
 		aspect-ratio: 3 / 4;
-		border-radius: 16px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
 		overflow: hidden;
-		background: var(--line);
+		background: var(--paper);
 		box-shadow: var(--shadow);
 	}
 
@@ -124,13 +120,11 @@
 		width: 70px;
 		height: 70px;
 		padding: 9px 0 0;
-		border: 0;
-		border-radius: 50%;
-		background: #fbfaf7;
-		color: var(--bark);
-		box-shadow:
-			0 1px 2px rgb(0 0 0 / 0.25),
-			inset 0 0 0 2px var(--line);
+		border: 2px solid var(--ink);
+		border-radius: 52% 48% 55% 45% / 47% 53% 46% 54%;
+		background: #fff9e8;
+		color: var(--ink);
+		box-shadow: 2px 2px 0 rgb(43 42 38 / 0.18);
 		cursor: grab;
 		touch-action: none;
 		transition: transform 0.2s ease;
@@ -145,7 +139,7 @@
 		width: 14px;
 		height: 14px;
 		border-radius: 0 0 50% 0;
-		background: linear-gradient(135deg, #fbfaf7 50%, #d9d3c4 50%);
+		background: linear-gradient(135deg, #fff9e8 50%, var(--ink) 50%);
 	}
 
 	.sticker.lifting {
@@ -156,7 +150,8 @@
 	}
 
 	.sticker small {
-		font-size: 0.68rem;
+		font-family: var(--hand);
+		font-size: 0.85rem;
 		white-space: nowrap;
 		font-weight: 700;
 	}
@@ -183,20 +178,22 @@
 		align-items: center;
 		justify-content: center;
 		gap: 2px;
-		border: 1.5px solid var(--brand);
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
 		background: var(--brand-soft);
-		color: var(--brand);
-		font-weight: 700;
+		color: var(--ink);
+		font-family: var(--hand);
 		cursor: pointer;
 		animation: drop 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
 	}
 
 	.chip small {
-		font-size: 0.72rem;
+		font-size: 0.95rem;
 	}
 
 	.slot {
 		border: 1.5px dashed var(--line);
+		border-radius: var(--sketchy);
 	}
 
 	@keyframes drop {

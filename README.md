@@ -8,7 +8,7 @@ before anyone touches anything. The price stays pinned at the top.
 
 | Control | Gesture | Chooses | Starts at |
 | --- | --- | --- | --- |
-| House card | swipe left/right | house type and stories (12 photos) | two-story modern farmhouse |
+| House card | swipe left/right | house type and stories (9 sketches) | two-story colonial |
 | Squeegee | pull the blade along the glass | number of windows (1–40) | 20 |
 | Flip window | tap or flick to flip | outside only, or both sides | outside only |
 | Stickers on a pane | peel off (drag or tap); tap the tray to undo | screens, tracks, hard water | none |
@@ -46,7 +46,7 @@ staging deploys.
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
 | `src/lib/components/` | The controls: `HouseCard` + `SwipeCard`, `Squeegee`, `FlipWindow`, `PeelPane`, `SunDial`; `GrimeDefs` (shared dirt effects), `Icon` |
-| `src/lib/photos.ts`, `static/photos/` | House photos (1, 2, 3 stories), their window positions and credits |
+| `src/lib/sketches.ts` | The house sketches: outline strokes, door, windows and story count for each |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
 | `firestore.rules` | Denies all direct client access to Firestore |
@@ -134,14 +134,15 @@ DNS records at Squarespace (same for both domains; the Squarespace default A and
 | `www` | CNAME | `ghs.googlehosted.com.` |
 | `@` | TXT | `google-site-verification=…` (proves ownership to Google; keep it) |
 
-## Photo credits
+## Look and feel
 
-House photos are freely licensed images from Wikimedia Commons, listed with author, license and source link in
-`src/lib/photos.ts` and credited under the scene on the page. Dirt effects are drawn over them in the browser; the
-files are unmodified. Two are from Maryland's Eastern Shore (Meredith House, Cambridge; Lednum House, Easton).
+Everything is drawn as a simple pencil sketch on paper: the houses, windows, squeegee, stickers and sun. Lines get
+a slight hand-drawn wobble from SVG filters, and dirt is pencil hatching (`src/lib/components/SketchDefs.svelte`).
+Headings and prices use the Patrick Hand font from Google Fonts.
 
-To add a house, save a 1280px-wide photo in `static/photos/`, then add an entry to `houses` with its story count
-and each window's rectangle in image pixels.
+To add a house, add an entry to `houses` in `src/lib/sketches.ts`: outline paths on the 400×300 canvas (end a path
+with `Z` to shade it like a roof), a door, its windows as `[x, y, width, height]` (ground floor first), and its
+story count.
 
 ## Deliberately left out
 

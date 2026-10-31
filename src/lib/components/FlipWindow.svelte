@@ -1,12 +1,11 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
-	import { biggestWindow, windowBox, type HousePhoto } from '$lib/photos';
+	import SketchWindow from '$lib/components/SketchWindow.svelte';
 
-	// One window from the chosen house that flips like a card: the outside face means outside only,
-	// the inside face (warm room light, a hand print) means both sides. Tap or flick it sideways.
-	let { house, inside = $bindable(), extra }: { house: HousePhoto; inside: boolean; extra: string } = $props();
+	// A sketched window that flips like a card: the outside face (sun and shrubs) means outside only,
+	// the inside face (curtains, a smudge) means both sides. Tap or flick it sideways.
+	let { inside = $bindable(), extra }: { inside: boolean; extra: string } = $props();
 
-	const rect = $derived(biggestWindow(house));
 	let startX = 0;
 	let moved = false;
 
@@ -37,19 +36,31 @@
 >
 	<span class="card">
 		<span class="face front">
-			<svg viewBox={windowBox(rect, 0.35)} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-				<image href={house.src} width={house.width} height={house.height} />
+			<svg viewBox="0 0 120 160" aria-hidden="true">
+				<g fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" filter="url(#pencil)">
+					<!-- Sun, siding and a shrub: we're outside -->
+					<circle cx="98" cy="18" r="8" />
+					<path d="M98 4v4M98 28v4M84 18h4M108 18h4M88 8l3 3M105 25l3 3M108 8l-3 3M88 28l3 -3" />
+					<path d="M0 132 H120 M0 144 H120 M0 156 H120" stroke-width="0.8" opacity="0.5" />
+					<path d="M6 160 q6 -20 16 -6 q6 -14 14 2 q6 -10 10 4" />
+					<path d="M84 160 q6 -16 14 -4 q6 -12 12 2 q4 -6 8 2" />
+				</g>
+				<SketchWindow rect={[26, 30, 68, 92]} />
 			</svg>
-			<span class="badge"><Icon name="sun" size={26} /></span>
+			<span class="badge"><Icon name="sun" size={24} /></span>
 		</span>
 		<span class="face back">
-			<svg viewBox={windowBox(rect, 0.35)} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-				<g transform="scale(-1 1)" style="transform-origin: center; transform-box: fill-box">
-					<image href={house.src} width={house.width} height={house.height} />
+			<svg viewBox="0 0 120 160" aria-hidden="true">
+				<SketchWindow rect={[26, 30, 68, 92]} smudges />
+				<g fill="none" stroke="var(--ink)" stroke-width="1.4" stroke-linecap="round" filter="url(#pencil)">
+					<!-- Curtains and a rod: we're inside -->
+					<path d="M14 24 H106" stroke-width="2" />
+					<path d="M18 24 q6 40 -2 104 M24 24 q6 40 0 104 M30 24 q4 30 -2 60 q-4 24 2 44" />
+					<path d="M102 24 q-6 40 2 104 M96 24 q-6 40 0 104 M90 24 q-4 30 2 60 q4 24 -2 44" />
+					<path d="M8 140 H112" stroke-width="2" />
 				</g>
 			</svg>
-			<span class="room"></span>
-			<span class="badge"><Icon name="sun" size={22} /><Icon name="hand" size={22} /></span>
+			<span class="badge"><Icon name="sun" size={20} /><Icon name="hand" size={20} /></span>
 			<span class="extra">{extra}</span>
 		</span>
 	</span>
@@ -76,7 +87,6 @@
 		position: relative;
 		display: block;
 		aspect-ratio: 3 / 4;
-		border-radius: 16px;
 		transform-style: preserve-3d;
 		transition: transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1);
 	}
@@ -88,15 +98,17 @@
 	.face {
 		position: absolute;
 		inset: 0;
-		border-radius: 16px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
 		overflow: hidden;
 		backface-visibility: hidden;
+		background: var(--paper);
 		box-shadow: var(--shadow);
-		background: var(--line);
 	}
 
 	.back {
 		transform: rotateY(180deg);
+		background: #faf3e3;
 	}
 
 	.face svg {
@@ -105,35 +117,29 @@
 		height: 100%;
 	}
 
-	.room {
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(circle at 50% 70%, rgb(255 214 150 / 0.55), rgb(80 55 30 / 0.35));
-		mix-blend-mode: multiply;
-	}
-
 	.badge {
 		position: absolute;
-		left: 10px;
-		bottom: 10px;
+		left: 8px;
+		bottom: 8px;
 		display: inline-flex;
 		gap: 2px;
-		padding: 8px;
-		border-radius: 12px;
-		background: rgb(251 250 247 / 0.92);
-		color: var(--brand);
+		padding: 6px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--paper);
+		color: var(--ink);
 	}
 
 	.extra {
 		position: absolute;
-		right: 10px;
-		top: 10px;
-		padding: 2px 8px;
-		border-radius: 999px;
-		background: var(--brand);
-		color: var(--brand-ink);
-		font-weight: 700;
-		font-size: 0.85rem;
+		right: 8px;
+		top: 8px;
+		padding: 0 8px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--paper);
+		font-family: var(--hand);
+		font-size: 1.05rem;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

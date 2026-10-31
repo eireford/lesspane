@@ -98,11 +98,11 @@ for all Docker use, remove `"credsStore": "desktop.exe"` from `~/.docker/config.
 - `npm run deploy:staging` skips the commit when you just want to show something.
 - After a staging deploy: `npm run smoke -- --url https://lesspane.net`.
 
-## Editing prices, photos and copy
+## Editing prices, houses and copy
 
 - Prices, add-ons, service-area ZIPs, time windows: `src/lib/config.ts`. Unit tests cover the formula
   in `src/lib/pricing.ts`.
-- House photos: `src/lib/photos.ts` and `static/photos/`. Each house lists its windows as
-  `[x, y, width, height]` in pixels of the 1280px image. To check a new house, run the dev server
-  and look at it in the house card; the grime should sit exactly on the glass.
+- House sketches: `src/lib/sketches.ts`. Each house is outline paths on a 400×300 canvas plus a door and
+  windows as `[x, y, width, height]`, ground floor first. Check a new one in the house card at
+  http://localhost:5173.
 - Estimate terms (the ⓘ panel): `src/routes/+page.svelte`.
