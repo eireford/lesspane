@@ -95,18 +95,6 @@ export function parseHomeDetails(src: Source): Result<HomeDetails, RawHome> {
 	return { ok: true, value: { address: raw.address, zip: raw.zip, ...job.value } };
 }
 
-/** Query string that carries a job from the quote page to the booking page and back. */
-export function jobToSearchParams(job: Job, house: string): URLSearchParams {
-	const p = new URLSearchParams({
-		house,
-		stories: String(job.stories),
-		windows: String(job.windows),
-		service: job.service
-	});
-	for (const a of job.addons) p.append('addons', a);
-	return p;
-}
-
 // ---------- Time and contact (screen 4) ----------
 
 export type ContactDetails = {

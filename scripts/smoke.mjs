@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Smoke test: opens the quote page in headless Chromium at phone size, plays every control with real
-// gestures, checks the price reacts, moves on to the booking page (day and sun), and saves a screenshot
-// per step. Exits non-zero on any failure
+// Smoke test: opens the quote page in headless Chromium at phone size and walks the quote process with
+// real gestures (arrow, swipe, accept, skip to summary, extras), checks the price reacts, moves on to the
+// booking page (day and sun), and saves a screenshot per step. Exits non-zero on any failure
 // or page error. Needs a running server (npm run dev) and Chromium or Chrome installed.
 //
 //   npm run smoke                          # against http://127.0.0.1:5173, screenshots in .shots/
@@ -168,42 +168,61 @@ await step('Page loads with a price', async () => {
 	return p;
 });
 
-await step('Swipe the house card', async () => {
-	const before = await js(`document.querySelector('.house svg').getAttribute('aria-label')`);
-	const b = await box('.house-stack .swipe');
-	await drag(at(b, 0.7, 0.5), at(b, -0.3, 0.5));
-	const after = await js(`document.querySelector('.house svg').getAttribute('aria-label')`);
-	expect(after !== before, 'house did not change');
-	return after;
-});
+const title = () => js(`document.querySelector('.flow .title')?.textContent.trim()`);
+const value = () => js(`document.querySelector('.value strong')?.textContent.trim()`);
+const click = (label) => js(`[...document.querySelectorAll('button')].find(b => (b.getAttribute('aria-label') || b.textContent).includes(${JSON.stringify(label)})).click()`);
 
-await step('Pull the squeegee', async () => {
-	const b = await box('.glass');
-	await drag(at(b, 0.4, 0.5), [b.x + b.w + 30, b.y + b.h / 2]);
-	const high = await js(`document.querySelector('.glass').getAttribute('aria-valuenow')`);
-	const priceHigh = await price();
-	await drag(at(b, 0.99, 0.5), at(b, 0.5, 0.5));
-	const mid = await js(`document.querySelector('.glass').getAttribute('aria-valuenow')`);
-	expect(high === '40', `expected 40 windows at the right end, got ${high}`);
-	expect(Number(mid) > 15 && Number(mid) < 25, `expected about 20 windows mid-way, got ${mid}`);
-	return `40 → ${priceHigh}, ${mid} → ${await price()}`;
-});
-
-await step('Flip the window', async () => {
+await step('Floors: change with the arrow, then accept', async () => {
+	expect((await title()) === 'How many floors?', `first step is "${await title()}"`);
 	const before = await price();
-	await tap(at(await box('.flip'), 0.5, 0.5));
-	expect((await js(`document.querySelector('.flip').getAttribute('aria-pressed')`)) === 'true', 'did not flip to inside');
-	return `${before} → ${await price()}`;
+	await click('More');
+	await sleep(400);
+	expect((await value()) === '3 floors', `expected 3 floors, got ${await value()}`);
+	const after = await price();
+	await click('Looks right');
+	await sleep(500);
+	return `3 floors: ${before} → ${after}`;
 });
 
-await step('Peel the stickers', async () => {
-	let b = await box('.sticker');
-	await drag(at(b, 0.5, 0.5), [b.x + b.w / 2 + 90, b.y - 60]);
-	b = await box('.sticker');
-	await tap(at(b, 0.5, 0.5));
-	const chips = await js(`document.querySelectorAll('.chip').length`);
-	expect(chips === 2, `expected 2 peeled stickers, got ${chips}`);
-	return `2 fixed → ${await price()}`;
+await step('Sides: swipe to change, then accept', async () => {
+	expect((await title()) === 'Which sides get cleaned?', `second step is "${await title()}"`);
+	const b = await box('.flow .swipe');
+	await drag(at(b, 0.3, 0.5), at(b, 1.2, 0.5)); // swipe right = previous option
+	expect((await value()) === 'Three sides', `expected Three sides, got ${await value()}`);
+	const p = await price();
+	await click('Looks right');
+	await sleep(500);
+	return `Three sides → ${p}`;
+});
+
+await step('Windows: swipe one floor up a bucket, accept', async () => {
+	expect((await title()) === 'Front · Ground floor', `third step is "${await title()}"`);
+	const b = await box('.flow .swipe');
+	await drag(at(b, 0.7, 0.5), at(b, -0.3, 0.5)); // swipe left = next option
+	expect((await value()) === '5–6 windows', `expected 5–6 windows, got ${await value()}`);
+	await click('Looks right');
+	await sleep(500);
+	expect((await title()) === 'Front · 2nd floor', `next step is "${await title()}"`);
+	return `front ground 5–6 → ${await price()}`;
+});
+
+await step('Use suggested counts and reach the summary', async () => {
+	await click('Use suggested counts');
+	await sleep(500);
+	expect((await title()) === 'Your estimate', `expected the summary, got "${await title()}"`);
+	const lines = await js(`[...document.querySelectorAll('.summary .lines li')].length`);
+	expect(lines === 5, `expected 5 summary lines (floors/sides + 3 sides + total), got ${lines}`);
+	return await js(`document.querySelector('.summary .total').textContent.trim().replace(/\s+/g, ' ')`);
+});
+
+await step('Add two extras', async () => {
+	const before = await price();
+	await tap(at(await box('.extra'), 0.5, 0.5));
+	await js(`document.querySelectorAll('.extra')[2].click()`);
+	await sleep(400);
+	const on = await js(`document.querySelectorAll('.extra.on').length`);
+	expect(on === 2, `expected 2 extras on, got ${on}`);
+	return `${before} → ${await price()}`;
 });
 
 await step('Open the booking page', async () => {

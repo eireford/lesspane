@@ -2,21 +2,38 @@ import { fail, redirect } from '@sveltejs/kit';
 import { computeQuote } from '$lib/pricing';
 import { notifyNewRequest } from '$lib/server/email';
 import { saveRequest } from '$lib/server/store';
-import { houses } from '$lib/sketches';
-import { bookingDateRange, jobToSearchParams, parseContact, parseHomeDetails, parseJob } from '$lib/validation';
+import { describeLayout, layoutToSearchParams, parseLayout, totalWindows, type Layout } from '$lib/layout';
+import { bookingDateRange, parseContact, parseHomeDetails, parseJob } from '$lib/validation';
 import type { Actions, PageServerLoad } from './$types';
 
-// Second screen: the quote page's controls built the job (carried in the query string); here the customer
-// picks a day and time and says who and where. Scheduling stays off the first page on purpose.
+/**
+ * The job as the quote steps built it: the layout (floors, sides, window buckets) plus service and add-ons.
+ * The window count always comes from the layout, never from a number the browser sends.
+ */
+function jobParams(src: URLSearchParams | FormData, layout: Layout): URLSearchParams {
+	const p = new URLSearchParams();
+	for (const [k, v] of src.entries()) if (typeof v === 'string') p.append(k, v);
+	p.set('stories', String(layout.floors));
+	p.set('windows', String(totalWindows(layout)));
+	p.set('notes', `Windows by side: ${describeLayout(layout)}`);
+	return p;
+}
+
+// Second screen: the quote steps built the job (carried in the query string); here the customer picks a
+// day and time and says who and where. Scheduling stays off the first page on purpose.
 export const load: PageServerLoad = ({ url }) => {
-	const job = parseJob(url.searchParams);
-	if (!job.ok) redirect(303, '/');
-	const house = houses.find((h) => h.id === url.searchParams.get('house')) ?? houses[0];
+	const layout = parseLayout(url.searchParams);
+	const job = layout ? parseJob(jobParams(url.searchParams, layout)) : null;
+	if (!layout || !job?.ok) redirect(303, '/');
+	const back = layoutToSearchParams(layout);
+	back.set('service', job.value.service);
+	for (const a of job.value.addons) back.append('addons', a);
 	return {
+		layout,
 		job: job.value,
-		house: house.id,
 		quote: computeQuote(job.value),
-		back: `/?${jobToSearchParams(job.value, house.id)}`,
+		summary: describeLayout(layout),
+		back: `/?${back}`,
 		dateRange: bookingDateRange()
 	};
 };
@@ -30,8 +47,10 @@ export const actions: Actions = {
 			redirect(303, '/quote/thanks');
 		}
 
-		const home = parseHomeDetails(form);
-		const contact = parseContact(form);
+		const layout = parseLayout(form);
+		const params = layout ? jobParams(form, layout) : new URLSearchParams();
+		const home = parseHomeDetails(params);
+		const contact = parseContact(params);
 		if (!home.ok || !contact.ok) {
 			const errors = { ...(home.ok ? {} : home.errors), ...(contact.ok ? {} : contact.errors) };
 			// The quote page sets stories, windows, service and add-ons; only address and ZIP are typed here.

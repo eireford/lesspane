@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
-	import HouseCard from '$lib/components/HouseCard.svelte';
+	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
 	import SketchDefs from '$lib/components/SketchDefs.svelte';
 	import SunDial from '$lib/components/SunDial.svelte';
 	import type { AddOnKey, TimeWindow } from '$lib/config';
+	import { layoutToSearchParams } from '$lib/layout';
 	import { formatUsd } from '$lib/pricing';
-	import { houses } from '$lib/sketches';
 	import { addDaysIso } from '$lib/validation';
 	import type { ActionData, PageData } from './$types';
 
@@ -22,7 +22,7 @@
 
 	const errors = $derived((form?.errors ?? {}) as Record<string, string>);
 	const values = $derived((form?.values ?? {}) as Partial<Record<string, string>>);
-	const house = $derived(houses.find((h) => h.id === data.house) ?? houses[0]);
+	const layoutFields = $derived([...layoutToSearchParams(data.layout)]);
 	const addOnIcons: Record<AddOnKey, IconName> = { screens: 'mesh', tracks: 'track', hard_water: 'drop' };
 
 	// Starts a few days out, in the morning; a failed submit keeps what was picked.
@@ -41,7 +41,7 @@
 <section class="summary">
 	<a class="back" href={data.back} aria-label="Change the job"><Icon name="left" /></a>
 	<div class="mini" aria-hidden="true">
-		<HouseCard {house} clean={data.job.windows} inside={data.job.service === 'interior_exterior'} addons={data.job.addons} />
+		<LayoutSketch layout={data.layout} mode="floors" />
 	</div>
 	<div class="what">
 		<small class="tag">Your estimate</small>
@@ -77,14 +77,12 @@
 		{#if errors.preferredDate}<p class="error">{errors.preferredDate}</p>{/if}
 	</section>
 
-	<!-- The job from the first page, re-validated and re-priced by the server -->
-	<input type="hidden" name="stories" value={data.job.stories} />
-	<input type="hidden" name="windows" value={data.job.windows} />
+	<!-- The job from the quote steps; the server re-validates it and re-prices it from the layout -->
+	{#each layoutFields as [name, value]}<input type="hidden" {name} {value} />{/each}
 	<input type="hidden" name="service" value={data.job.service} />
 	{#each data.job.addons as addon}<input type="hidden" name="addons" value={addon} />{/each}
 	<input type="hidden" name="preferredDate" value={date} />
 	<input type="hidden" name="preferredWindow" value={time} />
-	<input type="hidden" name="notes" value={`House picked: ${house.name}`} />
 
 	<div class="honeypot" aria-hidden="true">
 		<label for="company">Company</label>
@@ -142,8 +140,10 @@
 		color: var(--ink);
 	}
 
-	.mini :global(.house) {
-		box-shadow: none;
+	.mini {
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
+		overflow: hidden;
 	}
 
 	.amount {

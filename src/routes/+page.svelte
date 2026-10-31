@@ -1,80 +1,158 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
-	import FlipWindow from '$lib/components/FlipWindow.svelte';
-	import SketchDefs from '$lib/components/SketchDefs.svelte';
-	import HouseCard from '$lib/components/HouseCard.svelte';
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
-	import PeelPane from '$lib/components/PeelPane.svelte';
-	import Squeegee from '$lib/components/Squeegee.svelte';
+	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
+	import SketchDefs from '$lib/components/SketchDefs.svelte';
 	import SwipeCard, { type SwipeDir } from '$lib/components/SwipeCard.svelte';
-	import { pricing, type AddOnKey } from '$lib/config';
-	import { houses } from '$lib/sketches';
+	import { pricing, type AddOnKey, type Stories } from '$lib/config';
+	import {
+		BUCKETS,
+		FLOOR_NAMES,
+		SIDE_CHOICES,
+		SIDE_NAMES,
+		defaultLayout,
+		layoutToSearchParams,
+		parseLayout,
+		resize,
+		totalWindows,
+		type Layout,
+		type Sides
+	} from '$lib/layout';
 	import { computeQuote, formatUsd } from '$lib/pricing';
-	import { jobToSearchParams } from '$lib/validation';
 
-	// Four things to play with. Each starts on a sensible choice, so there's a price before anyone
-	// touches anything. Scheduling comes later, on /book.
-	//   house card  → swipe for the house type (and stories)      starts: a two-story colonial
-	//   squeegee    → pull for how many windows                     starts: 20
-	//   flip window → outside only, or both sides                   starts: outside only
-	//   stickers    → peel off the extra problems to fix            starts: none
-	// Coming back from /book, the query string restores what was picked.
+	// The quote is a short process. Each step shows a sensible default: accept it with ✓, or change it by
+	// swiping the card (or tapping ‹ ›). Steps: floors → sides to clean → windows on each floor of each
+	// side (in buckets) → summary with optional extras → /book for the day, time and contact details.
+	// Coming back from /book, the query string restores every choice.
 
-	/** A typical home; more than this and we size it up on site. */
-	const MAX_WINDOWS = 40;
+	type Step =
+		| { kind: 'floors' }
+		| { kind: 'sides' }
+		| { kind: 'windows'; side: number; floor: number }
+		| { kind: 'summary' };
 
 	const start = untrack(() => page.url.searchParams);
-	const startWindows = Number(start.get('windows'));
+	const restored = parseLayout(start);
 
-	let pick = $state(Math.max(0, houses.findIndex((h) => h.id === start.get('house'))));
-	let windows = $state(Number.isInteger(startWindows) && startWindows >= 1 && startWindows <= MAX_WINDOWS ? startWindows : 20);
+	let layout = $state<Layout>(restored ?? defaultLayout(2, 4));
 	let inside = $state(start.get('service') === 'interior_exterior');
 	let addons = $state<AddOnKey[]>(start.getAll('addons').filter((a): a is AddOnKey => a in pricing.addOns));
+	let at = $state(0);
 	let showLimits = $state(false);
 	let card = $state<SwipeCard>();
 
-	const house = $derived(houses[pick]);
+	const steps = $derived<Step[]>([
+		{ kind: 'floors' },
+		{ kind: 'sides' },
+		...Array.from({ length: layout.sides }, (_, side) =>
+			Array.from({ length: layout.floors }, (_, floor) => ({ kind: 'windows' as const, side, floor }))
+		).flat(),
+		{ kind: 'summary' }
+	]);
+	// Restored from /book: go straight to the summary.
+	if (restored) at = 2 + restored.sides * restored.floors;
+
+	const step = $derived(steps[Math.min(at, steps.length - 1)]);
+	const windows = $derived(totalWindows(layout));
 	const service = $derived(inside ? 'interior_exterior' : 'exterior');
 	const quoteFor = (o: { inside?: boolean; addons?: AddOnKey[] } = {}) =>
 		computeQuote({
-			windows,
-			stories: house.stories,
+			windows: Math.max(1, windows),
+			stories: layout.floors,
 			service: (o.inside ?? inside) ? 'interior_exterior' : 'exterior',
 			addons: o.addons ?? addons
 		});
 	const quote = $derived(quoteFor());
-	const insideCost = $derived(`+${formatUsd(quoteFor({ inside: true }).subtotal - quoteFor({ inside: false }).subtotal)}`);
-	const addOnCost = (key: AddOnKey) =>
-		`+${formatUsd(windows * pricing.addOns[key].price)}`;
-	const addOnIcons: Record<AddOnKey, IconName> = { screens: 'mesh', tracks: 'track', hard_water: 'drop' };
 
-	function onHouseSwipe(dir: SwipeDir) {
-		pick = (pick + (dir === 'left' ? 1 : -1) + houses.length) % houses.length;
+	// ---------- The option on the current step ----------
+
+	/** How many options this step has, which one is chosen, and how to show it. */
+	const options = $derived.by(() => {
+		if (step.kind === 'floors')
+			return { count: 3, index: layout.floors - 1, label: (i: number) => `${i + 1} floor${i ? 's' : ''}` };
+		if (step.kind === 'sides')
+			return { count: 4, index: layout.sides - 1, label: (i: number) => SIDE_CHOICES[(i + 1) as Sides] };
+		if (step.kind === 'windows') {
+			const s = step;
+			return {
+				count: BUCKETS.length,
+				index: layout.windows[s.side][s.floor],
+				label: (i: number) => (i ? `${BUCKETS[i].label} windows` : 'No windows')
+			};
+		}
+		return { count: 0, index: 0, label: () => '' };
+	});
+
+	function choose(i: number) {
+		i = Math.max(0, Math.min(options.count - 1, i));
+		if (step.kind === 'floors') layout = resize(layout, (i + 1) as Stories, layout.sides);
+		else if (step.kind === 'sides') layout = resize(layout, layout.floors, (i + 1) as Sides);
+		else if (step.kind === 'windows') layout.windows[step.side][step.floor] = i;
 	}
 
-	const bookHref = $derived(
-		`/book?${jobToSearchParams({ stories: house.stories, windows, service, addons }, house.id)}`
+	/** Swipe left for the next option, right for the previous one. */
+	function onSwipe(dir: SwipeDir) {
+		choose(options.index + (dir === 'left' ? 1 : -1));
+	}
+
+	const title = $derived.by(() => {
+		if (step.kind === 'floors') return 'How many floors?';
+		if (step.kind === 'sides') return 'Which sides get cleaned?';
+		if (step.kind === 'windows') return `${SIDE_NAMES[step.side]} · ${FLOOR_NAMES[step.floor]}`;
+		return 'Your estimate';
+	});
+	const icon = $derived<IconName>(
+		step.kind === 'floors' ? 'home' : step.kind === 'sides' ? 'back' : step.kind === 'windows' ? 'window' : 'sparkle'
 	);
+
+	function next() {
+		at = Math.min(at + 1, steps.length - 1);
+	}
+
+	function back() {
+		at = Math.max(0, at - 1);
+	}
+
+	// ---------- Summary ----------
+
+	const extras: { key: AddOnKey | 'inside'; icon: IconName; label: string }[] = [
+		{ key: 'inside', icon: 'hand', label: 'Inside too' },
+		{ key: 'screens', icon: 'mesh', label: 'Screens' },
+		{ key: 'tracks', icon: 'track', label: 'Tracks' },
+		{ key: 'hard_water', icon: 'drop', label: 'Hard water' }
+	];
+	const isOn = (key: AddOnKey | 'inside') => (key === 'inside' ? inside : addons.includes(key));
+	function toggle(key: AddOnKey | 'inside') {
+		if (key === 'inside') inside = !inside;
+		else addons = addons.includes(key) ? addons.filter((a) => a !== key) : [...addons, key];
+	}
+	const extraCost = (key: AddOnKey | 'inside') =>
+		key === 'inside'
+			? quoteFor({ inside: true }).subtotal - quoteFor({ inside: false }).subtotal
+			: windows * pricing.addOns[key].price;
+
+	const bookHref = $derived.by(() => {
+		const p = layoutToSearchParams(layout);
+		p.set('service', service);
+		for (const a of addons) p.append('addons', a);
+		return `/book?${p}`;
+	});
 </script>
 
 <svelte:head>
-	<title>LessPane · Play with it, see the price</title>
+	<title>LessPane · Your window cleaning estimate</title>
 </svelte:head>
 
 <SketchDefs />
 
-<!-- Live price, always in view -->
+<!-- Live estimate, always in view -->
 <div class="price-bar" aria-live="polite">
 	<span class="label-stack">
 		<small class="tag">Estimate</small>
 		<span class="amount"><Icon name="sparkle" size={22} />{formatUsd(quote.total)}</span>
 	</span>
-	<span class="parts" aria-hidden="true">
-		<Icon name="window" size={16} />{windows}
-		{#if inside}<Icon name="hand" size={16} />{/if}
-		{#each addons as a (a)}<Icon name={addOnIcons[a]} size={16} />{/each}
-	</span>
+	<span class="parts" aria-label={`${windows} windows`}><Icon name="window" size={16} />{windows}</span>
 	<button type="button" class="info" aria-expanded={showLimits} aria-label="What this estimate covers" onclick={() => (showLimits = !showLimits)}>
 		<Icon name="info" size={20} />
 	</button>
@@ -87,7 +165,7 @@
 			work starts. It holds as long as the home matches what you set here:
 		</p>
 		<ul>
-			<li>The number of windows and the house type you picked.</li>
+			<li>The floors, sides and window counts you picked. Each range is priced at its top end.</li>
 			<li>Standard-size residential windows, reachable by ladder up to three stories.</li>
 			<li>Not included: skylights, storm windows, sunrooms, inside glass more than 10 feet up.</li>
 			<li>Paint, sticker or construction residue is quoted separately.</li>
@@ -99,47 +177,93 @@
 	</div>
 {/if}
 
-<!-- 1. House: swipe the card -->
-<section class="play" aria-label="Your kind of house: swipe to change">
-	<p class="cue" style="color: var(--coral)"><Icon name="home" size={18} /><span class="label">Your house</span><span class="hint">swipe to change ⟷</span></p>
-	<div class="house-stack">
-		{#key pick}
-			<SwipeCard bind:this={card} dirs={['left', 'right']} onswipe={onHouseSwipe} label={`${house.name}. Swipe for another house.`}>
+<!-- Where you are in the process -->
+<div class="progress" aria-label={`Step ${Math.min(at, steps.length - 1) + 1} of ${steps.length}`}>
+	{#each steps as _, i}<i class:done={i < at} class:on={i === at}></i>{/each}
+</div>
+
+<section class="flow" aria-live="polite">
+	<p class="cue"><Icon name={icon} size={20} /><span class="title">{title}</span></p>
+
+	{#if step.kind !== 'summary'}
+		{#key `${at}-${options.index}`}
+			<SwipeCard bind:this={card} dirs={['left', 'right']} onswipe={onSwipe} label={`${title}: ${options.label(options.index)}. Swipe to change.`}>
 				{#snippet children(lean: number)}
-					<HouseCard {house} clean={windows} {inside} {addons} {lean} />
+					<div class="sketch-card">
+						<LayoutSketch
+							{layout}
+							mode={step.kind === 'windows' ? 'wall' : step.kind === 'sides' ? 'sides' : 'floors'}
+							side={step.kind === 'windows' ? step.side : 0}
+							floor={step.kind === 'windows' ? step.floor : 0}
+						/>
+						<span class="peek left" style="opacity: {Math.max(0, lean) * 0.9}">{options.index > 0 ? options.label(options.index - 1) : ''}</span>
+						<span class="peek right" style="opacity: {Math.max(0, -lean) * 0.9}"
+							>{options.index < options.count - 1 ? options.label(options.index + 1) : ''}</span
+						>
+					</div>
 				{/snippet}
 			</SwipeCard>
 		{/key}
-	</div>
-	<div class="dots" aria-hidden="true">
-		<button type="button" class="arrow" tabindex="-1" onclick={() => card?.fling('right')}><Icon name="left" size={18} /></button>
-		{#each houses as h, i (h.id)}<i class:on={i === pick}></i>{/each}
-		<button type="button" class="arrow" tabindex="-1" onclick={() => card?.fling('left')}><Icon name="right" size={18} /></button>
-	</div>
-</section>
 
-<!-- 2. How many windows: pull the squeegee -->
-<section class="play" aria-label="How many windows: pull the squeegee">
-	<p class="cue" style="color: var(--lake)"><Icon name="window" size={18} /><span class="label">How many windows</span><span class="hint">slide the squeegee ⟶</span></p>
-	<Squeegee bind:value={windows} max={MAX_WINDOWS} />
-</section>
+		<!-- The choice: the default is already picked; change it left or right -->
+		<div class="chooser">
+			<button type="button" class="nudge" aria-label="Fewer" disabled={options.index === 0} onclick={() => choose(options.index - 1)}>
+				<Icon name="left" size={26} />
+			</button>
+			<div class="value">
+				<strong>{options.label(options.index)}</strong>
+				<span class="dots" aria-hidden="true">{#each Array(options.count) as _, i}<i class:on={i === options.index}></i>{/each}</span>
+			</div>
+			<button type="button" class="nudge" aria-label="More" disabled={options.index === options.count - 1} onclick={() => choose(options.index + 1)}>
+				<Icon name="right" size={26} />
+			</button>
+		</div>
 
-<!-- 3 + 4. Both sides? Flip the window. Extras? Peel the stickers. -->
-<section class="play pair">
-	<div aria-label="Inside too: flip the window">
-		<p class="cue" style="color: var(--berry)"><Icon name="hand" size={18} /><span class="label">Inside too?</span><span class="hint">flip ↻</span></p>
-		<FlipWindow bind:inside extra={insideCost} />
-	</div>
-	<div aria-label="Extra problems: peel off the stickers">
-		<p class="cue" style="color: var(--marigold)"><Icon name="sparkle" size={18} /><span class="label">Extras</span><span class="hint">peel off ⤴</span></p>
-		<PeelPane bind:addons cost={addOnCost} />
-	</div>
-</section>
+		<div class="actions-row">
+			<button type="button" class="round" aria-label="Previous step" disabled={at === 0} onclick={back}><Icon name="undo" /></button>
+			<button type="button" class="btn ok" onclick={next}><Icon name="check" /> Looks right</button>
+		</div>
+		{#if step.kind === 'windows'}
+			<button type="button" class="skip" onclick={() => (at = steps.length - 1)}>Use suggested counts for the rest →</button>
+		{/if}
+	{:else}
+		<!-- Summary: what the steps built, the extras, and on to booking -->
+		<div class="summary card">
+			<div class="mini"><LayoutSketch {layout} mode="floors" /></div>
+			<ul class="lines">
+				<li>
+					<span>{layout.floors} floor{layout.floors > 1 ? 's' : ''} · {SIDE_CHOICES[layout.sides].toLowerCase()}</span>
+					<button type="button" class="edit" onclick={() => (at = 0)}>change</button>
+				</li>
+				{#each layout.windows as sideBuckets, s}
+					<li>
+						<span>{SIDE_NAMES[s]}: {sideBuckets.map((b) => BUCKETS[b].label).join(' / ')}</span>
+						<button type="button" class="edit" onclick={() => (at = 2 + s * layout.floors)}>change</button>
+					</li>
+				{/each}
+				<li class="total">
+					<span><Icon name="window" size={16} /> about {windows} windows</span><span>{formatUsd(quote.lines[0].amount)}</span>
+				</li>
+			</ul>
+		</div>
 
-<!-- Next: pick a time and say where, on the booking page -->
-<a class="btn block book-cta" href={bookHref} aria-label={`Book this, ${formatUsd(quote.total)}`}>
-	<Icon name="calendar" /> Book a time · {formatUsd(quote.total)} <Icon name="right" />
-</a>
+		<p class="cue extras-cue"><Icon name="sparkle" size={18} /><span class="title small">Anything extra?</span><span class="hint">tap to add</span></p>
+		<div class="extras">
+			{#each extras as x (x.key)}
+				<button type="button" class="extra" class:on={isOn(x.key)} aria-pressed={isOn(x.key)} onclick={() => toggle(x.key)}>
+					<Icon name={x.icon} size={26} />
+					<span class="name">{x.label}</span>
+					<small>+{formatUsd(extraCost(x.key))}</small>
+				</button>
+			{/each}
+		</div>
+
+		<a class="btn block book-cta" href={bookHref} aria-label={`Book a time, ${formatUsd(quote.total)}`}>
+			<Icon name="calendar" /> Book a time · {formatUsd(quote.total)} <Icon name="right" />
+		</a>
+		<button type="button" class="skip" onclick={back}>← Back to the last step</button>
+	{/if}
+</section>
 
 <style>
 	/* ---------- Price bar ---------- */
@@ -151,26 +275,33 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		margin-bottom: 14px;
+		margin-bottom: 12px;
 		padding: 8px 8px 8px 16px;
 		border: 2px solid var(--ink);
 		border-radius: var(--sketchy);
 		background: rgb(255 255 255 / 0.96);
-		backdrop-filter: blur(6px);
 		box-shadow: var(--shadow);
+	}
+
+	.label-stack {
+		display: grid;
+		line-height: 1;
+	}
+
+	.tag {
+		font-family: var(--hand);
+		font-size: 0.95rem;
+		color: var(--ink-soft);
 	}
 
 	.amount {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
+		padding: 0 4px;
 		font-family: var(--hand);
 		font-size: 2rem;
-		font-weight: 400;
-		letter-spacing: -0.02em;
 		color: var(--brand);
-		/* Highlighter swipe under the price */
-		padding: 0 4px;
 		background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 92%, transparent 92%);
 	}
 
@@ -190,9 +321,9 @@
 		place-items: center;
 		width: 38px;
 		height: 38px;
-		border: 0;
+		border: 1.5px solid var(--line);
 		border-radius: 50%;
-		background: var(--sky);
+		background: var(--paper);
 		color: var(--ink-soft);
 		cursor: pointer;
 	}
@@ -208,107 +339,250 @@
 		margin: 6px 0;
 	}
 
-	/* ---------- Play areas ---------- */
+	/* ---------- Progress ---------- */
 
-	.play + .play {
-		margin-top: 26px;
+	.progress {
+		display: flex;
+		gap: 4px;
+		margin: 0 0 16px;
 	}
+
+	.progress i {
+		flex: 1;
+		height: 6px;
+		border-radius: 3px;
+		background: var(--line);
+	}
+
+	.progress i.done {
+		background: var(--brand);
+	}
+
+	.progress i.on {
+		background: var(--marigold);
+	}
+
+	/* ---------- Step ---------- */
 
 	.cue {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		margin: 0 0 8px;
-		color: var(--brand);
+		gap: 8px;
+		margin: 0 0 10px;
+		color: var(--lake);
 	}
 
-	.label {
+	.title {
 		font-family: var(--hand);
+		font-size: 1.6rem;
+		line-height: 1.1;
+		color: var(--ink);
+	}
+
+	.title.small {
 		font-size: 1.3rem;
-		line-height: 1;
 	}
 
 	.hint {
 		margin-left: auto;
 		font-family: var(--hand);
-		font-size: 1rem;
-		color: var(--ink-soft);
-		white-space: nowrap;
-		animation: cue 1.8s ease-in-out infinite;
-	}
-
-	.label-stack {
-		display: grid;
-		line-height: 1;
-	}
-
-	.tag {
-		font-family: var(--hand);
-		font-size: 0.95rem;
 		color: var(--ink-soft);
 	}
 
-	@keyframes cue {
-		50% {
-			transform: translateX(4px);
-			opacity: 0.6;
-		}
-	}
-
-	.house-stack {
+	.sketch-card {
 		position: relative;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
+		overflow: hidden;
+		background: var(--paper);
+		box-shadow: var(--shadow);
+	}
+
+	.peek {
+		position: absolute;
+		top: 12px;
+		padding: 2px 10px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--highlight);
+		font-family: var(--hand);
+		font-size: 1.1rem;
+		pointer-events: none;
+	}
+
+	.peek:empty {
+		display: none;
+	}
+
+	.peek.left {
+		left: 12px;
+	}
+
+	.peek.right {
+		right: 12px;
+	}
+
+	.chooser {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 10px;
+		margin-top: 14px;
+	}
+
+	.nudge,
+	.round {
+		display: grid;
+		place-items: center;
+		width: 56px;
+		height: 56px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--paper);
+		color: var(--ink);
+		cursor: pointer;
+	}
+
+	.nudge:disabled,
+	.round:disabled {
+		color: var(--line);
+		border-color: var(--line);
+		cursor: default;
+	}
+
+	.value {
+		display: grid;
+		justify-items: center;
+		gap: 6px;
+		text-align: center;
+	}
+
+	.value strong {
+		font-family: var(--hand);
+		font-size: 1.8rem;
+		font-weight: 400;
+		line-height: 1;
+		padding: 0 6px;
+		background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 92%, transparent 92%);
 	}
 
 	.dots {
 		display: flex;
-		align-items: center;
-		justify-content: center;
 		gap: 5px;
-		margin-top: 8px;
 	}
 
 	.dots i {
-		width: 6px;
-		height: 6px;
+		width: 7px;
+		height: 7px;
 		border-radius: 50%;
 		background: var(--line);
 	}
 
 	.dots i.on {
-		width: 18px;
-		border-radius: 3px;
-		background: var(--brand);
+		background: var(--lake);
 	}
 
-	.arrow {
+	.actions-row {
 		display: grid;
-		place-items: center;
-		width: 34px;
-		height: 34px;
+		grid-template-columns: auto 1fr;
+		gap: 10px;
+		margin-top: 18px;
+	}
+
+	.ok {
+		min-height: 56px;
+		font-size: 1.4rem;
+	}
+
+	.skip {
+		display: block;
+		margin: 12px auto 0;
 		border: 0;
-		border-radius: 50%;
-		background: transparent;
+		background: none;
+		font-family: var(--hand);
+		font-size: 1.05rem;
 		color: var(--ink-soft);
+		text-decoration: underline;
 		cursor: pointer;
 	}
 
-	.pair {
+	/* ---------- Summary ---------- */
+
+	.summary {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 14px;
-		align-items: start;
+		gap: 10px;
+	}
+
+	.mini {
+		width: 100%;
+		max-width: 220px;
+		margin: 0 auto;
+	}
+
+	.summary .lines li {
+		align-items: center;
+		font-family: var(--hand);
+		font-size: 1.1rem;
+	}
+
+	.summary .lines .total {
+		font-size: 1.25rem;
+		border-bottom: 0;
+	}
+
+	.edit {
+		border: 0;
+		background: none;
+		font-family: var(--hand);
+		font-size: 1rem;
+		color: var(--lake);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.extras-cue {
+		margin-top: 22px;
+		color: var(--marigold);
+	}
+
+	.extras {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 8px;
+	}
+
+	.extra {
+		display: grid;
+		justify-items: center;
+		gap: 2px;
+		padding: 10px 2px 8px;
+		border: 2px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--paper);
+		color: var(--ink);
+		cursor: pointer;
+	}
+
+	.extra .name {
+		font-family: var(--hand);
+		font-size: 1rem;
+		line-height: 1.1;
+	}
+
+	.extra small {
+		font-family: var(--hand);
+		color: var(--bark);
+	}
+
+	.extra.on {
+		background: var(--brand-soft);
+		border-color: var(--brand);
+		color: var(--brand);
 	}
 
 	.book-cta {
-		margin-top: 30px;
+		margin-top: 22px;
 		min-height: 60px;
 		font-size: 1.5rem;
 	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.hint {
-			animation: none;
-		}
-	}
-
 </style>

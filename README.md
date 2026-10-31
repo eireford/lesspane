@@ -3,19 +3,23 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The quote page has **four things to play with**, each starting on a sensible choice so a price shows before
-anyone touches anything. The price stays pinned at the top. Scheduling is deliberately not on this page.
+The quote is a **short process**. Each step shows a sketch with a sensible default already chosen: accept it
+with **✓ Looks right**, or change it by swiping the card or tapping ‹ ›. The estimate stays pinned at the top.
 
-| Control | Gesture | Chooses | Starts at |
-| --- | --- | --- | --- |
-| House card | swipe left/right | house type and stories (9 sketches) | two-story colonial |
-| Squeegee | pull the blade along the glass | number of windows (1–40) | 20 |
-| Flip window | tap or flick to flip | outside only, or both sides | outside only |
-| Stickers on a pane | peel off (drag or tap); tap the tray to undo | screens, tracks, hard water | none |
+| Step | Options | Starts at |
+| --- | --- | --- |
+| How many floors? | 1, 2, 3 | 2 |
+| Which sides get cleaned? | front only, front & back, three sides, all four | all four |
+| Each side × each floor | None, 1–2, 3–4, 5–6, 7–9, 10+ windows | front and back 3–4, the ends 1–2 |
+| Your estimate | summary with "change" links, plus extras: inside, screens, tracks, hard water | no extras |
 
-The **Book** button opens `/book`, which shows the job and its price, then a sun dial (tap a day, drag the sun
-for morning or afternoon; starts a few days out, not Sunday, morning) and address, name, phone and email. ← goes
-back to the quote page with every choice kept. A confirmation page follows,
+"Use suggested counts for the rest" jumps from any window step to the summary. Each window range is priced
+at its top end (`count` in `src/lib/layout.ts`), so the estimate doesn't come in low.
+
+**Book a time** opens `/book`: the job and its price, a sun dial (tap a day, drag the sun for morning or
+afternoon; starts a few days out, not Sunday, morning), and address, name, phone and email. ← goes back to the
+summary with every choice kept. The saved request includes the window range for every side and floor. A
+confirmation page follows,
 plus a password-protected owner page at `/admin`.
 
 ## Run it locally
@@ -47,8 +51,8 @@ staging deploys.
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
 | `src/routes/book/` | Booking page: day and time, contact details, and the server action that saves the request |
-| `src/lib/components/` | The controls: `HouseCard` + `SwipeCard`, `Squeegee`, `FlipWindow`, `PeelPane`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
-| `src/lib/sketches.ts` | The house sketches: outline strokes, door, windows and story count for each |
+| `src/lib/components/` | `LayoutSketch` (the drawing for each step), `SketchWindow`, `SwipeCard`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
+| `src/lib/layout.ts` | The layout model: floors, sides, window buckets, defaults, and query-string encoding |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
 | `firestore.rules` | Denies all direct client access to Firestore |
@@ -138,13 +142,10 @@ DNS records at Squarespace (same for both domains; the Squarespace default A and
 
 ## Look and feel
 
-Everything is drawn as a simple pencil sketch on paper: the houses, windows, squeegee, stickers and sun. Lines get
-a slight hand-drawn wobble from SVG filters, and dirt is pencil hatching (`src/lib/components/SketchDefs.svelte`).
+Everything is a pencil sketch with watercolor color on a white page: the house front for the floors step, a
+plan view for the sides step, and each side's wall, floor by floor, for the window steps (`LayoutSketch.svelte`).
+Lines get a slight hand-drawn wobble from SVG filters, and dirt is pencil hatching (`SketchDefs.svelte`).
 Headings and prices use the Patrick Hand font from Google Fonts.
-
-To add a house, add an entry to `houses` in `src/lib/sketches.ts`: outline paths on the 400×300 canvas (end a path
-with `Z` to shade it like a roof), a door, its windows as `[x, y, width, height]` (ground floor first), and its
-story count.
 
 ## Deliberately left out
 

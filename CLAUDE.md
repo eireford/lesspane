@@ -13,9 +13,10 @@ See `README.md` for the product and infrastructure, and `docs/development.md` fo
 
 ## Conventions
 
-- The UI is pencil sketches with watercolor color. Each control has an icon, a short hand-lettered label and a
-  gesture hint ("slide the squeegee"); fuller descriptions go in `aria-label`s. Keep every gesture paired with a
-  tap or keyboard path.
+- The quote is a step-by-step process (floors → sides → windows per side and floor, in buckets → summary).
+  Every step starts on a sensible default; the user accepts it or changes it by swiping or tapping ‹ ›.
+  Keep every gesture paired with a tap or keyboard path. The look is pencil sketches with watercolor color on
+  white, with short hand-lettered labels.
 - All prices are recomputed on the server (`src/routes/book/+page.server.ts`); the browser never sends one.
 - Business numbers live only in `src/lib/config.ts`.
 - Pushing to `main` deploys staging (lesspane.net); only a `v*` tag deploys production (lesspane.com).
