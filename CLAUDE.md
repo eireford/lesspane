@@ -16,7 +16,7 @@ See `README.md` for the product and infrastructure, and `docs/development.md` fo
 - The UI is pencil sketches with watercolor color. Each control has an icon, a short hand-lettered label and a
   gesture hint ("slide the squeegee"); fuller descriptions go in `aria-label`s. Keep every gesture paired with a
   tap or keyboard path.
-- All prices are recomputed on the server (`src/routes/+page.server.ts`); the browser never sends one.
+- All prices are recomputed on the server (`src/routes/book/+page.server.ts`); the browser never sends one.
 - Business numbers live only in `src/lib/config.ts`.
 - Pushing to `main` deploys staging (lesspane.net); only a `v*` tag deploys production (lesspane.com).
   Confirm with the user before tagging.
