@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { untrack } from 'svelte';
 	import FlipWindow from '$lib/components/FlipWindow.svelte';
 	import SketchDefs from '$lib/components/SketchDefs.svelte';
@@ -7,43 +7,31 @@
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
 	import PeelPane from '$lib/components/PeelPane.svelte';
 	import Squeegee from '$lib/components/Squeegee.svelte';
-	import SunDial from '$lib/components/SunDial.svelte';
 	import SwipeCard, { type SwipeDir } from '$lib/components/SwipeCard.svelte';
-	import { pricing, type AddOnKey, type TimeWindow } from '$lib/config';
+	import { pricing, type AddOnKey } from '$lib/config';
 	import { houses } from '$lib/sketches';
 	import { computeQuote, formatUsd } from '$lib/pricing';
-	import { addDaysIso } from '$lib/validation';
-	import type { ActionData, PageData } from './$types';
+	import { jobToSearchParams } from '$lib/validation';
 
-	let { data, form }: { data: PageData; form: ActionData } = $props();
-
-	// One page, five things to play with. Each starts on a sensible choice, so there's a price
-	// before anyone touches anything:
-	//   house card  → swipe for the house type (and stories)      starts: a two-story house
+	// Four things to play with. Each starts on a sensible choice, so there's a price before anyone
+	// touches anything. Scheduling comes later, on /book.
+	//   house card  → swipe for the house type (and stories)      starts: a two-story colonial
 	//   squeegee    → pull for how many windows                     starts: 20
 	//   flip window → outside only, or both sides                   starts: outside only
 	//   stickers    → peel off the extra problems to fix            starts: none
-	//   sun dial    → day strip + drag the sun for morning/after    starts: a few days out, morning
+	// Coming back from /book, the query string restores what was picked.
 
 	/** A typical home; more than this and we size it up on site. */
 	const MAX_WINDOWS = 40;
 
-	/** A few days out, skipping Sunday. */
-	function firstGoodDay(min: string) {
-		let d = addDaysIso(min, 2);
-		if (new Date(`${d}T12:00:00`).getDay() === 0) d = addDaysIso(d, 1);
-		return d;
-	}
+	const start = untrack(() => page.url.searchParams);
+	const startWindows = Number(start.get('windows'));
 
-	let pick = $state(0);
-	let windows = $state(20);
-	let inside = $state(false);
-	let addons = $state<AddOnKey[]>([]);
-	// Only the starting day comes from the server; after that it's the visitor's pick.
-	let date = $state(firstGoodDay(untrack(() => data.dateRange.min)));
-	let time = $state<TimeWindow>('morning');
+	let pick = $state(Math.max(0, houses.findIndex((h) => h.id === start.get('house'))));
+	let windows = $state(Number.isInteger(startWindows) && startWindows >= 1 && startWindows <= MAX_WINDOWS ? startWindows : 20);
+	let inside = $state(start.get('service') === 'interior_exterior');
+	let addons = $state<AddOnKey[]>(start.getAll('addons').filter((a): a is AddOnKey => a in pricing.addOns));
 	let showLimits = $state(false);
-	let submitting = $state(false);
 	let card = $state<SwipeCard>();
 
 	const house = $derived(houses[pick]);
@@ -65,8 +53,9 @@
 		pick = (pick + (dir === 'left' ? 1 : -1) + houses.length) % houses.length;
 	}
 
-	const errors = $derived((form?.errors ?? {}) as Record<string, string>);
-	const values = $derived((form?.values ?? {}) as Partial<Record<string, string>>);
+	const bookHref = $derived(
+		`/book?${jobToSearchParams({ stories: house.stories, windows, service, addons }, house.id)}`
+	);
 </script>
 
 <svelte:head>
@@ -144,72 +133,10 @@
 	</div>
 </section>
 
-<!-- 5. When: pick a day, drag the sun -->
-<section class="play" aria-label="When: pick a day and drag the sun">
-	<p class="cue" aria-hidden="true"><Icon name="calendar" size={18} /><span class="gesture">☀</span></p>
-	<SunDial min={data.dateRange.min} max={data.dateRange.max} bind:date bind:time />
-	{#if errors.preferredDate}<p class="error">{errors.preferredDate}</p>{/if}
-</section>
-
-<!-- Who and where, then send -->
-<section class="card book" aria-label="Where and who">
-	<form
-		method="POST"
-		class="stack"
-		novalidate
-		use:enhance={() => {
-			submitting = true;
-			return async ({ update }) => {
-				await update({ reset: false });
-				submitting = false;
-			};
-		}}
-	>
-		{#if form?.message}
-			<p class="alert" role="alert">{form.message}</p>
-		{/if}
-
-		<!-- What the controls above chose. The server re-validates and re-prices it. -->
-		<input type="hidden" name="stories" value={house.stories} />
-		<input type="hidden" name="windows" value={windows} />
-		<input type="hidden" name="service" value={service} />
-		{#each addons as addon}<input type="hidden" name="addons" value={addon} />{/each}
-		<input type="hidden" name="preferredDate" value={date} />
-		<input type="hidden" name="preferredWindow" value={time} />
-		<input type="hidden" name="notes" value={`House picked: ${house.name}`} />
-
-		<div class="honeypot" aria-hidden="true">
-			<label for="company">Company</label>
-			<input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
-		</div>
-
-		{#snippet field(id: string, icon: IconName, label: string, attrs: Record<string, unknown>)}
-			<div>
-				<label class="field" class:bad={!!errors[id]}>
-					<Icon name={icon} size={20} />
-					<span class="sr">{label}</span>
-					<input {id} name={id} placeholder={label} value={values[id] ?? ''} aria-invalid={!!errors[id]} {...attrs} />
-				</label>
-				{#if errors[id]}<p class="error">{errors[id]}</p>{/if}
-			</div>
-		{/snippet}
-
-		<div class="row addr">
-			{@render field('address', 'pin', 'Street address', { type: 'text', autocomplete: 'street-address', required: true })}
-			{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5, required: true })}
-		</div>
-		{@render field('name', 'user', 'Name', { type: 'text', autocomplete: 'name', required: true })}
-		<div class="row">
-			{@render field('phone', 'phone', 'Mobile', { type: 'tel', autocomplete: 'tel', required: true })}
-			{@render field('email', 'mail', 'Email', { type: 'email', autocomplete: 'email', required: true })}
-		</div>
-
-		<button class="btn block send" type="submit" disabled={submitting} aria-label={`Request my visit, ${formatUsd(quote.total)}`}>
-			{#if submitting}…{:else}<Icon name="check" /> {formatUsd(quote.total)}{/if}
-		</button>
-		<p class="fine muted">No payment now · we text to confirm</p>
-	</form>
-</section>
+<!-- Next: pick a time and say where, on the booking page -->
+<a class="btn block book-cta" href={bookHref} aria-label={`Book this, ${formatUsd(quote.total)}`}>
+	<Icon name="calendar" /> {formatUsd(quote.total)} <Icon name="right" />
+</a>
 
 <style>
 	/* ---------- Price bar ---------- */
@@ -225,7 +152,7 @@
 		padding: 8px 8px 8px 16px;
 		border: 2px solid var(--ink);
 		border-radius: var(--sketchy);
-		background: rgb(251 250 247 / 0.95);
+		background: rgb(255 255 255 / 0.96);
 		backdrop-filter: blur(6px);
 		box-shadow: var(--shadow);
 	}
@@ -275,8 +202,7 @@
 
 	/* ---------- Play areas ---------- */
 
-	.play + .play,
-	.play + .book {
+	.play + .play {
 		margin-top: 26px;
 	}
 
@@ -345,59 +271,10 @@
 		align-items: start;
 	}
 
-	/* ---------- Booking ---------- */
-
-	.sr {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	.field {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin: 0;
-		padding-left: 12px;
-		font-weight: 400;
-		color: var(--ink-soft);
-		background: var(--paper);
-		border: 1.5px solid var(--ink);
-		border-radius: var(--sketchy);
-	}
-
-	.field.bad {
-		border-color: var(--danger);
-	}
-
-	.field:focus-within {
-		border-color: var(--brand);
-		outline: 3px solid color-mix(in srgb, var(--brand) 25%, transparent);
-	}
-
-	.field input {
-		border: 0;
-		background: transparent;
-		padding-left: 0;
-		outline: none;
-	}
-
-	.row.addr {
-		grid-template-columns: 2fr 1fr;
-	}
-
-	.send {
-		min-height: 56px;
-		font-size: 1.2rem;
-	}
-
-	.fine {
-		margin: 0;
-		font-size: 0.85rem;
-		text-align: center;
+	.book-cta {
+		margin-top: 30px;
+		min-height: 60px;
+		font-size: 1.5rem;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -406,10 +283,4 @@
 		}
 	}
 
-	@media (max-width: 420px) {
-		.row,
-		.row.addr {
-			grid-template-columns: 1fr;
-		}
-	}
 </style>

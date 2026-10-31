@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Smoke test: opens the quote page in headless Chromium at phone size, plays every control with real
-// gestures, checks the price reacts, and saves a screenshot per step. Exits non-zero on any failure
+// gestures, checks the price reacts, moves on to the booking page (day and sun), and saves a screenshot
+// per step. Exits non-zero on any failure
 // or page error. Needs a running server (npm run dev) and Chromium or Chrome installed.
 //
 //   npm run smoke                          # against http://127.0.0.1:5173, screenshots in .shots/
@@ -203,6 +204,20 @@ await step('Peel the stickers', async () => {
 	const chips = await js(`document.querySelectorAll('.chip').length`);
 	expect(chips === 2, `expected 2 peeled stickers, got ${chips}`);
 	return `2 fixed → ${await price()}`;
+});
+
+await step('Open the booking page', async () => {
+	const want = await price();
+	await js(`document.querySelector('.book-cta').scrollIntoView({ block: 'center' })`);
+	await sleep(300);
+	await tap(at(await box('.book-cta'), 0.5, 0.5));
+	for (let i = 0; i < 40 && (await js('location.pathname')) !== '/book'; i++) await sleep(250);
+	expect((await js('location.pathname')) === '/book', 'did not reach /book');
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.sky')`)); i++) await sleep(250);
+	await sleep(800);
+	const got = await js(`document.querySelector('.summary .amount')?.textContent.trim()`);
+	expect(got === want, `booking page price ${got} differs from quote ${want}`);
+	return `same price ${got}`;
 });
 
 await step('Pick a day and drag the sun', async () => {

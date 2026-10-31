@@ -30,7 +30,7 @@
 </script>
 
 <g class="window">
-	<rect {x} {y} width={w} height={h} fill="#fffdf7" />
+	<rect {x} {y} width={w} height={h} fill="#ffffff" />
 	<g opacity={faint}>
 	{#if smudges}
 		<!-- A hand print smeared on the inside -->

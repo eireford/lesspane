@@ -108,7 +108,7 @@
 
 	.back {
 		transform: rotateY(180deg);
-		background: #faf3e3;
+		background: #ffffff;
 	}
 
 	.face svg {

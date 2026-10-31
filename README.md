@@ -3,8 +3,8 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
-The quote is **one page with five things to play with**, each starting on a sensible choice so a price shows
-before anyone touches anything. The price stays pinned at the top.
+The quote page has **four things to play with**, each starting on a sensible choice so a price shows before
+anyone touches anything. The price stays pinned at the top. Scheduling is deliberately not on this page.
 
 | Control | Gesture | Chooses | Starts at |
 | --- | --- | --- | --- |
@@ -12,9 +12,10 @@ before anyone touches anything. The price stays pinned at the top.
 | Squeegee | pull the blade along the glass | number of windows (1–40) | 20 |
 | Flip window | tap or flick to flip | outside only, or both sides | outside only |
 | Stickers on a pane | peel off (drag or tap); tap the tray to undo | screens, tracks, hard water | none |
-| Sun dial | tap a day, drag the sun across the sky | day, morning or afternoon | a few days out (not Sunday), morning |
 
-Below them: address, name, phone, email, and a send button showing the price. A confirmation page follows,
+The **Book** button opens `/book`, which shows the job and its price, then a sun dial (tap a day, drag the sun
+for morning or afternoon; starts a few days out, not Sunday, morning) and address, name, phone and email. ← goes
+back to the quote page with every choice kept. A confirmation page follows,
 plus a password-protected owner page at `/admin`.
 
 ## Run it locally
@@ -45,7 +46,8 @@ staging deploys.
 | `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
-| `src/lib/components/` | The controls: `HouseCard` + `SwipeCard`, `Squeegee`, `FlipWindow`, `PeelPane`, `SunDial`; `GrimeDefs` (shared dirt effects), `Icon` |
+| `src/routes/book/` | Booking page: day and time, contact details, and the server action that saves the request |
+| `src/lib/components/` | The controls: `HouseCard` + `SwipeCard`, `Squeegee`, `FlipWindow`, `PeelPane`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
 | `src/lib/sketches.ts` | The house sketches: outline strokes, door, windows and story count for each |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |

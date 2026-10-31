@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDaysIso, parseContact, parseHomeDetails, todayIso } from './validation';
+import { addDaysIso, jobToSearchParams, parseContact, parseHomeDetails, parseJob, todayIso } from './validation';
 
 const home = (overrides: Record<string, string | string[]> = {}) => {
 	const base: Record<string, string | string[]> = {
@@ -64,5 +64,21 @@ describe('parseContact', () => {
 	it('rejects past dates', () => {
 		const r = parseContact(contact({ preferredDate: '2026-01-01' }), now);
 		expect(r.ok).toBe(false);
+	});
+});
+
+describe('parseJob', () => {
+	it('prices a job without an address, and round-trips through the query string', () => {
+		const job = parseJob(new URLSearchParams('stories=3&windows=12&service=exterior&addons=tracks'));
+		expect(job.ok).toBe(true);
+		if (!job.ok) return;
+		const again = parseJob(jobToSearchParams(job.value, 'victorian'));
+		expect(again.ok && again.value).toEqual(job.value);
+		expect(jobToSearchParams(job.value, 'victorian').get('house')).toBe('victorian');
+	});
+
+	it('rejects a job with no windows', () => {
+		const job = parseJob(new URLSearchParams('stories=2&windows=0&service=exterior'));
+		expect(job.ok).toBe(false);
 	});
 });

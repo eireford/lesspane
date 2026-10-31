@@ -122,7 +122,7 @@
 		padding: 9px 0 0;
 		border: 2px solid var(--ink);
 		border-radius: 52% 48% 55% 45% / 47% 53% 46% 54%;
-		background: #fff9e8;
+		background: #ffffff;
 		color: var(--ink);
 		box-shadow: 2px 2px 0 rgb(43 42 38 / 0.18);
 		cursor: grab;
@@ -139,7 +139,7 @@
 		width: 14px;
 		height: 14px;
 		border-radius: 0 0 50% 0;
-		background: linear-gradient(135deg, #fff9e8 50%, var(--ink) 50%);
+		background: linear-gradient(135deg, #ffffff 50%, var(--ink) 50%);
 	}
 
 	.sticker.lifting {

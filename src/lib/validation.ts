@@ -46,19 +46,12 @@ export function readRawHome(src: Source): RawHome {
 	};
 }
 
-export function parseHomeDetails(src: Source): Result<HomeDetails, RawHome> {
+/** The job itself, as the quote page's controls set it: everything needed to price it. */
+export type Job = Omit<HomeDetails, 'address' | 'zip'>;
+
+export function parseJob(src: Source): Result<Job, RawHome> {
 	const raw = readRawHome(src);
 	const errors: FieldErrors = {};
-
-	if (raw.address.length < 5 || raw.address.length > 200) {
-		errors.address = 'Enter the street address for the service.';
-	}
-
-	if (!/^\d{5}$/.test(raw.zip)) {
-		errors.zip = 'Enter a 5-digit ZIP code.';
-	} else if (!serviceAreaZips.has(raw.zip)) {
-		errors.zip = "Sorry, we don't serve that ZIP code yet.";
-	}
 
 	const stories = Number(raw.stories);
 	if (![1, 2, 3].includes(stories)) errors.stories = 'Choose how many stories.';
@@ -77,30 +70,40 @@ export function parseHomeDetails(src: Source): Result<HomeDetails, RawHome> {
 	if (addons.some((a) => !validAddOns.includes(a))) errors.addons = 'Unknown add-on selected.';
 
 	if (Object.keys(errors).length) return { ok: false, errors, raw };
-
 	return {
 		ok: true,
-		value: {
-			address: raw.address,
-			zip: raw.zip,
-			stories: stories as Stories,
-			windows,
-			service: raw.service as ServiceType,
-			addons: addons as AddOnKey[]
-		}
+		value: { stories: stories as Stories, windows, service: raw.service as ServiceType, addons: addons as AddOnKey[] }
 	};
 }
 
-/** Clean query string for carrying validated details between screens. */
-export function homeToSearchParams(d: HomeDetails): URLSearchParams {
+export function parseHomeDetails(src: Source): Result<HomeDetails, RawHome> {
+	const raw = readRawHome(src);
+	const job = parseJob(src);
+	const errors: FieldErrors = job.ok ? {} : { ...job.errors };
+
+	if (raw.address.length < 5 || raw.address.length > 200) {
+		errors.address = 'Enter the street address for the service.';
+	}
+
+	if (!/^\d{5}$/.test(raw.zip)) {
+		errors.zip = 'Enter a 5-digit ZIP code.';
+	} else if (!serviceAreaZips.has(raw.zip)) {
+		errors.zip = "Sorry, we don't serve that ZIP code yet.";
+	}
+
+	if (!job.ok || Object.keys(errors).length) return { ok: false, errors, raw };
+	return { ok: true, value: { address: raw.address, zip: raw.zip, ...job.value } };
+}
+
+/** Query string that carries a job from the quote page to the booking page and back. */
+export function jobToSearchParams(job: Job, house: string): URLSearchParams {
 	const p = new URLSearchParams({
-		address: d.address,
-		zip: d.zip,
-		stories: String(d.stories),
-		windows: String(d.windows),
-		service: d.service
+		house,
+		stories: String(job.stories),
+		windows: String(job.windows),
+		service: job.service
 	});
-	for (const a of d.addons) p.append('addons', a);
+	for (const a of job.addons) p.append('addons', a);
 	return p;
 }
 

@@ -31,8 +31,8 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 ## The smoke test
 
 `scripts/smoke.mjs` drives Chromium over the DevTools protocol using only Node built-ins. It swipes
-the house card, pulls the squeegee to both ends, flips the window, peels two stickers, picks a day and
-drags the sun, checking the price reacts at each step. It fails on any page error.
+the house card, pulls the squeegee to both ends, flips the window, peels two stickers, opens the booking
+page (checking the price carried over), picks a day and drags the sun, checking the price reacts at each step. It fails on any page error.
 
 ```bash
 npm run smoke                                     # dev server, phone size
@@ -43,7 +43,7 @@ npm run smoke -- --chrome /path/to/chrome         # or set CHROME=…
 
 Screenshots are numbered by step, and a failing step saves `NN-FAILED-….png`. When you add or rename
 a control, update the selectors in the script (`.house-stack .swipe`, `.glass`, `.flip`, `.sticker`,
-`.chip`, `.day`, `.sky`, `.amount`, `.send`).
+`.chip`, `.book-cta`, `.day`, `.sky`, `.amount`, `.summary .amount`, `.send`).
 
 ## Opening it from Windows (WSL)
 
@@ -105,4 +105,4 @@ for all Docker use, remove `"credsStore": "desktop.exe"` from `~/.docker/config.
 - House sketches: `src/lib/sketches.ts`. Each house is outline paths on a 400×300 canvas plus a door and
   windows as `[x, y, width, height]`, ground floor first. Check a new one in the house card at
   http://localhost:5173.
-- Estimate terms (the ⓘ panel): `src/routes/+page.svelte`.
+- Estimate terms (the ⓘ panel): `src/routes/+page.svelte`. Booking page and its server action: `src/routes/book/`.
