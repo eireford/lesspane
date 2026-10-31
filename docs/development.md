@@ -26,6 +26,7 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 | `npm run seed` | Adds 8 sample requests so `/admin` has data (`-- --reset` replaces them) | Working on the owner page |
 | `npm run verify` | Type check + unit tests + production build | Before pushing |
 | `npm run docker:run` | Builds and runs the real production container at http://localhost:8080 | Changing the Dockerfile, build or server setup |
+| `npm run icons` | Re-renders the favicon and app icons from `static/icon.svg` with headless Chromium | After editing the icon |
 | `npm run deploy:staging` | Deploys your working tree (uncommitted changes included) to https://lesspane.net | Showing someone a change without pushing |
 
 ## The smoke test

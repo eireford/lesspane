@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<!-- LessPane: an arched window on a sage background. Source for every PNG icon (scripts/icons.mjs). -->
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#93ad80" />
+			<stop offset="1" stop-color="#6f8f5f" />
+		</linearGradient>
+		<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#e6f3f6" />
+			<stop offset="1" stop-color="#b9d8e2" />
+		</linearGradient>
+	</defs>
+	<rect width="512" height="512" rx="112" fill="url(#bg)" />
+	<!-- Glass with one shine streak in a lower pane, then the frame, muntins and sill -->
+	<path d="M156 408 V222 A100 100 0 0 1 356 222 V408 Z" fill="url(#glass)" />
+	<path d="M282 330 L328 376" stroke="#ffffff" stroke-width="11" stroke-linecap="round" opacity="0.9" />
+	<g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M156 408 V222 A100 100 0 0 1 356 222 V408 Z" stroke-width="24" />
+		<path d="M256 122 V408 M156 222 H356 M156 312 H356" stroke-width="13" />
+		<path d="M256 222 L186 152 M256 222 L326 152" stroke-width="10" />
+		<path d="M128 428 H384" stroke-width="24" />
+	</g>
+</svg>

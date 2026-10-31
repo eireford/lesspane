@@ -17,7 +17,8 @@
     "seed": "node scripts/seed.mjs",
     "verify": "npm run check && npm test && npm run build",
     "docker:run": "export DOCKER_CONFIG=$(mktemp -d) && docker build -t lesspane . && docker run --rm -p 8080:8080 --env-file .env -e ORIGIN=http://localhost:8080 lesspane",
-    "deploy:staging": "gcloud builds submit --project lesspane --config cloudbuild.yaml --substitutions=_SERVICE=lesspane-staging,_APP_ENV=staging,_FIRESTORE_DATABASE=staging,_ADMIN_SECRET=lesspane-staging-admin-password"
+    "deploy:staging": "gcloud builds submit --project lesspane --config cloudbuild.yaml --substitutions=_SERVICE=lesspane-staging,_APP_ENV=staging,_FIRESTORE_DATABASE=staging,_ADMIN_SECRET=lesspane-staging-admin-password",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.0"

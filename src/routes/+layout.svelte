@@ -8,7 +8,7 @@
 <header class="site-header">
 	<div class="wrap bar">
 		<a href="/" class="brand" aria-label="LessPane home">
-			<img src="/icons/icon-192.png" alt="" width="28" height="28" />
+			<img src="/icon.svg" alt="" width="30" height="30" />
 			<span>LessPane</span>
 		</a>
 		<span class="tagline">Eastern Shore window cleaning</span>
