@@ -113,6 +113,7 @@ Staging sends `X-Robots-Tag: noindex` so it stays out of search results.
 
 The feature-tour slides are kept outside the app, as a Claude Slides deck:
 https://claude.ai/artifact/XaSD4ek8sxbtncPPzrBVJG (download as PDF or PowerPoint from its Share menu).
+`/deck` on either site redirects there; change `business.deckUrl` in `src/lib/config.ts` to point it elsewhere.
 
 Release to production after checking staging:
 

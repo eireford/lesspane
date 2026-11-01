@@ -8,7 +8,9 @@ export const business = {
 	name: 'LessPane',
 	timeZone: 'America/New_York',
 	/** How far ahead customers can request a date. */
-	bookingWindowDays: { min: 1, max: 60 }
+	bookingWindowDays: { min: 1, max: 60 },
+	/** The feature-tour slides, kept outside the app; /deck on either site redirects here. */
+	deckUrl: 'https://claude.ai/artifact/XaSD4ek8sxbtncPPzrBVJG'
 };
 
 export type ServiceType = 'exterior' | 'interior_exterior';
