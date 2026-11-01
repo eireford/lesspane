@@ -9,7 +9,7 @@
 		{ icon: 'home', label: 'Describe your house', note: 'floors, sides, windows' },
 		{ icon: 'sparkle', label: 'See your price', note: 'instantly, no account' },
 		{ icon: 'calendar', label: 'Pick a time', note: 'morning or afternoon' },
-		{ icon: 'phone', label: 'We text to confirm', note: 'no payment until the job' }
+		{ icon: 'phone', label: 'We confirm the time', note: 'no payment until the job' }
 	];
 </script>
 

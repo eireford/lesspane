@@ -76,7 +76,7 @@
 	<!-- When: pick a day, drag the sun -->
 	<section class="play" aria-label="When: pick a day and drag the sun">
 		<p class="cue"><Icon name="calendar" size={18} /><span class="label">When</span><span class="hint">pick a day, drag the sun ☀</span></p>
-		<p class="why"><Icon name="info" size={16} /> Pick what suits you. We’ll text to confirm the exact time within that window.</p>
+		<p class="why"><Icon name="info" size={16} /> Pick what suits you. We’ll confirm the exact time within that window.</p>
 		<SunDial min={data.dateRange.min} max={data.dateRange.max} bind:date bind:time />
 		{#if errors.preferredDate}<p class="error">{errors.preferredDate}</p>{/if}
 	</section>
@@ -108,24 +108,24 @@
 		<div class="stack">
 			<p class="cue"><Icon name="pin" size={18} /><span class="label">Where and who</span></p>
 			<ul class="whys">
-				<li><Icon name="pin" size={15} /> Address: to check we serve your area and plan the visit.</li>
-				<li><Icon name="phone" size={15} /> Mobile: we text to confirm the time. No marketing.</li>
-				<li><Icon name="mail" size={15} /> Email: a copy of your request and estimate.</li>
+				<li><Icon name="mail" size={15} /> Email, the only must: your copy of the request and a link to change it.</li>
+				<li><Icon name="phone" size={15} /> Mobile, optional: we text to confirm the time. No marketing.</li>
+				<li><Icon name="pin" size={15} /> Address, optional: helps us plan the visit. We can ask later.</li>
 			</ul>
-			<div class="row addr">
-				{@render field('address', 'pin', 'Street address', { type: 'text', autocomplete: 'street-address', required: true })}
-				{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5, required: true })}
-			</div>
-			{@render field('name', 'user', 'Name', { type: 'text', autocomplete: 'name', required: true })}
+			{@render field('email', 'mail', 'Email', { type: 'email', autocomplete: 'email', required: true })}
 			<div class="row">
-				{@render field('phone', 'phone', 'Mobile', { type: 'tel', autocomplete: 'tel', required: true })}
-				{@render field('email', 'mail', 'Email', { type: 'email', autocomplete: 'email', required: true })}
+				{@render field('name', 'user', 'Name (optional)', { type: 'text', autocomplete: 'name' })}
+				{@render field('phone', 'phone', 'Mobile (optional)', { type: 'tel', autocomplete: 'tel' })}
+			</div>
+			<div class="row addr">
+				{@render field('address', 'pin', 'Street address (optional)', { type: 'text', autocomplete: 'street-address' })}
+				{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5 })}
 			</div>
 
 			<button class="btn block send" type="submit" disabled={submitting} aria-label={`Request my visit, ${formatUsd(data.quote.total)}`}>
 				{#if submitting}…{:else}<Icon name="check" /> Request my visit · {formatUsd(data.quote.total)}{/if}
 			</button>
-			<p class="fine muted">No payment now · we text to confirm</p>
+			<p class="fine muted">No payment now · we’ll confirm the time</p>
 		</div>
 	</section>
 </form>

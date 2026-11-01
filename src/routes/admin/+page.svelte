@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { business, pricing, serviceLabels, timeWindowLabels } from '$lib/config';
+	import { displayName, place } from '$lib/contact';
 	import { formatUsd } from '$lib/pricing';
 	import type { PageData } from './$types';
 
@@ -33,7 +34,7 @@
 {#each data.requests as r (r.id)}
 	<article class="card request">
 		<header>
-			<strong>{r.name}</strong>
+			<strong>{displayName(r)}</strong>
 			<span class="badge status-{r.status}">{r.status}</span>
 		</header>
 		<p class="price-line">
@@ -42,19 +43,19 @@
 			].toLowerCase()}
 		</p>
 		<p>
-			{r.address} {r.zip}<br />
+			{place(r) || 'No address given'}<br />
 			{r.stories}-story · ~{r.window_count} windows · {serviceLabels[r.service_type]}
 			{#if r.add_ons.length}
 				<br />Add-ons: {r.add_ons.map((a) => pricing.addOns[a].label).join(', ')}
 			{/if}
 		</p>
 		<p>
-			<a href="tel:{r.phone}">{r.phone}</a> · <a href="mailto:{r.email}">{r.email}</a>
+			{#if r.phone}<a href="tel:{r.phone}">{r.phone}</a> · {/if}<a href="mailto:{r.email}">{r.email}</a>
 		</p>
 		{#if r.notes}<p class="muted">Notes: {r.notes}</p>{/if}
 		<form method="POST" action="?/status" use:enhance class="status-form">
 			<input type="hidden" name="id" value={r.id} />
-			<select name="status" aria-label="Status for {r.name}">
+			<select name="status" aria-label="Status for {displayName(r)}">
 				{#each data.statuses as s}
 					<option value={s} selected={s === r.status}>{s}</option>
 				{/each}

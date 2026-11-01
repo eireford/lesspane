@@ -24,6 +24,10 @@ describe('parseHomeDetails', () => {
 		expect(r.ok).toBe(true);
 	});
 
+	it('accepts a blank address and ZIP', () => {
+		expect(parseHomeDetails(home({ address: '', zip: '' })).ok).toBe(true);
+	});
+
 	it('rejects ZIPs outside the service area', () => {
 		const r = parseHomeDetails(home({ zip: '10001' }));
 		expect(r.ok).toBe(false);
@@ -59,6 +63,17 @@ describe('parseContact', () => {
 		const r = parseContact(contact(), now);
 		expect(r.ok).toBe(true);
 		if (r.ok) expect(r.value.email).toBe('pat@example.com');
+	});
+
+	it('needs only the email', () => {
+		const r = parseContact(contact({ name: '', phone: '' }), now);
+		expect(r.ok && r.value).toMatchObject({ name: '', phone: '', email: 'pat@example.com' });
+	});
+
+	it('still requires a valid email, and checks a phone that is given', () => {
+		const r = parseContact(contact({ email: '', phone: '555' }), now);
+		expect(r.ok).toBe(false);
+		if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(['email', 'phone']);
 	});
 
 	it('rejects past dates', () => {

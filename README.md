@@ -21,7 +21,8 @@ with **✓ Looks right**, or change it by swiping the card or tapping ‹ ›. T
 at its top end (`count` in `src/lib/layout.ts`), so the estimate doesn't come in low.
 
 **Book a time** opens `/book`: the job and its price, a sun dial (tap a day, drag the sun for morning or
-afternoon; starts a few days out, not Sunday, morning), and address, name, phone and email. ← goes back to the
+afternoon; starts a few days out, not Sunday, morning), and an email (the only required field; name, phone and address are optional, and a ZIP that is given must be
+one we serve). ← goes back to the
 summary with every choice kept. The saved request includes the window range for every side and floor. A
 confirmation page follows,
 plus a password-protected owner page at `/admin`.

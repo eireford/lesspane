@@ -81,11 +81,12 @@ export function parseHomeDetails(src: Source): Result<HomeDetails, RawHome> {
 	const job = parseJob(src);
 	const errors: FieldErrors = job.ok ? {} : { ...job.errors };
 
-	if (raw.address.length < 5 || raw.address.length > 200) {
-		errors.address = 'Enter the street address for the service.';
-	}
+	// Address and ZIP are optional (only the email is required), but a ZIP that's given must be one we serve.
+	if (raw.address.length > 200) errors.address = 'Keep the address under 200 characters.';
 
-	if (!/^\d{5}$/.test(raw.zip)) {
+	if (!raw.zip) {
+		// Not given: the technician sorts out the area when they get in touch.
+	} else if (!/^\d{5}$/.test(raw.zip)) {
 		errors.zip = 'Enter a 5-digit ZIP code.';
 	} else if (!serviceAreaZips.has(raw.zip)) {
 		errors.zip = "Sorry, we don't serve that ZIP code yet.";
@@ -160,10 +161,11 @@ export function parseContact(src: Source, now = new Date()): Result<ContactDetai
 	const when = parseWhen(src, now);
 	const errors: FieldErrors = when.ok ? {} : { ...when.errors };
 
-	if (raw.name.length < 2 || raw.name.length > 80) errors.name = 'Enter your name.';
+	// Only the email is required. Name and phone are optional, but a phone that's given must look like one.
+	if (raw.name.length > 80) errors.name = 'Keep your name under 80 characters.';
 
 	const digits = raw.phone.replace(/\D/g, '');
-	if (digits.length < 10 || digits.length > 15) errors.phone = 'Enter a phone number we can text.';
+	if (raw.phone && (digits.length < 10 || digits.length > 15)) errors.phone = 'Enter a phone number we can text, or leave it blank.';
 
 	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw.email) || raw.email.length > 200) {
 		errors.email = 'Enter a valid email address.';

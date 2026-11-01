@@ -26,7 +26,7 @@
 <section class="intro">
 	<h1>Clean windows, priced in a minute.</h1>
 	<p>
-		See your price right away, pick a time, and we’ll text you to confirm. No account, no payment up front, no
+		See your price right away, pick a time, and we’ll confirm it with you. No account, no payment up front, no
 		waiting for a callback.
 	</p>
 </section>

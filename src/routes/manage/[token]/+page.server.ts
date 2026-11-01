@@ -1,4 +1,5 @@
 import { error, fail } from '@sveltejs/kit';
+import { firstName, place } from '$lib/contact';
 import { getRequestByManageToken, updateRequest, type QuoteRequest } from '$lib/server/store';
 import { notifyCustomerChange } from '$lib/server/email';
 import { syncEvent } from '$lib/server/calendar';
@@ -23,8 +24,8 @@ export const load: PageServerLoad = async ({ params, setHeaders }) => {
 	const r = await find(params.token);
 	return {
 		booking: {
-			firstName: r.name.split(' ')[0],
-			address: `${r.address} ${r.zip}`,
+			firstName: firstName(r),
+			address: place(r),
 			date: r.preferred_date,
 			window: r.preferred_window,
 			total: r.quoted_price,

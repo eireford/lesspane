@@ -20,14 +20,14 @@
 <section class="card stack">
 	<p class="check" aria-hidden="true">✓</p>
 	{#if data.summary}
-		<h1>Thanks, {data.summary.firstName}. You're on the list.</h1>
+		<h1>Thanks{data.summary.firstName ? `, ${data.summary.firstName}` : ''}. You're on the list.</h1>
 		<p>
 			We got your request for <strong>{prettyDate(data.summary.date)}</strong>,
 			{timeWindowLabels[data.summary.window].toLowerCase()}, at
 			<strong>{formatUsd(data.summary.total)}</strong>.
 		</p>
 		<p class="muted">
-			A copy is on its way to {data.summary.email}. We'll text you to confirm the exact time.
+			A copy is on its way to {data.summary.email}. We'll be in touch to confirm the exact time.
 		</p>
 		{#if data.manageUrl}
 			<a class="btn block ghost" href={data.manageUrl}>Change the day or cancel</a>
@@ -35,7 +35,7 @@
 		{/if}
 	{:else}
 		<h1>Request received</h1>
-		<p class="muted">We'll text you to confirm the exact time.</p>
+		<p class="muted">We'll be in touch to confirm the exact time.</p>
 	{/if}
 	<a class="btn ghost block" href="/">Start another house</a>
 </section>

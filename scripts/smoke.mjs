@@ -276,11 +276,11 @@ await step('Pick a day and drag the sun', async () => {
 });
 
 if (opts.book) {
-	await step('Book', async () => {
+	await step('Book with only an email', async () => {
 		await js(`(() => {
-			const set = (id, v) => { const el = document.getElementById(id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); };
-			set('address', '12 Goldsborough St'); set('zip', '21601'); set('name', 'Smoke Test');
-			set('phone', '4105550100'); set('email', 'smoke@example.com');
+			const el = document.getElementById('email');
+			el.value = 'smoke@example.com';
+			el.dispatchEvent(new Event('input', { bubbles: true }));
 			document.querySelector('.send').click();
 		})()`);
 		for (let i = 0; i < 40 && (await js('location.pathname')) !== '/quote/thanks'; i++) await sleep(250);

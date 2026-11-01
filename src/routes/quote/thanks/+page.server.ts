@@ -1,3 +1,4 @@
+import { firstName } from '$lib/contact';
 import { getRequest, getRequestByManageToken } from '$lib/server/store';
 import type { PageServerLoad } from './$types';
 
@@ -13,7 +14,7 @@ export const load: PageServerLoad = async ({ url, setHeaders }) => {
 	return {
 		summary: record
 			? {
-					firstName: record.name.split(' ')[0],
+					firstName: firstName(record),
 					total: record.quoted_price,
 					date: record.preferred_date,
 					window: record.preferred_window,

@@ -21,7 +21,7 @@
 	let busy = $state(false);
 
 	const statusText: Record<string, string> = {
-		new: 'Requested: we’ll text you to confirm the time',
+		new: 'Requested: we’ll be in touch to confirm the time',
 		confirmed: 'Confirmed',
 		done: 'Done. Thanks!',
 		cancelled: 'Cancelled'
@@ -44,13 +44,13 @@
 
 <SketchDefs />
 
-<h1 class="hello">Hi {b.firstName}, here’s your booking</h1>
+<h1 class="hello">Hi{b.firstName ? ` ${b.firstName}` : ''}, here’s your booking</h1>
 <p class="why"><Icon name="info" size={16} /> This private link is your key: no account needed. Anyone with it can change the booking, so keep it to yourself.</p>
 
 {#if form && 'done' in form}
 	<p class="notice" role="status">
 		<Icon name="check" size={18} />
-		{form.done === 'cancelled' ? 'Cancelled. We’ve emailed you a confirmation.' : 'New time saved. We’ll text you to confirm it.'}
+		{form.done === 'cancelled' ? 'Cancelled. We’ve emailed you a confirmation.' : 'New time saved. We’ll be in touch to confirm it.'}
 	</p>
 {:else if form?.message}
 	<p class="alert" role="alert">{form.message}</p>
@@ -60,7 +60,7 @@
 	<p class="status" class:cancelled={b.status === 'cancelled'}>{statusText[b.status]}</p>
 	<p class="when"><Icon name="calendar" size={20} /> {prettyDate(b.date)}, {timeWindowLabels[b.window].toLowerCase()}</p>
 	<ul class="lines">
-		<li><span><Icon name="pin" size={16} /> {b.address}</span></li>
+		{#if b.address}<li><span><Icon name="pin" size={16} /> {b.address}</span></li>{/if}
 		<li>
 			<span><Icon name="window" size={16} /> {b.stories} floor{b.stories > 1 ? 's' : ''}, about {b.windows} windows · {serviceLabels[b.service].toLowerCase()}</span>
 		</li>

@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { pricing, serviceLabels, timeWindowLabels } from '$lib/config';
+import { contactLine, displayName, firstName, place } from '$lib/contact';
 import { formatUsd } from '$lib/pricing';
 import { googleFetch, SCOPES } from './google';
 import { rawEmail } from './mime';
@@ -55,7 +56,7 @@ async function send(email: Email): Promise<void> {
 function summary(r: QuoteRequest): string {
 	const addOns = r.add_ons.map((a) => pricing.addOns[a].label).join(', ') || 'None';
 	return [
-		`Address: ${r.address} ${r.zip}`,
+		`Address: ${place(r) || 'not given'}`,
 		`Home: ${r.stories}-story, about ${r.window_count} windows`,
 		`Service: ${serviceLabels[r.service_type]}`,
 		`Add-ons: ${addOns}`,
@@ -64,22 +65,22 @@ function summary(r: QuoteRequest): string {
 	].join('\n');
 }
 
+const greeting = (r: QuoteRequest) => (firstName(r) ? `Hi ${firstName(r)},` : 'Hi there,');
+
 const manageLink = (origin: string, token: string) => `${origin}/manage/${token}`;
 
 export async function notifyNewRequest(r: QuoteRequest, origin: string, manageToken: string): Promise<void> {
-	const firstName = r.name.split(' ')[0];
-
 	await send({
 		to: r.email,
 		subject: 'We got your LessPane request',
 		text: [
-			`Hi ${firstName},`,
+			greeting(r),
 			'',
 			"Thanks for requesting a window cleaning. Here's what you asked for:",
 			'',
 			summary(r),
 			'',
-			"We'll text you at the number you gave us to confirm the exact time.",
+			r.phone ? "We'll text you at the number you gave us to confirm the exact time." : "We'll email you to confirm the exact time.",
 			'',
 			'Need to change the day or cancel? Use your private link (no account needed):',
 			manageLink(origin, manageToken),
@@ -96,7 +97,7 @@ export async function notifyNewRequest(r: QuoteRequest, origin: string, manageTo
 			replyTo: r.email,
 			subject: `New request: ${formatUsd(r.quoted_price)} on ${r.preferred_date}`,
 			text: [
-				`${r.name} · ${r.phone} · ${r.email}`,
+				contactLine(r),
 				'',
 				summary(r),
 				'',
@@ -114,7 +115,6 @@ export async function notifyCustomerChange(
 	origin: string,
 	change: 'rescheduled' | 'cancelled'
 ): Promise<void> {
-	const firstName = r.name.split(' ')[0];
 	const what =
 		change === 'cancelled'
 			? 'Your window cleaning request is cancelled.'
@@ -124,10 +124,10 @@ export async function notifyCustomerChange(
 		to: r.email,
 		subject: change === 'cancelled' ? 'Your LessPane request is cancelled' : 'Your LessPane request has a new time',
 		text: [
-			`Hi ${firstName},`,
+			greeting(r),
 			'',
 			what,
-			change === 'cancelled' ? 'Changed your mind? Start a new request any time.' : "We'll text you to confirm the exact time.",
+			change === 'cancelled' ? 'Changed your mind? Start a new request any time.' : `We'll ${r.phone ? 'text' : 'email'} you to confirm the exact time.`,
 			'',
 			change === 'cancelled' ? origin : summary(r),
 			'',
@@ -141,9 +141,9 @@ export async function notifyCustomerChange(
 			replyTo: r.email,
 			subject:
 				change === 'cancelled'
-					? `Cancelled by customer: ${r.name}, ${r.preferred_date}`
-					: `Rescheduled by customer: ${r.name}, now ${r.preferred_date} ${r.preferred_window}`,
-			text: [`${r.name} · ${r.phone} · ${r.email}`, '', summary(r), '', `All requests: ${origin}/admin`].join('\n')
+					? `Cancelled by customer: ${displayName(r)}, ${r.preferred_date}`
+					: `Rescheduled by customer: ${displayName(r)}, now ${r.preferred_date} ${r.preferred_window}`,
+			text: [contactLine(r), '', summary(r), '', `All requests: ${origin}/admin`].join('\n')
 		});
 	}
 }

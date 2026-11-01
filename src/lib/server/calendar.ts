@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { business, pricing, serviceLabels } from '$lib/config';
+import { contactLine, displayName, place } from '$lib/contact';
 import { formatUsd } from '$lib/pricing';
 import { googleFetch, SCOPES } from './google';
 import type { QuoteRequest } from './store';
@@ -16,10 +17,10 @@ export function eventBody(r: QuoteRequest, origin: string) {
 	const [start, end] = HOURS[r.preferred_window];
 	const extras = r.add_ons.map((a) => pricing.addOns[a].label).join(', ');
 	return {
-		summary: `${r.status === 'confirmed' ? '✓ ' : ''}LessPane: ${r.name} · ${formatUsd(r.quoted_price)}`,
-		location: `${r.address} ${r.zip}`,
+		summary: `${r.status === 'confirmed' ? '✓ ' : ''}LessPane: ${displayName(r)} · ${formatUsd(r.quoted_price)}`,
+		location: place(r) || undefined,
 		description: [
-			`${r.name} · ${r.phone} · ${r.email}`,
+			contactLine(r),
 			`${r.stories}-story, about ${r.window_count} windows · ${serviceLabels[r.service_type]}${extras ? ` · ${extras}` : ''}`,
 			`Estimate: ${formatUsd(r.quoted_price)} · Status: ${r.status}`,
 			r.notes,
