@@ -22,6 +22,7 @@ const { values: opts } = parseArgs({
 		out: { type: 'string', default: '.shots' },
 		width: { type: 'string', default: '420' },
 		height: { type: 'string', default: '860' },
+		scale: { type: 'string', default: '1' }, // device pixel ratio; 2 or 3 for sharp phone screenshots
 		book: { type: 'boolean', default: false },
 		chrome: { type: 'string', default: process.env.CHROME ?? '' }
 	}
@@ -155,7 +156,7 @@ const expect = (cond, msg) => {
 };
 const price = () => js(`document.querySelector('.amount')?.textContent.trim()`);
 
-await cmd('Emulation.setDeviceMetricsOverride', { width: +opts.width, height: +opts.height, deviceScaleFactor: 1, mobile: +opts.width < 600 });
+await cmd('Emulation.setDeviceMetricsOverride', { width: +opts.width, height: +opts.height, deviceScaleFactor: +opts.scale, mobile: +opts.width < 600 });
 await cmd('Page.enable');
 await cmd('Runtime.enable');
 console.log(`Smoke test: ${opts.url} at ${opts.width}×${opts.height}, screenshots in ${path.relative(process.cwd(), out) || '.'}/`);
