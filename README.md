@@ -147,6 +147,17 @@ then append `,RESEND_API_KEY=lesspane-resend-api-key:latest` to the `--update-se
 
 Also: set a **billing budget with alerts** before sharing the link.
 
+### Costs
+
+At prototype traffic everything stays inside Google Cloud's free allowances; the domains (about $20 a year each)
+are the real cost. Two guards are in place:
+
+- **Image cleanup**: Artifact Registry keeps the 10 newest images per service and deletes others after 30 days
+  (`infra/artifact-cleanup.json`; reapply with `gcloud artifacts repositories set-cleanup-policies lesspane
+  --location us-west1 --project lesspane --policy=infra/artifact-cleanup.json --no-dry-run`).
+- **Budget alert**: "LessPane monthly", $10 on the `primary` billing account, filtered to this project. It emails
+  the billing account's admins at 50%, 90% and 100% of actual spend and when the forecast passes 100%.
+
 ### Domains
 
 Both domains are registered at Squarespace Domains, which also hosts their DNS. Each is mapped to its
