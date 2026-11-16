@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { timeWindowLabels } from '$lib/config';
+	import { business, timeWindowLabels } from '$lib/config';
 	import { formatUsd } from '$lib/pricing';
 	import type { PageData } from './$types';
 
@@ -27,7 +27,10 @@
 			<strong>{formatUsd(data.summary.total)}</strong>.
 		</p>
 		<p class="muted">
-			A copy is on its way to {data.summary.email}. We'll be in touch to confirm the exact time.
+			A copy is on its way to {data.summary.email}.
+			{business.showcase.enabled
+				? 'This is a demo, so no one will come to clean.'
+				: "We'll be in touch to confirm the exact time."}
 		</p>
 		{#if data.manageUrl}
 			<a class="btn block ghost" href={data.manageUrl}>Change the day or cancel</a>
@@ -35,7 +38,11 @@
 		{/if}
 	{:else}
 		<h1>Request received</h1>
-		<p class="muted">We'll be in touch to confirm the exact time.</p>
+		<p class="muted">
+			{business.showcase.enabled
+				? 'This is a demo, so no one will come to clean.'
+				: "We'll be in touch to confirm the exact time."}
+		</p>
 	{/if}
 	<a class="btn ghost block" href="/">Start another house</a>
 </section>

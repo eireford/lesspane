@@ -77,6 +77,12 @@ feature have no link.
 
 Prices are always recomputed on the server; the browser never sends a price.
 
+## Showcase mode
+
+LessPane is currently a portfolio prototype, not a live service. `business.showcase.enabled` in `src/lib/config.ts`
+adds a "Demo" note to every page, a "Built by" credit and source link in the footer, and tells customers on the
+confirmation page and in the confirmation email that no one will come to clean. Set it to `false` at launch.
+
 ## Before the pilot
 
 - [ ] Confirm the estimated prices against local competitor quotes, and set the service-area ZIP list, in `src/lib/config.ts`
