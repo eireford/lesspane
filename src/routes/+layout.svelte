@@ -3,6 +3,9 @@
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import { business } from '$lib/config';
+
+	const showcase = business.showcase;
 
 	let { children }: { children: Snippet } = $props();
 </script>
@@ -17,6 +20,13 @@
 	</div>
 </header>
 
+{#if showcase.enabled}
+	<p class="showcase" role="note">
+		<strong>Demo.</strong> A working prototype by
+		<a href={showcase.builtByUrl}>{showcase.builtBy}</a>. Requests here are not real bookings.
+	</p>
+{/if}
+
 <main class="wrap">
 	{@render children()}
 </main>
@@ -27,6 +37,12 @@
 		<a class="start-over" href="/" data-sveltekit-reload><Icon name="undo" size={18} /> Start over</a>
 	{/if}
 	<p>LessPane · Eastern Shore, MD · <a href="mailto:hello@lesspane.com">hello@lesspane.com</a></p>
+	{#if showcase.enabled}
+		<p>
+			Built by <a href={showcase.builtByUrl}>{showcase.builtBy}</a> ·
+			<a href={showcase.sourceUrl}>Source on GitHub</a>
+		</p>
+	{/if}
 </footer>
 
 <style>
@@ -63,6 +79,16 @@
 	.tagline {
 		font-size: 0.85rem;
 		color: var(--ink-soft);
+	}
+
+	.showcase {
+		margin: 0;
+		padding: 8px 16px;
+		background: var(--highlight);
+		border-bottom: 1px solid var(--line);
+		color: var(--ink);
+		font-size: 0.9rem;
+		text-align: center;
 	}
 
 	main {

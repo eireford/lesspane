@@ -10,7 +10,17 @@ export const business = {
 	/** How far ahead customers can request a date. */
 	bookingWindowDays: { min: 1, max: 60 },
 	/** The feature-tour slides, kept outside the app; /deck on either site redirects here. */
-	deckUrl: 'https://claude.ai/artifact/XaSD4ek8sxbtncPPzrBVJG'
+	deckUrl: 'https://claude.ai/artifact/XaSD4ek8sxbtncPPzrBVJG',
+	/**
+	 * Showcase mode: LessPane is a working portfolio prototype, not a live service. While `enabled`,
+	 * every page says so, and the confirmation page says no one will come. Set to false at launch.
+	 */
+	showcase: {
+		enabled: true,
+		builtBy: 'Eire Ford',
+		builtByUrl: 'https://eireford.com',
+		sourceUrl: 'https://github.com/eireford/lesspane'
+	}
 };
 
 export type ServiceType = 'exterior' | 'interior_exterior';

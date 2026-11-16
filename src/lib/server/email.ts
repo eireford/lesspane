@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { pricing, serviceLabels, timeWindowLabels } from '$lib/config';
+import { business, pricing, serviceLabels, timeWindowLabels } from '$lib/config';
 import { contactLine, displayName, firstName, place } from '$lib/contact';
 import { formatUsd } from '$lib/pricing';
 import { googleFetch, SCOPES } from './google';
@@ -80,7 +80,11 @@ export async function notifyNewRequest(r: QuoteRequest, origin: string, manageTo
 			'',
 			summary(r),
 			'',
-			r.phone ? "We'll text you at the number you gave us to confirm the exact time." : "We'll email you to confirm the exact time.",
+			business.showcase.enabled
+				? `LessPane is a demo built by ${business.showcase.builtBy} (${business.showcase.builtByUrl}), so no one will come to clean.`
+				: r.phone
+					? "We'll text you at the number you gave us to confirm the exact time."
+					: "We'll email you to confirm the exact time.",
 			'',
 			'Need to change the day or cancel? Use your private link (no account needed):',
 			manageLink(origin, manageToken),
