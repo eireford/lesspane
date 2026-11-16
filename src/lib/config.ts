@@ -15,6 +15,11 @@ export const business = {
 	 * Showcase mode: LessPane is a working portfolio prototype, not a live service. While `enabled`,
 	 * every page says so, and the confirmation page says no one will come. Set to false at launch.
 	 */
+	/**
+	 * Public contact address in the footer. hello@lesspane.com bounces until it is added as an alternate
+	 * address in Google Workspace (README, "Email"); switch back once a test message to it arrives.
+	 */
+	contactEmail: 'eire@wedocompute.com',
 	showcase: {
 		enabled: true,
 		builtBy: 'Eire Ford',

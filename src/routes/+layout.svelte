@@ -36,7 +36,7 @@
 		<!-- Back to the landing page with nothing chosen: a plain link drops the quote's query string and state -->
 		<a class="start-over" href="/" data-sveltekit-reload><Icon name="undo" size={18} /> Start over</a>
 	{/if}
-	<p>LessPane · Eastern Shore, MD · <a href="mailto:hello@lesspane.com">hello@lesspane.com</a></p>
+	<p>LessPane · Eastern Shore, MD · <a href="mailto:{business.contactEmail}">{business.contactEmail}</a></p>
 	{#if showcase.enabled}
 		<p>
 			Built by <a href={showcase.builtByUrl}>{showcase.builtBy}</a> ·
