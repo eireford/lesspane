@@ -3,6 +3,17 @@
 Instant window washing quotes and booking requests for lesspane.com.
 SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
+**Live demo:** [lesspane.com](https://lesspane.com) · Built by [Eire Ford](https://eireford.com) to a local window
+cleaner's spec, and now kept as a working showcase. Bookings made on the demo are not real jobs.
+
+Highlights:
+
+- A gesture-driven quote flow where every swipe has a tap and keyboard equivalent.
+- Prices are recomputed on the server, so the browser never sends a price.
+- Customers manage a booking through a private emailed link. No accounts, and only a hash of the token is stored.
+- Optional Google Workspace integration (Gmail send, Calendar, admin sign-in) through keyless domain-wide delegation.
+- Push to `main` deploys staging; a `v*` tag deploys production on Cloud Run.
+
 The landing page (`/`) explains how it works and offers **two ways in**: pick a **ready-made package**
 (Cottage, Family home, Large home: each a sketch, a typical window count and its price; it opens the estimate
 summary), or **answer a few quick questions** on `/quote`.
