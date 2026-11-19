@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Icon from '$lib/components/Icon.svelte';
-	import Journey from '$lib/components/Journey.svelte';
-	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
-	import SketchDefs from '$lib/components/SketchDefs.svelte';
-	import { PACKAGES, layoutToSearchParams, totalWindows } from '$lib/layout';
-	import { computeQuote, formatUsd } from '$lib/pricing';
+	import Icon from '#lib/components/Icon.svelte';
+	import Journey from '#lib/components/Journey.svelte';
+	import LayoutSketch from '#lib/components/LayoutSketch.svelte';
+	import SketchDefs from '#lib/components/SketchDefs.svelte';
+	import { PACKAGES, layoutToSearchParams, totalWindows } from '#lib/layout.ts';
+	import { computeQuote, formatUsd } from '#lib/pricing.ts';
 
 	// Landing page: say what LessPane is and how it works, then offer two ways in. Pick a ready-made package
 	// (straight to the estimate summary on /quote, where extras and changes are one tap away), or answer the

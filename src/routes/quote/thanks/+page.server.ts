@@ -1,5 +1,5 @@
-import { firstName } from '$lib/contact';
-import { getRequest, getRequestByManageToken } from '$lib/server/store';
+import { firstName } from '#lib/contact.ts';
+import { getRequest, getRequestByManageToken } from '#lib/server/store.ts';
 import type { PageServerLoad } from './$types';
 
 // Screen 5: "Confirmation". Shows only a non-sensitive summary of the request, plus the "manage your booking"

@@ -1,9 +1,9 @@
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Firestore } from '@google-cloud/firestore';
-import type { AddOnKey, ServiceType, Stories, TimeWindow } from '$lib/config';
+import type { AddOnKey, ServiceType, Stories, TimeWindow } from '#lib/config.ts';
 
 export type RequestStatus = 'new' | 'confirmed' | 'done' | 'cancelled';
 export const requestStatuses: RequestStatus[] = ['new', 'confirmed', 'done', 'cancelled'];

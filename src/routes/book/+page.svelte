@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
-	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
-	import Icon, { type IconName } from '$lib/components/Icon.svelte';
-	import Journey from '$lib/components/Journey.svelte';
-	import SketchDefs from '$lib/components/SketchDefs.svelte';
-	import SunDial from '$lib/components/SunDial.svelte';
-	import type { AddOnKey, TimeWindow } from '$lib/config';
-	import { layoutToSearchParams } from '$lib/layout';
-	import { formatUsd } from '$lib/pricing';
-	import { addDaysIso } from '$lib/validation';
+	import LayoutSketch from '#lib/components/LayoutSketch.svelte';
+	import Icon, { type IconName } from '#lib/components/Icon.svelte';
+	import Journey from '#lib/components/Journey.svelte';
+	import SketchDefs from '#lib/components/SketchDefs.svelte';
+	import SunDial from '#lib/components/SunDial.svelte';
+	import type { AddOnKey, TimeWindow } from '#lib/config.ts';
+	import { layoutToSearchParams } from '#lib/layout.ts';
+	import { formatUsd } from '#lib/pricing.ts';
+	import { addDaysIso } from '#lib/validation.ts';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();

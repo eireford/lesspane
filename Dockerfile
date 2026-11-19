@@ -2,8 +2,7 @@
 FROM node:22-slim AS build
 WORKDIR /app
 COPY package*.json ./
-# Commit package-lock.json after your first `npm install` so builds are reproducible.
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN npm ci
 COPY . .
 RUN npm run build && npm prune --omit=dev
 

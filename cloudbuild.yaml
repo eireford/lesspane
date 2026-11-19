@@ -1,31 +1,41 @@
-# Builds the container, pushes it to Artifact Registry, and deploys to Cloud Run.
-# Run manually:  gcloud builds submit --project lesspane --config cloudbuild.yaml
-# Or attach to a Cloud Build trigger on pushes to main.
+# Tests, builds and deploys lesspane. See ../docs/conventions.md in the job-search hub.
+#
+# Triggers (us-west1, connection lesspane-github, repository lesspane):
+#   lesspane-staging     push to main   staging, lesspane.net (the defaults below; the trigger also sets them)
+#   lesspane-production  tag v*         overrides them for production (lesspane.com)
+# `npm run deploy:staging` submits this file by hand, which also deploys staging.
 
 # Dedicated deployer account (Run Admin, Artifact Registry Writer, Log Writer, Storage Object Viewer,
 # and Service Account User on lesspane-run only). Requires the CLOUD_LOGGING_ONLY option below.
 serviceAccount: projects/$PROJECT_ID/serviceAccounts/lesspane-build@$PROJECT_ID.iam.gserviceaccount.com
 
-# Defaults are production (lesspane.com). The staging trigger overrides them:
-#   _SERVICE=lesspane-staging, _APP_ENV=staging, _FIRESTORE_DATABASE=staging,
-#   _ADMIN_SECRET=lesspane-staging-admin-password, _SESSION_SECRET=lesspane-staging-session-secret
+# Defaults are staging (lesspane.net), so a manual `gcloud builds submit` can only reach staging. The
+# lesspane-production trigger (v* tags) overrides them: _SERVICE=lesspane, _APP_ENV=production,
+# _FIRESTORE_DATABASE=(default), _ADMIN_SECRET=lesspane-admin-password, _SESSION_SECRET=lesspane-session-secret.
 substitutions:
   _REGION: us-west1 # Oregon; Firestore databases are fixed to us-west1, so keep this here
-  _SERVICE: lesspane
+  _SERVICE: lesspane-staging
   _REPO: lesspane
-  _APP_ENV: production
-  _FIRESTORE_DATABASE: '(default)'
-  _ADMIN_SECRET: lesspane-admin-password
-  _SESSION_SECRET: lesspane-session-secret
+  _APP_ENV: staging
+  _FIRESTORE_DATABASE: staging
+  _ADMIN_SECRET: lesspane-staging-admin-password
+  _SESSION_SECRET: lesspane-staging-session-secret
+  # One image name for both environments; the tag (build ID) tells builds apart.
+  _IMAGE: ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/lesspane:${BUILD_ID}
 
 steps:
+  - id: test
+    name: node:22-slim
+    entrypoint: bash
+    args: ['-c', 'npm ci --no-audit --no-fund && npm run check && npm test']
+
   - id: build
     name: gcr.io/cloud-builders/docker
-    args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID', '.']
+    args: ['build', '-t', '${_IMAGE}', '.']
 
   - id: push
     name: gcr.io/cloud-builders/docker
-    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID']
+    args: ['push', '${_IMAGE}']
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
@@ -34,7 +44,7 @@ steps:
       - run
       - deploy
       - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - --image=${_IMAGE}
       - --region=${_REGION}
       # Runtime identity: Firestore access plus read access to its own secrets, nothing else.
       - --service-account=lesspane-run@$PROJECT_ID.iam.gserviceaccount.com
@@ -49,8 +59,18 @@ steps:
       # GOOGLE_CLIENT_SECRET secret) are set once per service and kept across deploys; see README "Google Workspace".
       - --update-secrets=ADMIN_PASSWORD=${_ADMIN_SECRET}:latest,SESSION_SECRET=${_SESSION_SECRET}:latest
 
+  - id: smoke-test
+    name: curlimages/curl
+    entrypoint: sh
+    args:
+      - -c
+      - >-
+        curl -fsS -o /dev/null https://${_SERVICE}-${PROJECT_NUMBER}.${_REGION}.run.app/ &&
+        curl -fsS -o /dev/null https://${_SERVICE}-${PROJECT_NUMBER}.${_REGION}.run.app/quote
+
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+  - ${_IMAGE}
 
 options:
+  dynamicSubstitutions: true
   logging: CLOUD_LOGGING_ONLY

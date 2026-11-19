@@ -1,7 +1,7 @@
-import { env } from '$env/dynamic/private';
-import { business, pricing, serviceLabels } from '$lib/config';
-import { contactLine, displayName, place } from '$lib/contact';
-import { formatUsd } from '$lib/pricing';
+import * as env from '$app/env/private';
+import { business, pricing, serviceLabels } from '#lib/config.ts';
+import { contactLine, displayName, place } from '#lib/contact.ts';
+import { formatUsd } from '#lib/pricing.ts';
 import { googleFetch, SCOPES } from './google';
 import type { QuoteRequest } from './store';
 

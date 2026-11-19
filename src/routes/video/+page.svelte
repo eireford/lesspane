@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon from '$lib/components/Icon.svelte';
+	import Icon from '#lib/components/Icon.svelte';
 
 	// lesspane.com/video: the 37-second pitch for a would-be owner, made to be opened from a text on a phone.
 	// Silent, so it can start muted; the captions carry it.

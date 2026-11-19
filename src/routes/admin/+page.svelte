@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { business, pricing, serviceLabels, timeWindowLabels } from '$lib/config';
-	import { displayName, place } from '$lib/contact';
-	import { formatUsd } from '$lib/pricing';
+	import { business, pricing, serviceLabels, timeWindowLabels } from '#lib/config.ts';
+	import { displayName, place } from '#lib/contact.ts';
+	import { formatUsd } from '#lib/pricing.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

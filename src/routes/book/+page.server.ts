@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { computeQuote } from '$lib/pricing';
-import { notifyNewRequest } from '$lib/server/email';
-import { syncEvent } from '$lib/server/calendar';
-import { saveRequest, updateRequest } from '$lib/server/store';
-import { describeLayout, layoutToSearchParams, parseLayout, totalWindows, type Layout } from '$lib/layout';
-import { bookingDateRange, parseContact, parseHomeDetails, parseJob } from '$lib/validation';
+import { computeQuote } from '#lib/pricing.ts';
+import { notifyNewRequest } from '#lib/server/email.ts';
+import { syncEvent } from '#lib/server/calendar.ts';
+import { saveRequest, updateRequest } from '#lib/server/store.ts';
+import { describeLayout, layoutToSearchParams, parseLayout, totalWindows, type Layout } from '#lib/layout.ts';
+import { bookingDateRange, parseContact, parseHomeDetails, parseJob } from '#lib/validation.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

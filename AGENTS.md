@@ -1,10 +1,11 @@
 # LessPane
 
-SvelteKit 2 + Svelte 5 (runes) + TypeScript prototype for instant window-cleaning quotes, deployed to Cloud Run.
+SvelteKit 3 + Svelte 5 (runes) + TypeScript prototype for instant window-cleaning quotes, deployed to Cloud Run.
 See `README.md` for the product and infrastructure, and `docs/development.md` for the local workflow.
 
 This is part of Eire Ford's job search, kept as a working showcase. The plan, the facts about Eire and the rules
 shared by every project are in the hub one folder up (`../AGENTS.md`, `../docs/`). Read `../docs/status.md` first.
+Naming, build and deploy rules come from `../docs/conventions.md`.
 
 ## Commands
 
@@ -22,6 +23,10 @@ shared by every project are in the hub one folder up (`../AGENTS.md`, `../docs/`
   white, with short hand-lettered labels.
 - All prices are recomputed on the server (`src/routes/book/+page.server.ts`); the browser never sends one.
 - Business numbers live only in `src/lib/config.ts`.
+- SvelteKit 3: configuration is in `vite.config.ts` (there is no `svelte.config.js`); import from `src/lib` as
+  `#lib/...` with the file extension (`#lib/pricing.ts`, `#lib/components/Icon.svelte`); every environment
+  variable is declared in `src/env.ts` and read with `import * as env from '$app/env/private'`. External
+  redirects need `redirect(status, url, { external: [origin] })`.
 - No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
   Store only the token's hash, never the token.
 - Google Workspace (Gmail send, Calendar, /admin sign-in) is optional and env-driven; locally it's all off

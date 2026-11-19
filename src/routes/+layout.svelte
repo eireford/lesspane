@@ -2,8 +2,8 @@
 	import '../app.css';
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import { business } from '$lib/config';
+	import Icon from '#lib/components/Icon.svelte';
+	import { business } from '#lib/config.ts';
 
 	const showcase = business.showcase;
 

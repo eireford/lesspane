@@ -1,7 +1,8 @@
-import { env } from '$env/dynamic/private';
-import { redirect, type Handle } from '@sveltejs/kit';
+import * as env from '$app/env/private';
+import { redirect } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { SESSION_COOKIE, isAllowedAdmin, readSession } from '$lib/server/session';
+import { SESSION_COOKIE, isAllowedAdmin, readSession } from '#lib/server/session.ts';
 
 const digest = (s: string) => createHash('sha256').update(s).digest();
 const sameSecret = (a: string, b: string) => timingSafeEqual(digest(a), digest(b));

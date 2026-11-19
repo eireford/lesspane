@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { business, timeWindowLabels } from '$lib/config';
-	import { formatUsd } from '$lib/pricing';
+	import { business, timeWindowLabels } from '#lib/config.ts';
+	import { formatUsd } from '#lib/pricing.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

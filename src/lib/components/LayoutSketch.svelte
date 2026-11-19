@@ -1,6 +1,6 @@
 <script lang="ts">
-	import SketchWindow from '$lib/components/SketchWindow.svelte';
-	import { BUCKETS, SIDE_NAMES, type Layout, type Rect } from '$lib/layout';
+	import SketchWindow from '#lib/components/SketchWindow.svelte';
+	import { BUCKETS, SIDE_NAMES, type Layout, type Rect } from '#lib/layout.ts';
 
 	// The drawing for each quote step, built from the layout so far (patterns and filters from <SketchDefs>):
 	//   floors → the front of a house with that many floors
