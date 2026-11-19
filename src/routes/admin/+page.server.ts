@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
-import { syncEvent } from '$lib/server/calendar';
-import { getRequest, listRequests, requestStatuses, setRequestStatus, updateRequest, type RequestStatus } from '$lib/server/store';
+import { syncEvent } from '#lib/server/calendar.ts';
+import { getRequest, listRequests, requestStatuses, setRequestStatus, updateRequest, type RequestStatus } from '#lib/server/store.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 // Owner-only list of requests. Access is enforced in hooks.server.ts (HTTP Basic auth).

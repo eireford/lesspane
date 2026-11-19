@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('$env/dynamic/private', () => ({ env: {} }));
+vi.mock('$app/env/private', () => ({}));
 
 const { rawEmail } = await import('./mime');
 const { makeSession, readSession, isAllowedAdmin } = await import('./session');

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon, { type IconName } from '$lib/components/Icon.svelte';
+	import Icon, { type IconName } from '#lib/components/Icon.svelte';
 
 	// The whole journey in four stages, so customers know what they're doing and what comes next.
 	// The landing and quote pages cover stages 0–1, the booking page stage 2; stage 3 happens after they send.

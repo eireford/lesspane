@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 import { error, redirect } from '@sveltejs/kit';
 import { createHash, randomBytes } from 'node:crypto';
 import type { RequestHandler } from './$types';
@@ -33,5 +33,5 @@ export const GET: RequestHandler = ({ url, cookies }) => {
 		prompt: 'select_account',
 		...(domain ? { hd: domain } : {})
 	}).toString();
-	redirect(303, google.toString());
+	redirect(303, google.toString(), { external: [google.origin] });
 };

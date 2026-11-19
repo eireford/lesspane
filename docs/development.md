@@ -5,7 +5,7 @@ and emails print to the terminal. The fast loop is **edit → browser hot-reload
 
 ## First time
 
-Needs Node 20+ (22 is what Cloud Run uses) and, for the smoke test, Chromium or Chrome.
+Needs Node 22 (what Cloud Run uses) and, for the smoke test, Chromium or Chrome.
 
 ```bash
 npm install

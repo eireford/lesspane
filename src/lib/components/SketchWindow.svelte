@@ -1,7 +1,7 @@
 <svelte:options namespace="svg" />
 
 <script lang="ts">
-	import type { Rect } from '$lib/layout';
+	import type { Rect } from '#lib/layout.ts';
 
 	// One pencil-drawn window, placed inside a parent <svg>. `dirt` (0 clean … 1 grimy) fades the hatching;
 	// each problem flag draws that problem on the glass. Patterns and filters come from <SketchDefs>.

@@ -1,9 +1,9 @@
 import { error, fail } from '@sveltejs/kit';
-import { firstName, place } from '$lib/contact';
-import { getRequestByManageToken, updateRequest, type QuoteRequest } from '$lib/server/store';
-import { notifyCustomerChange } from '$lib/server/email';
-import { syncEvent } from '$lib/server/calendar';
-import { bookingDateRange, parseWhen, todayIso } from '$lib/validation';
+import { firstName, place } from '#lib/contact.ts';
+import { getRequestByManageToken, updateRequest, type QuoteRequest } from '#lib/server/store.ts';
+import { notifyCustomerChange } from '#lib/server/email.ts';
+import { syncEvent } from '#lib/server/calendar.ts';
+import { bookingDateRange, parseWhen, todayIso } from '#lib/validation.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 // "Manage your booking": no account, just the private link from the confirmation email. The customer can see

@@ -73,7 +73,8 @@ export function layoutToSearchParams(l: Layout): URLSearchParams {
 	return new URLSearchParams({ f: String(l.floors), s: String(l.sides), w: l.windows.flat().join(',') });
 }
 
-type Source = URLSearchParams | FormData;
+/** Anything with read-only `get`, e.g. URLSearchParams, `page.url.searchParams` (read-only) or FormData. */
+type Source = Pick<URLSearchParams, 'get'> | Pick<FormData, 'get'>;
 
 export function parseLayout(src: Source): Layout | null {
 	const floors = Number(src.get('f'));

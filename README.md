@@ -1,7 +1,7 @@
 # LessPane prototype
 
 Instant window washing quotes and booking requests for lesspane.com.
-SvelteKit (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
+SvelteKit 3 (TypeScript, Svelte 5) running on Cloud Run, with Firestore for storage.
 
 **Live demo:** [lesspane.com](https://lesspane.com) · Built by [Eire Ford](https://eireford.com) to a local window
 cleaner's spec, and now kept as a working showcase. Bookings made on the demo are not real jobs.
@@ -40,7 +40,7 @@ plus a password-protected owner page at `/admin`.
 
 ## Run it locally
 
-Requires Node 20 or newer.
+Requires Node 22.
 
 ```bash
 npm install
@@ -136,7 +136,8 @@ https://claude.ai/artifact/XaSD4ek8sxbtncPPzrBVJG (download as PDF or PowerPoint
 Release to production after checking staging:
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+# bump "version" in package.json in the pull request, merge it, then tag that commit:
+git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
 Set the owner alert address once per service (deploys keep it):

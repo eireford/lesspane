@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
-	import Icon, { type IconName } from '$lib/components/Icon.svelte';
-	import Journey from '$lib/components/Journey.svelte';
-	import LayoutSketch from '$lib/components/LayoutSketch.svelte';
-	import SketchDefs from '$lib/components/SketchDefs.svelte';
-	import SwipeCard, { type SwipeDir } from '$lib/components/SwipeCard.svelte';
-	import { pricing, type AddOnKey, type Stories } from '$lib/config';
+	import Icon, { type IconName } from '#lib/components/Icon.svelte';
+	import Journey from '#lib/components/Journey.svelte';
+	import LayoutSketch from '#lib/components/LayoutSketch.svelte';
+	import SketchDefs from '#lib/components/SketchDefs.svelte';
+	import SwipeCard, { type SwipeDir } from '#lib/components/SwipeCard.svelte';
+	import { pricing, type AddOnKey, type Stories } from '#lib/config.ts';
 	import {
 		BUCKETS,
 		FLOOR_NAMES,
@@ -20,8 +20,8 @@
 		totalWindows,
 		type Layout,
 		type Sides
-	} from '$lib/layout';
-	import { computeQuote, formatUsd } from '$lib/pricing';
+	} from '#lib/layout.ts';
+	import { computeQuote, formatUsd } from '#lib/pricing.ts';
 
 	// The quick-questions path (the landing page also offers ready-made packages, which link here straight
 	// to the summary). The quote is a short process. Each step shows a sensible default: accept it with ✓, or change it by

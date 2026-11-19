@@ -1,7 +1,7 @@
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 import { error, redirect } from '@sveltejs/kit';
 import { OAuth2Client } from 'google-auth-library';
-import { SESSION_COOKIE, SESSION_HOURS, isAllowedAdmin, makeSession } from '$lib/server/session';
+import { SESSION_COOKIE, SESSION_HOURS, isAllowedAdmin, makeSession } from '#lib/server/session.ts';
 import type { RequestHandler } from './$types';
 
 // Finishes Google sign-in: checks state, trades the code (with the PKCE verifier) for an ID token, verifies

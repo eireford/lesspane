@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Icon from '$lib/components/Icon.svelte';
-	import type { TimeWindow } from '$lib/config';
-	import { addDaysIso } from '$lib/validation';
+	import Icon from '#lib/components/Icon.svelte';
+	import type { TimeWindow } from '#lib/config.ts';
+	import { addDaysIso } from '#lib/validation.ts';
 
 	// When: a strip of days to swipe through, and a sun you drag across the sky.
 	// Left of noon is the morning visit, right of noon the afternoon one.
