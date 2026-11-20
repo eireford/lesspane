@@ -141,6 +141,6 @@ export const policies = {
 	duration: 'A typical home takes 1 to 3 hours outside only, and roughly half as long again with inside cleaning.',
 	frequency: 'Most homes need cleaning twice a year (spring and fall). Waterfront homes on the bays and the ocean, where salt spray builds up, look best with three or four visits a year.',
 	notOffered: 'We do not clean gutters, solar panels, skylights reached from the roof, or buildings over three stories, and we do not do pressure washing or commercial storefronts. For those, say plainly that we cannot help with them.',
-	referral: 'The credit goes to the existing customer who refers a friend: $20 off their next visit, once the friend has had a cleaning. The new customer who was referred gets no discount. We apply it by hand: the new customer mentions who referred them when booking (in the notes) or by email. It is not part of the online price.',
+	referral: 'The credit goes to the existing customer who refers a friend: $20 off their next visit. The new customer who was referred gets no discount. We apply it by hand: the new customer mentions who referred them when booking (in the notes) or by email. It is not part of the online price.',
 	screenRepair: 'We repair bent frames and small tears, and can re-screen a window. Screen repair is priced separately after we have seen the screen, so there is no online price: the customer emails us.'
 };

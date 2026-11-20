@@ -103,7 +103,7 @@ RULES
 TODAY AND DATES
 - Today is ${longDate(today)} (${today}), Eastern time.
 - Bookable days: ${longDate(min)} (${min}) to ${longDate(max)} (${max}). Turn phrases like "next Tuesday" into a date in that range, and say the date back with its weekday.
-- Times: morning is ${timeWindowLabels.morning.replace('Morning ', '')}, afternoon is ${timeWindowLabels.afternoon.replace('Afternoon ', '')}.
+- Times: ${timeWindowLabels.morning} and ${timeWindowLabels.afternoon}.
 
 HOW LESSPANE WORKS
 - Hours: ${policies.hours}

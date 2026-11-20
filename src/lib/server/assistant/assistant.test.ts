@@ -134,6 +134,8 @@ describe('knowledge', () => {
 		expect(text).toContain('(2026-11-20) to');
 		expect(text).toContain('$7');
 		expect(text).toContain('DEMO MODE');
+		expect(text).toContain('Times: Morning (8am–12pm) and Afternoon (12pm–5pm).');
+		expect(text).not.toMatch(/\$\{|undefined|NaN/);
 	});
 });
 
