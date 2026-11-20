@@ -3,6 +3,7 @@
 	import Journey from '#lib/components/Journey.svelte';
 	import LayoutSketch from '#lib/components/LayoutSketch.svelte';
 	import SketchDefs from '#lib/components/SketchDefs.svelte';
+	import { openChat } from '#lib/components/ChatPanel.svelte';
 	import { PACKAGES, layoutToSearchParams, totalWindows } from '#lib/layout.ts';
 	import { computeQuote, formatUsd } from '#lib/pricing.ts';
 
@@ -60,6 +61,15 @@
 	</span>
 	<Icon name="right" size={22} />
 </a>
+
+<button type="button" class="questions chat" onclick={() => openChat()}>
+	<span class="q-icon"><Icon name="chat" size={28} /></span>
+	<span class="body">
+		<strong class="name">Ask us anything</strong>
+		<span class="blurb">Chat about prices, what's included, or book a time in a few messages.</span>
+	</span>
+	<Icon name="right" size={22} />
+</button>
 
 <style>
 	.intro h1 {
@@ -185,6 +195,16 @@
 		padding: 14px;
 		background: var(--brand-soft);
 		border-color: var(--brand);
+	}
+
+	.questions.chat {
+		width: 100%;
+		margin-top: 12px;
+		background: var(--glass);
+		border-color: var(--lake);
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
 	}
 
 	.q-icon {

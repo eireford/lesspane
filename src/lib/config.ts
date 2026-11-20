@@ -97,3 +97,44 @@ export const serviceAreaZips = new Set([
 	'21811', '21813', '21822', '21829', '21841', '21842', '21843', '21851', '21862', '21863',
 	'21864', '21872'
 ]);
+
+// ---------- Chat assistant ----------
+
+/** The chat assistant on every page (Gemini on Vertex AI, `src/lib/server/assistant/`). */
+export const assistant = {
+	/** Gemini model and location; GEMINI_MODEL overrides the model. gemini-3.x is served from `global`. */
+	model: 'gemini-3.5-flash-lite',
+	location: 'global',
+	maxOutputTokens: 800,
+	temperature: 0.3,
+	/** A conversation is sent whole each turn; past this many messages the visitor starts a new one. */
+	maxMessages: 40,
+	/** Longest message a visitor can send, in characters. */
+	maxMessageChars: 1000,
+	/** Tool calls (estimate, ZIP check, booking) the model may chain before it must answer. */
+	maxToolRounds: 5,
+	/** Usage limits, per Cloud Run instance (at most 3): visitor requests per minute per IP, Gemini calls per day. */
+	requestsPerMinute: 10,
+	dailyModelCalls: 500
+};
+
+/**
+ * What the assistant tells customers about how LessPane works. ASSUMED: reasonable values for a small
+ * owner-operated window cleaner, to be confirmed by the owner; every one of them is listed in
+ * docs/assistant-questions.md. Prices are not here: they come from `pricing` above.
+ */
+export const policies = {
+	who: 'a small, local, owner-operated window cleaning business on Maryland\'s Eastern Shore',
+	hours: 'Visits run Monday to Saturday. Mornings are 8am to 12pm and afternoons 12pm to 5pm; we text or email the day before with a tighter arrival time.',
+	confirmation: 'A request is not final until we confirm it, usually within one business day, by text if a phone number was given, otherwise by email.',
+	payment: 'No deposit and nothing up front. Pay when the job is done, by card, check or cash. The price quoted is the price charged unless the home turns out to be quite different from what was described (for example many more windows); then we agree any change before starting.',
+	changes: 'Customers can change the day or cancel for free, any time before the visit day, with the private link in their confirmation email. No cancellation fee.',
+	weather: 'Light rain does not hurt the result, so outside cleaning goes ahead in drizzle. Heavy rain, storms, high wind or freezing temperatures mean we reschedule at no charge and get in touch to pick a new day.',
+	guarantee: 'Streak-free guarantee: if any window is not right, tell us within 3 days and we come back and re-clean it free.',
+	insured: 'We carry general liability insurance.',
+	homeAccess: 'For outside-only cleaning nobody needs to be home, as long as gates are unlocked and pets are inside. For inside cleaning an adult needs to be home.',
+	preparation: 'Before inside cleaning, clear sills and move fragile things away from windows; we move light furniture only if asked. Outside, unlock gates and keep pets indoors.',
+	duration: 'A typical home takes 1 to 3 hours outside only, and roughly half as long again with inside cleaning.',
+	frequency: 'Most homes need cleaning twice a year (spring and fall). Waterfront homes on the bays and the ocean, where salt spray builds up, look best with three or four visits a year.',
+	notOffered: 'We do not clean gutters, solar panels, skylights reached from the roof, or buildings over three stories, and we do not do pressure washing or commercial storefronts yet. For those, suggest the customer emails us and we can point them to someone.'
+};

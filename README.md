@@ -85,8 +85,31 @@ feature have no link.
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
 | `firestore.rules` | Denies all direct client access to Firestore |
+| `src/lib/server/assistant/` | The chat assistant: Gemini on Vertex AI (`chat.ts`), its knowledge (`knowledge.ts`), its tools (`tools.ts`: estimate, ZIP check, booking) and usage limits (`limits.ts`) |
+| `src/routes/api/chat/+server.ts`, `src/lib/components/ChatPanel.svelte` | The chat endpoint and the "Ask us" panel on every page |
 
 Prices are always recomputed on the server; the browser never sends a price.
+
+## Chat assistant
+
+An **Ask us** button on every page (and a card on the landing page) opens a chat with an AI assistant. It explains
+the services and how LessPane works, answers window-cleaning questions, estimates a job and books a visit.
+
+- **Model:** Gemini (`gemini-3.5-flash-lite`) on Vertex AI, called with the Cloud Run account `lesspane-run`
+  (Vertex AI User).
+- **Prices and bookings:** the assistant uses tools that run the site's own code. `estimate_price` uses
+  `computeQuote`, `check_zip` uses the service-area list, and `book_appointment` uses the same validation, storage,
+  emails and calendar sync as `/book`. The model never sets a price.
+- **Confirmation before booking:** it shows a summary, asks the customer to confirm, books at most once per reply,
+  and returns the customer's private manage link.
+- **What it knows:** prices and packages come from `config.ts`. How LessPane works is in `policies` in the same
+  file. Window-cleaning know-how is in `knowledge.ts`. Values we didn't know are reasonable assumptions, listed in
+  **[docs/assistant-questions.md](docs/assistant-questions.md)** for the owner to confirm.
+- **Usage limits:** 1,000 characters per message, 40 messages per conversation, 10 requests per visitor IP per
+  minute (429), and 500 Gemini calls per instance per day (503).
+- **Locally:** chat needs Google credentials (`gcloud auth application-default login`) and
+  `GOOGLE_CLOUD_PROJECT=lesspane`. Without them the panel shows "isn't available" and the rest of the site works.
+- **Testing:** `npm run smoke -- --chat` asks it a question in the browser (a real Gemini call).
 
 ## Showcase mode
 

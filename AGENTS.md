@@ -12,7 +12,8 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
 - `npm run dev`: dev server on http://localhost:5173 (file storage, emails to console)
 - `npm run verify`: type check + unit tests + build. Run before committing.
 - `npm run smoke`: headless Chromium plays every control; needs the dev server running. Add `-- --book` to
-  also submit a booking. Screenshots land in `.shots/`; read them to check visual changes.
+  also submit a booking, and `-- --chat` to ask the chat assistant a question (a real Gemini call; needs
+  credentials). Screenshots land in `.shots/`; read them to check visual changes.
 - `npm run seed`: sample requests for `/admin`.
 
 ## Conventions
@@ -27,6 +28,10 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
   `#lib/...` with the file extension (`#lib/pricing.ts`, `#lib/components/Icon.svelte`); every environment
   variable is declared in `src/env.ts` and read with `import * as env from '$app/env/private'`. External
   redirects need `redirect(status, url, { external: [origin] })`.
+- The chat assistant (`src/lib/server/assistant/`, `/api/chat`, `ChatPanel.svelte`) must get every price and
+  booking through its tools, which call `computeQuote` and the shared validators. Never let the model set a price
+  or skip validation. Business facts it states belong in `config.ts` (`pricing`, `policies`); unconfirmed ones are
+  listed in `docs/assistant-questions.md`. Keep that list up to date when you add one.
 - No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
   Store only the token's hash, never the token.
 - Google Workspace (Gmail send, Calendar, /admin sign-in) is optional and env-driven; locally it's all off
