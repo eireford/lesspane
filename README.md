@@ -103,8 +103,9 @@ the services and how LessPane works, answers window-cleaning questions, estimate
 - **Confirmation before booking:** it shows a summary, asks the customer to confirm, books at most once per reply,
   and returns the customer's private manage link.
 - **What it knows:** prices and packages come from `config.ts`. How LessPane works is in `policies` in the same
-  file. Window-cleaning know-how is in `knowledge.ts`. Values we didn't know are reasonable assumptions, listed in
-  **[docs/assistant-questions.md](docs/assistant-questions.md)** for the owner to confirm.
+  file. Window-cleaning know-how is in `knowledge.ts`. The owner confirmed them on 2026-11-20; the decisions and what is still open are in
+  **[docs/assistant-questions.md](docs/assistant-questions.md)**, and the steps before going live in
+  **[docs/launch-checklist.md](docs/launch-checklist.md)**.
 - **Usage limits:** 1,000 characters per message, 40 messages per conversation, 10 requests per visitor IP per
   minute (429), and 500 Gemini calls per instance per day (503).
 - **Locally:** chat needs Google credentials (`gcloud auth application-default login`) and
