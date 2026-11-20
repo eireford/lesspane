@@ -144,3 +144,35 @@ export const policies = {
 	referral: 'The credit goes to the existing customer who refers a friend: $20 off their next visit. The new customer who was referred gets no discount. We apply it by hand: the new customer mentions who referred them when booking (in the notes) or by email. It is not part of the online price.',
 	screenRepair: 'We repair bent frames and small tears, and can re-screen a window. Screen repair is priced separately after we have seen the screen, so there is no online price: the customer emails us.'
 };
+
+// ---------- Testimonials ----------
+
+/** A quote shown on the home page. `sample` ones were written for the demo and are never presented as real. */
+export type Testimonial = { quote: string; who: string; sample: boolean };
+
+/**
+ * SAMPLES until real reviews exist. They are labelled "Sample" on the page and only shown while showcase mode is
+ * on, so turning the demo off hides them. A real one needs `sample: false`, the customer's words exactly and their
+ * permission. The chat assistant never quotes testimonials.
+ */
+export const testimonials: Testimonial[] = [
+	{
+		quote: 'Got a price on my phone in a minute, and it was the same price on the day. The bay windows haven\'t looked this clear since we moved in.',
+		who: 'Homeowner, Easton',
+		sample: true
+	},
+	{
+		quote: 'Salt spray had left a haze on every window facing the bay. They cleared it, and fixed two torn screens while they were here.',
+		who: 'Waterfront home, Cambridge',
+		sample: true
+	},
+	{
+		quote: 'After pollen season the whole house looked yellow. Inside and out in one afternoon, shoe covers on, nothing out of place.',
+		who: 'Two-story home, Salisbury',
+		sample: true
+	}
+];
+
+/** The testimonials to show: sample ones only while showcase mode is on, real ones always. */
+export const visibleTestimonials = (showcase = business.showcase.enabled): Testimonial[] =>
+	testimonials.filter((t) => !t.sample || showcase);
