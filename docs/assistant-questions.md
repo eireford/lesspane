@@ -10,11 +10,11 @@ what is still open.
 - **Phone or text number (Q35).** The owner wants one given to customers but hasn't sent it. Until then the assistant
   gives only `business.contactEmail`. To add it: add the number (and whether it takes texts) to
   `business` in `src/lib/config.ts` and to the "Contact" line in `src/lib/server/assistant/knowledge.ts`.
-- **Reviews and endorsements (Q37).** The owner asked for sample endorsements to be added "for now". Not done:
-  invented reviews would read as real to customers, and the assistant would repeat them as fact. The assistant
-  claims no reviews, years in business, licenses or memberships. When real ones exist, send the exact words and the
-  name or source of each and they go in `policies`. (Placeholder testimonials clearly labelled "sample" on the page,
-  never in the assistant's answers, are a possible alternative.)
+- **Reviews and endorsements (Q37).** Three sample testimonials are on the home page (`testimonials` in
+  `config.ts`). Each is tagged "Sample" under a note saying they were written for the demo. They show only while
+  demo mode is on, and the assistant never quotes them (it says they are samples if asked). The assistant claims no
+  real reviews, years in business, licenses or memberships. When real reviews exist, add them with `sample: false`,
+  the customer's exact words and their permission, and delete the samples.
 - **Local price check (Q1–Q5).** Prices sit inside published ranges, but no Eastern Shore price list could be found
   online. Compare with two or three local quotes before launch.
 - **Licensing.** Check Maryland and county rules for window cleaning before launch (not researched).
@@ -60,7 +60,7 @@ what is still open.
 | 34 | Owner's name | Keep "we" |
 | 35 | Contact | Email now; phone number to come (open, above) |
 | 36 | Service area | Keep all nine Eastern Shore counties |
-| 37 | Reviews and licensing | Claim nothing (open, above) |
+| 37 | Reviews and licensing | Labelled sample testimonials on the home page (demo only); claim no real ones (open, above) |
 | 38 | Launch | Stay in demo mode; launch checklist saved |
 
 ## Sources for the price ranges

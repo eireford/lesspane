@@ -20,7 +20,8 @@ customers.
   nothing (`policies.referral`).
 - [ ] **Equipment and methods.** The assistant says ladders with standoffs and water-fed poles, drop cloths or
   towels, and shoe covers indoors. Make sure that's what happens.
-- [ ] **Reviews.** Add only real ones, with their source (`docs/assistant-questions.md`, Q37).
+- [ ] **Reviews.** The sample testimonials hide themselves when demo mode is off. Add real ones (`sample: false`, the
+  customer's exact words and permission) and delete the samples (`testimonials` in `config.ts`).
 - [ ] **Demo notices.** Remove the demo banner, the builder credit and the "nobody will come" text on the thanks page
   and in the confirmation email, as well as in the chat.
 - [ ] **Real calendar and email.** Confirm Gmail send and Calendar sync work for the live owner account.

@@ -6,6 +6,7 @@
 	import { openChat } from '#lib/components/ChatPanel.svelte';
 	import { PACKAGES, layoutToSearchParams, totalWindows } from '#lib/layout.ts';
 	import { computeQuote, formatUsd } from '#lib/pricing.ts';
+	import { visibleTestimonials } from '#lib/config.ts';
 
 	// Landing page: say what LessPane is and how it works, then offer two ways in. Pick a ready-made package
 	// (straight to the estimate summary on /quote, where extras and changes are one tap away), or answer the
@@ -16,6 +17,10 @@
 		const price = computeQuote({ windows, stories: p.layout.floors, service: 'exterior', addons: [] }).total;
 		return { ...p, windows, href, price };
 	});
+
+	// Sample testimonials only appear in the demo; real ones (sample: false) always do.
+	const quotes = visibleTestimonials();
+	const hasSamples = quotes.some((t) => t.sample);
 </script>
 
 <svelte:head>
@@ -71,7 +76,71 @@
 	<Icon name="right" size={22} />
 </button>
 
+{#if quotes.length}
+	<section class="said" aria-labelledby="said">
+		<h2 id="said" class="choose"><Icon name="heart" size={20} /> What customers say</h2>
+		{#if hasSamples}
+			<p class="why">Sample testimonials written for this demo, not real reviews.</p>
+		{/if}
+		<div class="quotes">
+			{#each quotes as t (t.quote)}
+				<figure class="quote" data-sample={t.sample || undefined}>
+					<blockquote>“{t.quote}”</blockquote>
+					<figcaption>
+						{#if t.sample}<span class="sample">Sample</span>{/if}
+						{t.who}
+					</figcaption>
+				</figure>
+			{/each}
+		</div>
+	</section>
+{/if}
+
 <style>
+	.said {
+		margin-top: 28px;
+	}
+
+	.quotes {
+		display: grid;
+		gap: 12px;
+	}
+
+	.quote {
+		margin: 0;
+		padding: 14px 16px;
+		border: 1.5px solid var(--ink);
+		border-radius: var(--sketchy);
+		background: var(--paper);
+		box-shadow: var(--shadow);
+	}
+
+	.quote blockquote {
+		margin: 0 0 8px;
+		font-family: var(--hand);
+		font-size: 1.2rem;
+		line-height: 1.3;
+	}
+
+	.quote figcaption {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 0.88rem;
+		color: var(--ink-soft);
+	}
+
+	.sample {
+		padding: 1px 8px;
+		border: 1.5px dashed var(--accent);
+		border-radius: var(--sketchy);
+		color: var(--accent);
+		font-size: 0.78rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
 	.intro h1 {
 		margin: 0 0 6px;
 		font-size: clamp(1.9rem, 8vw, 2.5rem);

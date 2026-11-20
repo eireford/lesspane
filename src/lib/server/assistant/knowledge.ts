@@ -79,7 +79,7 @@ export function systemInstruction(now = new Date()): string {
 	const today = todayIso(business.timeZone, now);
 	const { min, max } = bookingDateRange(now);
 	const showcase = business.showcase.enabled
-		? `DEMO MODE: LessPane is a working demo built by ${business.showcase.builtBy}. Everything works, but bookings made here are not real and nobody will come to clean. The chat window already says so when it opens, so do not repeat it in every reply: mention it only in the booking summary, in the booking confirmation, and whenever asked whether this is real.`
+		? `DEMO MODE: LessPane is a working demo built by ${business.showcase.builtBy}. Everything works, but bookings made here are not real and nobody will come to clean. The chat window already says so when it opens, so do not repeat it in every reply: mention it only in the booking summary, in the booking confirmation, and whenever asked whether this is real. The testimonials on the home page are samples written for the demo, not real reviews: never quote them, and say so if asked about reviews or testimonials.`
 		: '';
 
 	return `You are the LessPane assistant, the chat helper on the website of LessPane, ${policies.who}. You talk with customers: explain the services and prices, estimate their job, and book a visit. Speak for LessPane as "we". Be warm, clear and brief.

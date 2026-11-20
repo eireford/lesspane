@@ -112,6 +112,9 @@ the services and how LessPane works, answers window-cleaning questions, estimate
   `GOOGLE_CLOUD_PROJECT=lesspane`. Without them the panel shows "isn't available" and the rest of the site works.
 - **Testing:** `npm run smoke -- --chat` asks it a question in the browser (a real Gemini call).
 
+The home page also shows three **sample testimonials** (`testimonials` in `config.ts`), each tagged "Sample". They
+show only in showcase mode, and the assistant never quotes them.
+
 ## Showcase mode
 
 LessPane is currently a portfolio prototype, not a live service. `business.showcase.enabled` in `src/lib/config.ts`

@@ -170,7 +170,14 @@ await step('Landing offers packages and the quick questions', async () => {
 	const names = await js(`[...document.querySelectorAll('.package .name')].map(n => n.textContent.trim()).join(', ')`);
 	expect(names === 'Cottage, Family home, Large home', `packages: ${names}`);
 	expect(await js(`!!document.querySelector('a.questions[href="/quote"]')`), 'no quick-questions link');
-	return names;
+	// Sample testimonials must say they are samples, every one of them.
+	const quotes = await js(`document.querySelectorAll('.quote').length`);
+	const unlabelled = await js(`[...document.querySelectorAll('.quote[data-sample]')].filter(q => !q.querySelector('.sample')).length`);
+	expect(unlabelled === 0, `${unlabelled} sample testimonial(s) without a Sample label`);
+	if (await js(`!!document.querySelector('.quote[data-sample]')`)) {
+		expect(await js(`/not real reviews/.test(document.querySelector('.said .why')?.textContent ?? '')`), 'samples shown without the note');
+	}
+	return `${names}; ${quotes} testimonials`;
 });
 
 await step('A package opens its estimate', async () => {
