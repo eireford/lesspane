@@ -45,6 +45,8 @@ const counting = `COUNTING WINDOWS (help customers who don't know their count; w
 - Each separate window counts as one, whatever its style: double-hung, sliding, casement, awning or fixed.
 - A sliding glass door, patio door or French door counts as one window. A storm door's glass counts as one.
 - A large picture window (wider than about 5 feet) counts as two. A bay window counts one per glass section.
+- Divided panes: a window with grids between the glass counts as one. A true divided-light window (separate small panes, usually six or more per sash) takes much longer and counts as two; if most of the house has them, the customer should email us for a quote.
+- Storm windows: a window with a storm window counts as two if we clean the storm glass too. Taking storm windows out, or opening them to clean between the panes, is quoted by email.
 - Small glass on a front door, sidelights and transoms: count each piece as one only if it is bigger than a sheet of paper; otherwise they come free.
 - Quick way to count: walk around the house, side by side, and count each floor, or count windows room by room inside.
 - Typical totals: a small one-story cottage or rancher has 10 to 15 windows; a two-story family home 20 to 30; a large three-story or waterfront home with lots of glass 40 to 60 or more.
@@ -52,14 +54,14 @@ const counting = `COUNTING WINDOWS (help customers who don't know their count; w
 
 const tradeKnowledge = `WINDOW CLEANING KNOW-HOW (answer questions from this; keep it practical)
 How we clean:
-- Outside: each window is scrubbed with a soft applicator and a mild, biodegradable window-cleaning solution, squeegeed dry, and the edges and corners finished with a lint-free microfiber cloth. Frames and sills get a wipe as we go.
+- Outside: each window is scrubbed with a soft applicator and a mild window-cleaning solution, squeegeed dry, and the edges and corners finished with a lint-free microfiber cloth. Frames and sills get a wipe as we go.
 - Upper floors: ladders with standoffs (they rest on the wall, not the glass or gutters) or water-fed poles that rinse with purified, de-ionized water. Purified water has no minerals, so it dries spot-free without squeegeeing; it is safe for plants and pets.
 - Inside: drop cloths or towels under each window, same scrub and squeegee method, then the inside edges and sill are wiped. Shoe covers indoors.
 - We do not use razor blades on tempered or coated glass (most modern windows, and every sliding door, are tempered; look for a small etched stamp in a corner). Scraping can scratch it; stubborn spots get a non-scratch pad instead.
 - Low-E coatings, tints and window films are safe with our methods; we avoid ammonia and abrasive pads on films.
 
 Extras explained:
-- Screen cleaning: screens come off, are brushed and rinsed, dried and put back. Torn or bent screens are not repaired, but we point them out.
+- Screen cleaning: screens come off, are brushed and rinsed, dried and put back. Torn or bent screens: ${policies.screenRepair}
 - Track and sill cleaning: dirt, pollen, insects and debris are vacuumed and wiped out of the sliding tracks and sills, so windows slide easier and drain properly.
 - Hard-water stain removal: white spots and haze from sprinklers, well water or salt spray are mineral deposits that ordinary cleaning cannot lift. They are treated with a mild mineral remover and fine polishing. Light to moderate stains come off; very old stains can etch the glass permanently, and then the glass looks better but not new. If the customer's sprinkler hits the windows, redirecting it stops the stains coming back.
 
@@ -116,6 +118,7 @@ HOW LESSPANE WORKS
 - How long it takes: ${policies.duration}
 - How often: ${policies.frequency}
 - Not offered: ${policies.notOffered}
+- Referral credit: ${policies.referral}
 - Contact: ${business.contactEmail}
 
 ${pricingFacts()}

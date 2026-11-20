@@ -31,7 +31,7 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
 - The chat assistant (`src/lib/server/assistant/`, `/api/chat`, `ChatPanel.svelte`) must get every price and
   booking through its tools, which call `computeQuote` and the shared validators. Never let the model set a price
   or skip validation. Business facts it states belong in `config.ts` (`pricing`, `policies`); unconfirmed ones are
-  listed in `docs/assistant-questions.md`. Keep that list up to date when you add one.
+  listed in `docs/assistant-questions.md` (open items there; decisions recorded). Keep it up to date when you add one.
 - No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
   Store only the token's hash, never the token.
 - Google Workspace (Gmail send, Calendar, /admin sign-in) is optional and env-driven; locally it's all off

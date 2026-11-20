@@ -39,8 +39,11 @@ export type AddOn = { label: string; price: number; per: 'window' | 'visit' };
 export const pricing = {
 	/** Base price per window, outside only, single story, USD. ESTIMATE */
 	perWindow: 7,
-	/** Upper floors need ladders: roughly +$1–2.50 per window per floor. ESTIMATE */
-	storyFactor: { 1: 1.0, 2: 1.15, 3: 1.4 } as Record<Stories, number>,
+	/**
+	 * Upper floors need ladders or poles: about +$1.75 per window on 2 floors and +$3.50 on 3. Raised from
+	 * 1.15 / 1.4 on 2026-11-20 at the owner's approval (published surcharges run $3–5 per window).
+	 */
+	storyFactor: { 1: 1.0, 2: 1.25, 3: 1.5 } as Record<Stories, number>,
 	/** Inside + outside ≈ $12 per window at the base rate. ESTIMATE */
 	serviceFactor: { exterior: 1.0, interior_exterior: 1.7 } as Record<ServiceType, number>,
 	/** Add-on prices, USD. ESTIMATE (market: screens $1–5, tracks $2–5, hard water $10–30 per window) */
@@ -49,8 +52,8 @@ export const pricing = {
 		tracks: { label: 'Track and sill cleaning', price: 4, per: 'window' },
 		hard_water: { label: 'Hard-water stain removal', price: 10, per: 'window' }
 	} as Record<AddOnKey, AddOn>,
-	/** Smallest job you'll take, USD. ESTIMATE (small homes run $120–200) */
-	minimum: 150,
+	/** Smallest job you'll take, USD. Lowered from 150 on 2026-11-20 at the owner's request (small homes run $120–200). */
+	minimum: 120,
 	/** Final price is rounded to the nearest multiple of this. */
 	roundTo: 5,
 	/** Up to 8 sides × 3 floors × a "10+" bucket (12) each = 288. */
@@ -125,16 +128,19 @@ export const assistant = {
  */
 export const policies = {
 	who: 'a small, local, owner-operated window cleaning business on Maryland\'s Eastern Shore',
-	hours: 'Visits run Monday to Saturday. Mornings are 8am to 12pm and afternoons 12pm to 5pm; we text or email the day before with a tighter arrival time.',
+	hours: 'Visits can be booked any day of the week, Sundays included. Mornings are 8am to 12pm and afternoons 12pm to 5pm; we text or email the day before with a tighter arrival time.',
 	confirmation: 'A request is not final until we confirm it, usually within one business day, by text if a phone number was given, otherwise by email.',
-	payment: 'No deposit and nothing up front. Pay when the job is done, by card, check or cash. The price quoted is the price charged unless the home turns out to be quite different from what was described (for example many more windows); then we agree any change before starting.',
+	payment: 'No deposit and nothing up front. Pay when the job is done, by card, check, cash, Venmo or Zelle. The price quoted is the price charged unless the home turns out to be quite different from what was described (for example many more windows); then we agree any change before starting.',
 	changes: 'Customers can change the day or cancel for free, any time before the visit day, with the private link in their confirmation email. No cancellation fee.',
 	weather: 'Light rain does not hurt the result, so outside cleaning goes ahead in drizzle. Heavy rain, storms, high wind or freezing temperatures mean we reschedule at no charge and get in touch to pick a new day.',
 	guarantee: 'Streak-free guarantee: if any window is not right, tell us within 3 days and we come back and re-clean it free.',
+	/** Confirmed true by the owner on 2026-11-20. Remove if that ever stops being the case. */
 	insured: 'We carry general liability insurance.',
 	homeAccess: 'For outside-only cleaning nobody needs to be home, as long as gates are unlocked and pets are inside. For inside cleaning an adult needs to be home.',
 	preparation: 'Before inside cleaning, clear sills and move fragile things away from windows; we move light furniture only if asked. Outside, unlock gates and keep pets indoors.',
 	duration: 'A typical home takes 1 to 3 hours outside only, and roughly half as long again with inside cleaning.',
 	frequency: 'Most homes need cleaning twice a year (spring and fall). Waterfront homes on the bays and the ocean, where salt spray builds up, look best with three or four visits a year.',
-	notOffered: 'We do not clean gutters, solar panels, skylights reached from the roof, or buildings over three stories, and we do not do pressure washing or commercial storefronts yet. For those, suggest the customer emails us and we can point them to someone.'
+	notOffered: 'We do not clean gutters, solar panels, skylights reached from the roof, or buildings over three stories, and we do not do pressure washing or commercial storefronts. For those, say plainly that we cannot help with them.',
+	referral: 'The credit goes to the existing customer who refers a friend: $20 off their next visit, once the friend has had a cleaning. The new customer who was referred gets no discount. We apply it by hand: the new customer mentions who referred them when booking (in the notes) or by email. It is not part of the online price.',
+	screenRepair: 'We repair bent frames and small tears, and can re-screen a window. Screen repair is priced separately after we have seen the screen, so there is no online price: the customer emails us.'
 };
