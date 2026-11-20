@@ -5,6 +5,7 @@
 	import ChatPanel from '#lib/components/ChatPanel.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import { business } from '#lib/config.ts';
+	import { appVersion } from '#lib/version.ts';
 
 	const showcase = business.showcase;
 
@@ -38,6 +39,7 @@
 		<a class="start-over" href="/" data-sveltekit-reload><Icon name="undo" size={18} /> Start over</a>
 	{/if}
 	<p>LessPane · Eastern Shore, MD · <a href="mailto:{business.contactEmail}">{business.contactEmail}</a></p>
+	<p class="version">Version {appVersion}</p>
 	{#if showcase.enabled}
 		<p>
 			Built by <a href={showcase.builtByUrl}>{showcase.builtBy}</a> ·
@@ -105,6 +107,10 @@
 		font-size: 0.9rem;
 		/* Room for the floating chat button. */
 		padding-bottom: calc(84px + env(safe-area-inset-bottom));
+	}
+
+	.version {
+		font-size: 0.8rem;
 	}
 
 	.start-over {
