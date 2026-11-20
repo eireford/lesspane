@@ -2,6 +2,7 @@
 	import '../app.css';
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
+	import ChatPanel from '#lib/components/ChatPanel.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import { business } from '#lib/config.ts';
 
@@ -44,6 +45,10 @@
 		</p>
 	{/if}
 </footer>
+
+{#if !page.url.pathname.startsWith('/admin')}
+	<ChatPanel />
+{/if}
 
 <style>
 	.site-header {
@@ -98,7 +103,8 @@
 
 	.site-footer {
 		font-size: 0.9rem;
-		padding-bottom: calc(24px + env(safe-area-inset-bottom));
+		/* Room for the floating chat button. */
+		padding-bottom: calc(84px + env(safe-area-inset-bottom));
 	}
 
 	.start-over {

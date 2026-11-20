@@ -7,6 +7,7 @@
 //
 //   npm run smoke                          # against http://127.0.0.1:5173, screenshots in .shots/
 //   npm run smoke -- --book                # also submit a booking (local file storage only)
+//   npm run smoke -- --chat                # also ask the chat assistant one question (a real Gemini call)
 //   npm run smoke -- --url https://lesspane.net --width 1280 --height 900
 //
 // Uses only Node built-ins: Chromium is driven over the DevTools protocol with Node's WebSocket.
@@ -24,6 +25,7 @@ const { values: opts } = parseArgs({
 		height: { type: 'string', default: '860' },
 		scale: { type: 'string', default: '1' }, // device pixel ratio; 2 or 3 for sharp phone screenshots
 		book: { type: 'boolean', default: false },
+		chat: { type: 'boolean', default: false },
 		chrome: { type: 'string', default: process.env.CHROME ?? '' }
 	}
 });
@@ -316,6 +318,37 @@ await step('A wrong manage link shows not found', async () => {
 	expect(res.status === 404, `expected 404, got ${res.status}`);
 	return '404';
 });
+
+await step('Chat opens from the landing page and closes', async () => {
+	await cmd('Page.navigate', { url: opts.url });
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('button.questions.chat')`)); i++) await sleep(250);
+	await sleep(800);
+	await tap(at(await box('button.questions.chat'), 0.5, 0.5));
+	for (let i = 0; i < 20 && !(await js(`!!document.querySelector('[role=dialog] textarea')`)); i++) await sleep(250);
+	expect(await js(`document.activeElement?.tagName === 'TEXTAREA'`), 'the message box is not focused');
+	const suggestions = await js(`document.querySelectorAll('.suggestions button').length`);
+	expect(suggestions === 3, `expected 3 suggestions, got ${suggestions}`);
+	await shot('chat-open');
+	await click('Close chat');
+	await sleep(300);
+	expect(await js(`!document.querySelector('[role=dialog]') && !!document.querySelector('button.launcher')`), 'chat did not close');
+	return `${suggestions} suggestions`;
+});
+
+if (opts.chat) {
+	await step('The assistant answers with a price', async () => {
+		await tap(at(await box('button.launcher'), 0.5, 0.5));
+		for (let i = 0; i < 20 && !(await js(`!!document.querySelector('.suggestions button')`)); i++) await sleep(250);
+		await click('How much for a two-story house?');
+		const replies = () => js(`document.querySelectorAll('.msg.model:not(.typing)').length`);
+		for (let i = 0; i < 120 && (await replies()) < 2; i++) await sleep(250);
+		const problem = await js(`document.querySelector('.problem')?.textContent`);
+		expect(!problem, `the assistant failed: ${problem}`);
+		const reply = await js(`[...document.querySelectorAll('.msg.model')].at(-1).textContent.trim()`);
+		expect(/\$\d/.test(reply), `no price in the reply: ${reply}`);
+		return reply.slice(0, 70) + (reply.length > 70 ? '…' : '');
+	});
+}
 
 if (pageErrors.length) fail(`page errors:\n  ${pageErrors.join('\n  ')}`);
 console.log(`\nAll ${results.length} steps passed.`);

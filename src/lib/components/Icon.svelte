@@ -27,7 +27,9 @@
 		home: 'M3 11l9-7 9 7M5 9.5V20h14V9.5',
 		heart: 'M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0112 7a4.3 4.3 0 017.5 2.8C19.5 15.4 12 20 12 20z',
 		x: 'M6 6l12 12M18 6L6 18',
-		up: 'M6 14l6-6 6 6M6 20l6-6 6 6'
+		up: 'M6 14l6-6 6 6M6 20l6-6 6 6',
+		chat: 'M4 5h16v11H10l-5 4v-4H4z',
+		send: 'M4 12l16-8-5 16-3-6z'
 	};
 	export type IconName = keyof typeof paths;
 </script>

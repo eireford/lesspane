@@ -11,7 +11,12 @@ export const variables = defineEnvVars({
 			return value || undefined;
 		}
 	},
-	GOOGLE_CLOUD_PROJECT: { description: 'Firestore project outside Google Cloud.', schema: optional },
+	GOOGLE_CLOUD_PROJECT: {
+		description: 'Google Cloud project for Firestore and the chat assistant (Vertex AI). Cloud Run sets it in cloudbuild.yaml.',
+		schema: optional
+	},
+	GOOGLE_CLOUD_LOCATION: { description: 'Vertex AI location for the chat assistant; default "global".', schema: optional },
+	GEMINI_MODEL: { description: 'Gemini model for the chat assistant; default in src/lib/config.ts.', schema: optional },
 	FIRESTORE_DATABASE: { description: 'Named Firestore database; empty means "(default)".', schema: optional },
 	APP_ENV: { description: '"staging" adds a noindex header.', schema: optional },
 	ADMIN_PASSWORD: { description: 'HTTP Basic password for /admin when Google sign-in is off.', schema: optional },

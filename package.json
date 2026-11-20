@@ -1,6 +1,6 @@
 {
   "name": "lesspane",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "imports": {
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^9.4.1",
+    "@google/genai": "3.6.1",
     "google-auth-library": "^11.3.4"
   },
   "devDependencies": {
