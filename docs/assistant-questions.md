@@ -8,8 +8,8 @@ what is still open.
 ## Still open
 
 - **Phone or text number (Q35).** The owner wants one given to customers but hasn't sent it. Until then the assistant
-  gives only `business.contactEmail`. To add it: put the number (and whether it takes texts) in
-  `business.contactPhone` and in the assistant's contact line.
+  gives only `business.contactEmail`. To add it: add the number (and whether it takes texts) to
+  `business` in `src/lib/config.ts` and to the "Contact" line in `src/lib/server/assistant/knowledge.ts`.
 - **Reviews and endorsements (Q37).** The owner asked for sample endorsements to be added "for now". Not done:
   invented reviews would read as real to customers, and the assistant would repeat them as fact. The assistant
   claims no reviews, years in business, licenses or memberships. When real ones exist, send the exact words and the
