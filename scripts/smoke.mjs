@@ -177,7 +177,9 @@ await step('Landing offers packages and the quick questions', async () => {
 	if (await js(`!!document.querySelector('.quote[data-sample]')`)) {
 		expect(await js(`/not real reviews/.test(document.querySelector('.said .why')?.textContent ?? '')`), 'samples shown without the note');
 	}
-	return `${names}; ${quotes} testimonials`;
+	const version = await js(`document.querySelector('.site-footer .version')?.textContent.trim()`);
+	expect(/^Version \d+\.\d+\.\d+$/.test(version ?? ''), `no version in the footer (got ${version})`);
+	return `${names}; ${quotes} testimonials; ${version}`;
 });
 
 await step('A package opens its estimate', async () => {
