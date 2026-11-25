@@ -113,6 +113,8 @@ the services and how LessPane works, answers window-cleaning questions, estimate
 - **Locally:** chat needs Google credentials (`gcloud auth application-default login`) and
   `GOOGLE_CLOUD_PROJECT=lesspane`. Without them the panel shows "isn't available" and the rest of the site works.
 - **Testing:** `npm run smoke -- --chat` asks it a question in the browser (a real Gemini call).
+- **Other AI agents ordering on their own** (MCP, an HTTP API, verification, payment): planned, not built. See
+  **[docs/agent-ordering-plan.md](docs/agent-ordering-plan.md)**.
 
 The home page also shows three **sample testimonials** (`testimonials` in `config.ts`), each tagged "Sample". They
 show only in showcase mode, and the assistant never quotes them.
