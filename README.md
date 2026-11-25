@@ -74,13 +74,15 @@ feature have no link.
 | `src/lib/pricing.ts` | Quote formula: `max(minimum, round(windows × rate × story × service + add-ons))`; add-ons are per window or per visit |
 | `src/lib/validation.ts` | Input checks shared by all screens |
 | `src/lib/server/store.ts` | `quote_requests` storage: Firestore or local JSON file |
-| `src/lib/server/email.ts` | Customer confirmation and owner alert via Resend |
+| `src/lib/server/email.ts`, `messages.ts` | Sending email (Gmail, Resend or the log); the words of every email |
+| `src/lib/calendar-event.ts`, `src/lib/server/calendar.ts` | A booking as a Google Calendar event; keeping it in sync |
+| `src/routes/owner/`, `src/routes/built/`, `src/lib/server/demo.ts` | Showcase only: the owner's side with sample requests, and "How it's built" |
 | `src/hooks.server.ts` | Basic auth for `/admin`, security headers |
 | `src/routes/` | The quote screen (`+page.svelte`), confirmation (`quote/thanks`) and `/admin` |
 | `src/routes/+page.svelte`, `src/routes/quote/` | Landing page with packages; the quick-questions steps and summary |
 | `src/routes/manage/[token]/` | The customer's private manage page: view, reschedule, cancel |
 | `src/routes/book/` | Booking page: day and time, contact details, and the server action that saves the request |
-| `src/lib/components/` | `LayoutSketch` (the drawing for each step), `SketchWindow`, `SwipeCard`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
+| `src/lib/components/` | `RequestCard` (a request as the owner sees it), `LayoutSketch` (the drawing for each step), `SketchWindow`, `SwipeCard`, `SunDial` (booking page); `GrimeDefs` (shared dirt effects), `Icon` |
 | `src/lib/layout.ts` | The layout model: floors, sides, window buckets, defaults, and query-string encoding |
 | `static/manifest.webmanifest`, `static/icons/` | PWA manifest and icons (installable to home screen) |
 | `Dockerfile`, `cloudbuild.yaml` | Container and Cloud Run deploy |
@@ -119,7 +121,20 @@ show only in showcase mode, and the assistant never quotes them.
 
 LessPane is currently a portfolio prototype, not a live service. `business.showcase.enabled` in `src/lib/config.ts`
 adds a "Demo" note to every page, a "Built by" credit and source link in the footer, and tells customers on the
-confirmation page and in the confirmation email that no one will come to clean. Set it to `false` at launch.
+confirmation page and in the confirmation email that no one will come to clean. While it is on, the demo also shows the side
+a visitor would otherwise never see:
+
+- **`/owner`, the owner's side:** made-up sample requests (`src/lib/server/demo.ts`, priced by `computeQuote`) in
+  the same request cards as `/admin`, the next seven days of the owner's Google Calendar, and the owner's inbox.
+  Visitors can confirm or cancel a request and watch the calendar follow (tentative → confirmed → gone). Nothing is
+  saved or sent, and it never reads the real store.
+- **What the owner got:** straight after a booking, the thanks page shows the owner's alert email and calendar event
+  for that booking. It needs the booking's private token, like the manage link, because it holds contact details.
+- **`/built`, how it's built:** the flow of one booking, the engineering under it, the stack, and links to the
+  source and the assistant's evals.
+
+The emails and calendar events on these pages come from the code that sends them (`src/lib/server/messages.ts`,
+`src/lib/calendar-event.ts`). Both pages return 404 when showcase mode is off. Set it to `false` at launch.
 
 ## Before the pilot
 

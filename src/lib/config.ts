@@ -24,7 +24,11 @@ export const business = {
 		enabled: true,
 		builtBy: 'Eire Ford',
 		builtByUrl: 'https://eireford.com',
-		sourceUrl: 'https://github.com/eireford/lesspane'
+		sourceUrl: 'https://github.com/eireford/lesspane',
+		/** The evals of the chat assistant (promptfoo), on the "How it's built" page. */
+		evalsUrl: 'https://github.com/eireford/ai-evals',
+		/** Eire's practice, for "want one for your business?". */
+		practice: { name: 'We Do Compute', url: 'https://wedocompute.com' }
 	}
 };
 

@@ -35,7 +35,10 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 checks the landing page's packages (one opens its estimate with the same price), then
 walks the quick-questions process: changes the floors with the arrow, swipes the sides card, swipes a window bucket,
 skips to the summary with suggested counts, adds two extras, opens the booking page (checking the price
-carried over), picks a day and drags the sun, checking the price reacts at each step. It fails on any page error.
+carried over), picks a day and drags the sun, checking the price reacts at each step. In the demo it then opens the owner's
+side (`/owner`), confirms a sample request and checks it turns solid on the calendar, opens the inbox, and checks
+"How it's built" (`/built`). With `--book`, the thanks page must also show the owner's alert and a tentative
+calendar event. It fails on any page error.
 
 ```bash
 npm run smoke                                     # dev server, phone size
@@ -46,7 +49,7 @@ npm run smoke -- --chrome /path/to/chrome         # or set CHROME=…
 
 Screenshots are numbered by step, and a failing step saves `NN-FAILED-….png`. When you change the
 steps or rename elements, update the step titles and selectors in the script (`.flow .title`, `.value strong`,
-`.flow .swipe`, `.summary .lines`, `.extra`, `.book-cta`, `.day`, `.sky`, `.amount`, `.summary .amount`, `.send`).
+`.flow .swipe`, `.summary .lines`, `.extra`, `.book-cta`, `.day`, `.sky`, `.amount`, `.summary .amount`, `.send`, `.owner`, `.request .confirm`, `#tab-calendar`, `#tab-inbox`, `.event`, `.mail`, `.point`).
 
 ## Opening it from Windows (WSL)
 

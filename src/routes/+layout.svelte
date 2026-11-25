@@ -26,6 +26,9 @@
 	<p class="showcase" role="note">
 		<strong>Demo.</strong> A working prototype by
 		<a href={showcase.builtByUrl}>{showcase.builtBy}</a>. Requests here are not real bookings.
+		<span class="peek">
+			<a href="/owner">See the owner's side</a> · <a href="/built">How it's built</a>
+		</span>
 	</p>
 {/if}
 
@@ -43,6 +46,8 @@
 	{#if showcase.enabled}
 		<p>
 			Built by <a href={showcase.builtByUrl}>{showcase.builtBy}</a> ·
+			<a href="/owner">The owner's side</a> ·
+			<a href="/built">How it's built</a> ·
 			<a href={showcase.sourceUrl}>Source on GitHub</a>
 		</p>
 	{/if}
@@ -96,6 +101,11 @@
 		color: var(--ink);
 		font-size: 0.9rem;
 		text-align: center;
+	}
+
+	.peek {
+		display: block;
+		font-weight: 600;
 	}
 
 	main {
