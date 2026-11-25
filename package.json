@@ -1,6 +1,6 @@
 {
   "name": "lesspane",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "imports": {
@@ -22,7 +22,8 @@
     "verify": "npm run check && npm test && npm run build",
     "docker:run": "export DOCKER_CONFIG=$(mktemp -d) && docker build -t lesspane . && docker run --rm -p 8080:8080 --env-file .env -e ORIGIN=http://localhost:8080 lesspane",
     "deploy:staging": "gcloud builds submit --project lesspane --config cloudbuild.yaml",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "smoke:agent": "node scripts/agent-smoke.mjs"
   },
   "dependencies": {
     "@google-cloud/firestore": "^9.4.1",
@@ -30,6 +31,7 @@
     "google-auth-library": "^11.3.4"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@sveltejs/adapter-node": "^6.0.5",
     "@sveltejs/kit": "^3.4.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

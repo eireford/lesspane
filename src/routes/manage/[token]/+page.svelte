@@ -21,6 +21,7 @@
 	let busy = $state(false);
 
 	const statusText: Record<string, string> = {
+		awaiting_customer: 'Waiting for you: tap Confirm in the email we sent, or it lapses',
 		new: 'Requested: we’ll be in touch to confirm the time',
 		confirmed: 'Confirmed',
 		done: 'Done. Thanks!',

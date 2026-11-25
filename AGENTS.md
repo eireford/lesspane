@@ -15,6 +15,8 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
   also submit a booking, and `-- --chat` to ask the chat assistant a question (a real Gemini call; needs
   credentials). Screenshots land in `.shots/`; read them to check visual changes.
 - `npm run seed`: sample requests for `/admin`.
+- `npm run smoke:agent`: plays an outside AI agent over MCP and the HTTP API; needs the dev server running. Add
+  `-- --book --log <file>` (the dev server's output) to book, confirm as the customer and cancel, locally only.
 
 ## Conventions
 
@@ -32,6 +34,9 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
   booking through its tools, which call `computeQuote` and the shared validators. Never let the model set a price
   or skip validation. Business facts it states belong in `config.ts` (`pricing`, `policies`); unconfirmed ones are
   listed in `docs/assistant-questions.md` (open items there; decisions recorded). Keep it up to date when you add one.
+- Outside AI agents order through `src/lib/server/orders.ts` (MCP at `/mcp`, HTTP at `/api/v1`, tools defined once in
+  `agent-api.ts`). The same rules as the chat: prices from `computeQuote`, the shared validators, and an agent's
+  request waits for the customer to confirm it by email (`awaiting_customer`). See `docs/agent-ordering-plan.md`.
 - No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
   Store only the token's hash, never the token.
 - Google Workspace (Gmail send, Calendar, /admin sign-in) is optional and env-driven; locally it's all off

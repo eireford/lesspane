@@ -1,6 +1,6 @@
 import * as env from '$app/env/private';
 import { googleFetch, SCOPES } from './google';
-import { changeEmails, customerConfirmation, ownerAlert, type Email } from './messages';
+import { agentRequestCheck, changeEmails, customerConfirmation, ownerAlert, type Email } from './messages';
 import { rawEmail } from './mime';
 import type { QuoteRequest } from './store';
 
@@ -54,11 +54,25 @@ export async function notifyNewRequest(r: QuoteRequest, origin: string, manageTo
 	if (env.OWNER_EMAIL) await send(ownerAlert(r, origin, env.OWNER_EMAIL));
 }
 
-/** Tells the customer and the owner when a booking is rescheduled or cancelled from the customer's link. */
+/**
+ * Tells the customer and the owner when a booking is rescheduled or cancelled from the customer's link. The owner
+ * isn't told about requests still awaiting the customer's confirmation: they never saw those.
+ */
 export async function notifyCustomerChange(
 	r: QuoteRequest,
 	origin: string,
-	change: 'rescheduled' | 'cancelled'
+	change: 'rescheduled' | 'cancelled',
+	{ tellOwner = true } = {}
 ): Promise<void> {
-	for (const email of changeEmails(r, origin, change, env.OWNER_EMAIL)) await send(email);
+	for (const email of changeEmails(r, origin, change, tellOwner ? env.OWNER_EMAIL : undefined)) await send(email);
+}
+
+/** An AI agent asked for a visit: ask the customer to confirm it. */
+export async function notifyAgentRequest(r: QuoteRequest, origin: string, confirmToken: string, manageToken: string): Promise<void> {
+	await send(agentRequestCheck(r, origin, confirmToken, manageToken));
+}
+
+/** The customer confirmed an agent's request: now the owner hears about it, as for any new request. */
+export async function notifyOwnerOfRequest(r: QuoteRequest, origin: string): Promise<void> {
+	if (env.OWNER_EMAIL) await send(ownerAlert(r, origin, env.OWNER_EMAIL));
 }

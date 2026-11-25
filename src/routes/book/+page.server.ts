@@ -83,7 +83,8 @@ export const actions: Actions = {
 			name: contact.value.name,
 			phone: contact.value.phone,
 			email: contact.value.email,
-			notes: contact.value.notes
+			notes: contact.value.notes,
+			source: 'web'
 		});
 
 		await notifyNewRequest(record, url.origin, manageToken);

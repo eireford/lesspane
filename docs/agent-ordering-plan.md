@@ -1,7 +1,8 @@
 # Plan: AI agents ordering a window cleaning on their own
 
-Status: **plan only, nothing built** (2026-11-24). LessPane is still a demo, so until launch every agent-facing
-answer must say so, and nothing here is listed in a public directory.
+Status (2026-11-25): **phases 0–2 built**, in demo mode; see "What was built" at the end. Phases 3–5 wait for
+launch and for Eire's decisions (section 10). LessPane is still a demo, so every agent-facing answer says so, and
+nothing here is listed in a public directory.
 
 The goal: someone tells their AI assistant "get my windows cleaned next week". The assistant finds LessPane, gets
 a real price, asks its person to approve, requests a visit, and can later check, move or cancel it. The owner gets
@@ -356,3 +357,38 @@ The field moves monthly; recheck each one when building.
   in ChatGPT: [Business Wire](https://www.businesswire.com/news/home/20251006760229/en/Thumbtack-Partners-with-OpenAI-to-Power-Home-Services-in-ChatGPT);
   Alexa+ with Angi and Yelp: [TechCrunch](https://techcrunch.com/2025/12/23/amazons-ai-assistant-alexa-now-works-with-angi-expedia-square-and-yelp/)
 - schema.org actions: [schema.org/docs/actions.html](https://schema.org/docs/actions.html)
+
+---
+
+## What was built (phases 0–2, 2026-11-25)
+
+All in demo mode. Details in the README, "Ordering by outside AI agents".
+
+- **Phase 0:** JSON-LD (`HomeAndConstructionBusiness`) on the home page; `/agents` and `/llms.txt` from one guide
+  (`src/lib/agent-guide.ts`); robots.txt keeps `/manage/`, `/confirm/`, `/api/` and `/mcp` out of search. No
+  `/.well-known/mcp/server.json` yet: that is phase 3, with the directory listings.
+- **Phase 1:** `src/lib/server/orders.ts` (the rules), `agent-api.ts` (seven tools, defined once), the MCP server
+  at `/mcp` (stateless Streamable HTTP, JSON responses, protocol versions 2025-03-26 to 2025-11-25), the HTTP API at
+  `/api/v1` and `/openapi.json`; signed quote ids; `awaiting_customer` with the customer's confirm page and
+  48-hour lapse; idempotent retries; per-IP and per-email limits; the owner page's source labels and **Checked by
+  phone** box; sample agent requests on `/owner`. The manage page now shares the change rules with the API. The
+  site's own chat assistant still books directly (its customer is right there), but its bookings are now labelled.
+- **Phase 2:** unit and endpoint tests (`orders.test.ts`), `npm run smoke:agent` with the official MCP client, and
+  the `lesspane-agent` suite in ai-evals.
+- **Not built yet:** the hourly spike alert to the owner and the one-booking-per-address-per-week rule (section 3);
+  Web Bot Auth checks (phase 4); Eire's own tests with ChatGPT, Claude and a browser agent on staging (section 8:
+  they need this on lesspane.net first).
+
+### What the evals found
+
+The first 3-run eval caught a real agent mistake: asked for "next Tuesday morning" on Tuesday 2026-11-24, Gemini
+booked 2026-12-02 and told its person "Tuesday, December 2". December 2 is a Wednesday. LessPane can't stop a model
+miscounting days, but it can catch it: `request_booking` and `reschedule_booking` now take an optional
+`preferred_weekday` and refuse a date that falls on another day (`weekday_mismatch`), and every booking answer
+spells the day out (`day_text`) for the agent to repeat to its person.
+
+The second run found a gap in retries. Models make up readable request ids (`booking_20261201_easton_cottage_1`),
+so the same id came back in a later conversation and LessPane returned the earlier, already cancelled booking. The
+same gap meant anyone who guessed an agent's request id and knew the customer's email and day could have fetched
+that booking's private link. A retry now has to bring the same `quote_id` too (stored only as a hash), within 24
+hours. The quote id is unguessable and only the agent that asked for it has it; any other match is a new request.

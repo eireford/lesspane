@@ -1,4 +1,4 @@
-import { business, pricing, serviceLabels, timeWindowLabels } from '#lib/config.ts';
+import { agents, business, pricing, serviceLabels, timeWindowLabels } from '#lib/config.ts';
 import { contactLine, displayName, firstName, place } from '#lib/contact.ts';
 import { formatUsd } from '#lib/pricing.ts';
 import type { QuoteRequest } from './store';
@@ -37,7 +37,7 @@ export function customerConfirmation(r: QuoteRequest, origin: string, manageToke
 			summary(r),
 			'',
 			business.showcase.enabled
-				? `LessPane is a demo built by ${business.showcase.builtBy} (${business.showcase.builtByUrl}), so no one will come to clean.`
+				? demoLine()
 				: r.phone
 					? "We'll text you at the number you gave us to confirm the exact time."
 					: "We'll email you to confirm the exact time.",
@@ -52,13 +52,59 @@ export function customerConfirmation(r: QuoteRequest, origin: string, manageToke
 	};
 }
 
+const demoLine = () =>
+	`LessPane is a demo built by ${business.showcase.builtBy} (${business.showcase.builtByUrl}), so no one will come to clean.`;
+
 /** The owner's alert for a new request. Replying goes straight to the customer. */
 export function ownerAlert(r: QuoteRequest, origin: string, ownerEmail: string): Email {
+	const byAgent = r.source === 'agent';
 	return {
 		to: ownerEmail,
 		replyTo: r.email,
-		subject: `New request: ${formatUsd(r.quoted_price)} on ${r.preferred_date}`,
-		text: [contactLine(r), '', summary(r), '', `Notes: ${r.notes || '(none)'}`, '', `All requests: ${origin}/admin`].join('\n')
+		subject: `New request${byAgent ? ' (AI agent)' : ''}: ${formatUsd(r.quoted_price)} on ${r.preferred_date}`,
+		text: [
+			...(byAgent
+				? [
+						`Booked by an AI agent (${r.agent_name || 'unnamed'}) for this customer, who confirmed it from their email.`,
+						r.phone ? `Call ${r.phone} to check before confirming.` : 'No phone number given: email them to check before confirming.',
+						''
+					]
+				: []),
+			contactLine(r),
+			'',
+			summary(r),
+			'',
+			`${byAgent ? 'Notes (written by the agent)' : 'Notes'}: ${r.notes || '(none)'}`,
+			'',
+			`All requests: ${origin}/admin`
+		].join('\n')
+	};
+}
+
+/**
+ * The customer's email when an AI agent asked for a visit for them: "was this you?". The request waits until
+ * they confirm. The confirm link is only ever emailed; the agent gets the manage link, never this one.
+ */
+export function agentRequestCheck(r: QuoteRequest, origin: string, confirmToken: string, manageToken: string): Email {
+	return {
+		to: r.email,
+		subject: `Please confirm: window cleaning on ${r.preferred_date}`,
+		text: [
+			greeting(r),
+			'',
+			`Your AI assistant (${r.agent_name || 'it didn\'t give a name'}) asked LessPane to clean your windows. Nothing is booked until you confirm:`,
+			'',
+			summary(r),
+			'',
+			`Confirm it, or tell us it wasn't you (${agents.confirmHours} hours, then it lapses):`,
+			`${origin}/confirm/${confirmToken}`,
+			'',
+			...(business.showcase.enabled ? [demoLine(), ''] : []),
+			'Once confirmed, change the day or cancel with this private link (your assistant has it too):',
+			manageLink(origin, manageToken),
+			'',
+			'LessPane'
+		].join('\n')
 	};
 }
 

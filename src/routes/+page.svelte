@@ -7,6 +7,8 @@
 	import { PACKAGES, layoutToSearchParams, totalWindows } from '#lib/layout.ts';
 	import { computeQuote, formatUsd } from '#lib/pricing.ts';
 	import { visibleTestimonials } from '#lib/config.ts';
+	import { jsonLd, structuredData } from '#lib/agent-guide.ts';
+	import { page } from '$app/state';
 
 	// Landing page: say what LessPane is and how it works, then offer two ways in. Pick a ready-made package
 	// (straight to the estimate summary on /quote, where extras and changes are one tap away), or answer the
@@ -25,6 +27,8 @@
 
 <svelte:head>
 	<title>LessPane · Window cleaning, priced in a minute</title>
+	<!-- What the business is, for search engines and AI agents (schema.org). -->
+	{@html jsonLd(structuredData(page.url.origin))}
 </svelte:head>
 
 <SketchDefs />

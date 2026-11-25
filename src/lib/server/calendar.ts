@@ -19,7 +19,8 @@ export async function syncEvent(r: QuoteRequest, origin: string): Promise<string
 	const who = user();
 	if (!who) return r.calendar_event_id ?? null;
 	try {
-		if (r.status === 'cancelled') {
+		// No event until there's a request the owner should plan for: awaiting customers take no slot.
+		if (r.status === 'cancelled' || r.status === 'awaiting_customer') {
 			await removeEvent(r);
 			return null;
 		}
