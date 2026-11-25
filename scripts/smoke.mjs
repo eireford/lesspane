@@ -299,6 +299,17 @@ if (opts.book) {
 		return await js(`document.querySelector('h1')?.textContent`);
 	});
 
+	await step('The demo shows what the owner got', async () => {
+		if (!(await js(`!!document.querySelector('.showcase')`))) return 'not a demo; skipped';
+		const subject = await js(`document.querySelector('.owner .head strong')?.textContent.trim()`);
+		expect(/^New request: \$\d+ on \d{4}-\d\d-\d\d$/.test(subject ?? ''), `no owner alert (got ${subject})`);
+		expect(await js(`document.querySelector('.owner pre').textContent.includes('smoke@example.com')`), 'alert lacks the customer');
+		const event = await js(`document.querySelector('.owner .event')?.dataset.status`);
+		expect(event === 'tentative', `calendar event should be tentative (got ${event})`);
+		await box('.owner');
+		return subject;
+	});
+
 	await step('Manage link: reschedule, then cancel', async () => {
 		const href = await js(`document.querySelector('a[href^="/manage/"]')?.getAttribute('href')`);
 		expect(href, 'no manage link on the thanks page');
@@ -326,6 +337,47 @@ await step('A wrong manage link shows not found', async () => {
 	const res = await fetch(new URL('/manage/' + 'x'.repeat(32), opts.url));
 	expect(res.status === 404, `expected 404, got ${res.status}`);
 	return '404';
+});
+
+const demo = await js(`!!document.querySelector('.showcase')`);
+
+await step("The owner's side: confirm a request, see it on the calendar", async () => {
+	if (!demo) {
+		const res = await fetch(new URL('/owner', opts.url));
+		expect(res.status === 404, `outside the demo /owner should be 404, got ${res.status}`);
+		return 'not a demo: 404';
+	}
+	await cmd('Page.navigate', { url: new URL('/owner', opts.url).href });
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.request')`)); i++) await sleep(250);
+	await sleep(800);
+	const waiting = () => js(`+document.querySelector('.stats dd').textContent`);
+	const before = await waiting();
+	const name = await js(`document.querySelector('.request:has(.confirm) header strong').textContent.trim()`);
+	await tap(at(await box('.request .confirm'), 0.5, 0.5));
+	expect((await waiting()) === before - 1, `"to confirm" did not drop from ${before}`);
+	await tap(at(await box('#tab-calendar'), 0.5, 0.5));
+	const solid = await js(`[...document.querySelectorAll('.event[data-status=confirmed] strong')].some(s => s.textContent.includes(${JSON.stringify(name)}))`);
+	expect(solid, `${name} is not confirmed on the calendar`);
+	await box('.event[data-status=confirmed]');
+	return `${name} confirmed; ${before} → ${await waiting()} to confirm`;
+});
+
+await step("The owner's inbox shows the emails", async () => {
+	if (!demo) return 'not a demo; skipped';
+	await tap(at(await box('#tab-inbox'), 0.5, 0.5));
+	const mails = await js(`document.querySelectorAll('.mail').length`);
+	expect(mails >= 3, `expected the owner's emails and the customer's copy, got ${mails}`);
+	expect(await js(`[...document.querySelectorAll('.mail .subject')].some(s => s.textContent.startsWith('New request:'))`), 'no new-request alert');
+	return `${mails} emails`;
+});
+
+await step("How it's built", async () => {
+	if (!demo) return 'not a demo; skipped';
+	await cmd('Page.navigate', { url: new URL('/built', opts.url).href });
+	for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.point')`)); i++) await sleep(250);
+	const links = await js(`[...document.querySelectorAll('main a[href^="https://github.com/"]')].length`);
+	expect(links >= 2, `expected links to the source and the evals, got ${links}`);
+	return `${await js(`document.querySelectorAll('.point').length`)} points`;
 });
 
 await step('Chat opens from the landing page and closes', async () => {
