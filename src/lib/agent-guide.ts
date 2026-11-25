@@ -60,7 +60,7 @@ export function agentGuideText(origin: string): string {
 		`- Not offered: ${g.notOffered}`,
 		`- Limits: ${g.limits}`,
 		`- Contact: ${g.contact}`,
-		`- More: [${origin}/agents](${origin}/agents)`,
+		`- More: [${origin}/agents](${origin}/agents); for people, a live walkthrough: [${origin}/agents/demo](${origin}/agents/demo)`,
 		''
 	].join('\n');
 }

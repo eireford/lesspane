@@ -153,7 +153,7 @@ describe('an agent’s booking request', () => {
 	it('never hands out a booking to someone who only guessed its request_id', async () => {
 		// Models make up readable keys ("booking_20261201_easton_cottage_1"), so two requests can share one.
 		const a = await orders.requestBooking(booking({ request_id: 'booking_20261201_easton_cottage_1' }), ctx);
-		const b = await orders.requestBooking(booking({ request_id: 'booking_20261201_easton_cottage_1', quote_id: orders.quote({ package: 'family', windows: 1 }).quote_id }), ctx);
+		const b = await orders.requestBooking(booking({ request_id: 'booking_20261201_easton_cottage_1', quote_id: orders.quote({ package: 'cottage' }).quote_id }), ctx);
 		expect(b.repeated).toBe(false);
 		expect(b.booking_token).not.toBe(a.booking_token);
 		expect(rows).toHaveLength(2);

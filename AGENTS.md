@@ -15,6 +15,8 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
   also submit a booking, and `-- --chat` to ask the chat assistant a question (a real Gemini call; needs
   credentials). Screenshots land in `.shots/`; read them to check visual changes.
 - `npm run seed`: sample requests for `/admin`.
+- `/admin/tests` (password from `.env`): the screenshot test. Every page at phone and desktop size; the last ten runs
+  are kept in `.data/test-runs/`. Add a new page to `testPages` in `src/lib/server/screenshots/runner.ts`.
 - `npm run smoke:agent`: plays an outside AI agent over MCP and the HTTP API; needs the dev server running. Add
   `-- --book --log <file>` (the dev server's output) to book, confirm as the customer and cancel, locally only.
 
@@ -37,6 +39,9 @@ Naming, build and deploy rules come from `../docs/conventions.md`.
 - Outside AI agents order through `src/lib/server/orders.ts` (MCP at `/mcp`, HTTP at `/api/v1`, tools defined once in
   `agent-api.ts`). The same rules as the chat: prices from `computeQuote`, the shared validators, and an agent's
   request waits for the customer to confirm it by email (`awaiting_customer`). See `docs/agent-ordering-plan.md`.
+  `/agents/demo` shows it to people; its content is in `src/lib/agent-demo.ts`. When someone tries an assistant by
+  hand, update that maker's `checked` line (and the test that guards it), and recheck the setup steps against the
+  maker's help page now and then: their menus change.
 - No customer accounts: customers manage a booking through the private `/manage/<token>` link from their email.
   Store only the token's hash, never the token.
 - Google Workspace (Gmail send, Calendar, /admin sign-in) is optional and env-driven; locally it's all off

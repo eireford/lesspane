@@ -42,7 +42,7 @@
 		{
 			icon: 'hand',
 			title: 'Tested the way people use it',
-			text: 'Unit tests for pricing, validation and the assistant’s tools; a headless-browser test that swipes, taps and drags through every step and books; and a separate eval suite that checks the assistant’s answers against the real pricing code.'
+			text: 'Unit tests for pricing, validation and the assistant’s tools; a headless-browser test that swipes, taps and drags through every step and books; a screenshot test, run from the owner’s admin, that photographs every page at phone and desktop size and keeps the last ten runs; and a separate eval suite that checks the assistant’s answers against the real pricing code.'
 		},
 		{
 			icon: 'send',
@@ -80,6 +80,7 @@
 	<p class="try">
 		<a class="btn" href="/">Try the customer's side</a>
 		<a class="btn ghost" href="/owner">See the owner's side</a>
+		<a class="btn ghost" href="/agents/demo">Watch an AI agent order</a>
 	</p>
 </section>
 
@@ -112,7 +113,8 @@
 	<ul>
 		<li><a href={showcase.sourceUrl}>The source on GitHub</a>: README, tests and pipeline</li>
 		<li><a href={showcase.evalsUrl}>The assistant's evals</a>: how its answers are tested</li>
-		<li><a href="/agents">Ordering by AI agent</a>: what an assistant needs to book a visit</li>
+		<li><a href="/agents/demo">AI agents, live</a>: watch an assistant find LessPane and order, for Claude, ChatGPT, Gemini, Copilot and Le Chat; the guide written for agents is <a href="/agents">/agents</a></li>
+		<li><a href={showcase.builtByUrl}>{showcase.builtBy}'s résumé</a>, with its own AI assistant that answers questions about it</li>
 		<li><a href="/video">A 37-second video</a> for business owners, and <a href="/deck">the feature tour</a></li>
 	</ul>
 	<p class="by">

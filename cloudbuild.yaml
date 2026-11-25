@@ -52,6 +52,8 @@ steps:
       - --allow-unauthenticated
       - --min-instances=0
       - --max-instances=3
+      # 1 GiB: room for headless Chromium during the screenshot test in /admin/tests (the default 512 MiB is not).
+      - --memory=1Gi
       # "update" keeps any other env vars you set in the console (OWNER_EMAIL, EMAIL_FROM).
       # GOOGLE_CLOUD_PROJECT: the chat assistant calls Gemini on Vertex AI in this project (lesspane-run has Vertex AI User).
       - --update-env-vars=STORAGE=firestore,PROTOCOL_HEADER=x-forwarded-proto,APP_ENV=${_APP_ENV},FIRESTORE_DATABASE=${_FIRESTORE_DATABASE},GOOGLE_CLOUD_PROJECT=$PROJECT_ID

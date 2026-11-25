@@ -23,6 +23,7 @@ Then set `ADMIN_PASSWORD` in `.env` (any username works at `/admin`).
 | `npm run smoke -- --book` | …and submits a booking, then reschedules and cancels it from the manage link (local servers only) | After touching the form or server code |
 | `npm run test:watch` | Unit tests (pricing, validation), rerun on save | Changing `src/lib/pricing.ts`, `validation.ts` or `config.ts` |
 | `npm run check:watch` | Type check, rerun on save | Larger refactors |
+| Admin → Tests → **Run the screenshot test** | Every page at phone and desktop size in headless Chromium, kept for viewing; fails on a wrong status or a script error | After any change that touches several pages, and on staging after a deploy |
 | `npm run smoke:agent` | Plays an outside AI agent: discovery pages, then MCP (the official client) and the HTTP API. `-- --book --log dev.log` also books, confirms as the customer from the logged email, and cancels (local only) | After touching `orders.ts`, `agent-api.ts`, `/mcp` or `/api/v1` |
 | `npm run seed` | Adds 8 sample requests so `/admin` has data (`-- --reset` replaces them) | Working on the owner page |
 | `npm run verify` | Type check + unit tests + production build | Before pushing |

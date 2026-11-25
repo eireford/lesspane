@@ -74,6 +74,13 @@ h3 {
 	padding: 0 16px;
 }
 
+/* Pages with code and side-by-side panels (/agents/demo, /admin/tests) break out of the 560px column on wide
+   screens, centered on the page; on a phone they are the same width as everything else. */
+.wide {
+	width: min(1100px, 100vw - 32px);
+	margin-left: calc(50% - min(550px, 50vw - 16px));
+}
+
 .card {
 	background: var(--paper);
 	border: 2px solid var(--ink);
