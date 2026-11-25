@@ -34,13 +34,13 @@
 </script>
 
 <svelte:head>
-	<title>AI agents, live · LessPane</title>
+	<title>Watch an AI assistant book a cleaning · LessPane</title>
 	<meta name="description" content="Watch an AI assistant find LessPane and order a window cleaning, live: discovery, MCP and HTTP, Claude, ChatGPT, Gemini, Copilot and Le Chat." />
 </svelte:head>
 
 <div class="wide">
 <section class="intro">
-	<p class="step">AI agents · live demo</p>
+	<p class="step">AI assistants · a working demo</p>
 	<h1>Your AI assistant can order this.</h1>
 	<p>
 		People are starting to ask their AI assistants to handle errands. LessPane is built so an assistant can find it,

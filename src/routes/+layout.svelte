@@ -27,7 +27,8 @@
 		<strong>Demo.</strong> A working prototype by
 		<a href={showcase.builtByUrl}>{showcase.builtBy}</a>. Requests here are not real bookings.
 		<span class="peek">
-			<a href="/owner">See the owner's side</a> · <a href="/built">How it's built</a> · <a href="/agents/demo">AI agents, live</a>
+			<a href="/owner">What the business owner sees</a> · <a href="/built">How the app was built</a> ·
+			<a href="/agents/demo">Watch an AI assistant book a cleaning</a>
 		</span>
 	</p>
 {/if}
@@ -48,7 +49,7 @@
 			Built by <a href={showcase.builtByUrl}>{showcase.builtBy}</a> ·
 			<a href="/owner">The owner's side</a> ·
 			<a href="/built">How it's built</a> ·
-			<a href="/agents/demo">AI agents, live</a> ·
+			<a href="/agents/demo">Booking by AI assistant</a> ·
 			<a href={showcase.sourceUrl}>Source on GitHub</a> ·
 			<a href={showcase.practice.url}>{showcase.practice.name}</a>
 		</p>
@@ -108,6 +109,17 @@
 	.peek {
 		display: block;
 		font-weight: 600;
+	}
+
+	/* Each link stays on one line, so a narrow screen wraps between links, not inside one. */
+	.peek a {
+		white-space: nowrap;
+	}
+
+	@media (max-width: 359px) {
+		.peek a {
+			white-space: normal;
+		}
 	}
 
 	main {

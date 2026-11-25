@@ -25,7 +25,7 @@ export const testPages: TestPage[] = [
 	{ path: '/owner', label: "Owner's side (demo)" },
 	{ path: '/built', label: "How it's built" },
 	{ path: '/agents', label: 'For AI agents' },
-	{ path: '/agents/demo', label: 'AI agents, live demo' },
+	{ path: '/agents/demo', label: 'Watch an AI assistant book' },
 	{ path: '/video', label: 'Video' },
 	{ path: '/llms.txt', label: 'llms.txt' },
 	{ path: '/manage/not-a-real-link', label: 'Manage link that does not exist', expect: 404 },
