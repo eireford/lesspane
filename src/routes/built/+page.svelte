@@ -113,7 +113,7 @@
 	<ul>
 		<li><a href={showcase.sourceUrl}>The source on GitHub</a>: README, tests and pipeline</li>
 		<li><a href={showcase.evalsUrl}>The assistant's evals</a>: how its answers are tested</li>
-		<li><a href="/agents/demo">AI agents, live</a>: watch an assistant find LessPane and order, for Claude, ChatGPT, Gemini, Copilot and Le Chat; the guide written for agents is <a href="/agents">/agents</a></li>
+		<li><a href="/agents/demo">Watch an AI assistant book a cleaning</a>: how an assistant finds LessPane and orders, for Claude, ChatGPT, Gemini, Copilot and Le Chat; the guide written for agents is <a href="/agents">/agents</a></li>
 		<li><a href={showcase.builtByUrl}>{showcase.builtBy}'s résumé</a>, with its own AI assistant that answers questions about it</li>
 		<li><a href="/video">A 37-second video</a> for business owners, and <a href="/deck">the feature tour</a></li>
 	</ul>
