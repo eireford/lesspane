@@ -137,7 +137,8 @@ async function book(args: Args, ctx: ToolContext) {
 		name: contact.value.name,
 		phone: contact.value.phone,
 		email: contact.value.email,
-		notes: contact.value.notes
+		notes: contact.value.notes,
+		source: 'chat'
 	});
 	ctx.booked = true;
 

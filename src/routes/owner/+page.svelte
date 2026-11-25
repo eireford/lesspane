@@ -35,7 +35,7 @@
 		Array.from({ length: 7 }, (_, i) => {
 			const day = addDaysIso(today, i);
 			const events = requests
-				.filter((r) => r.preferred_date === day && r.status !== 'cancelled' && r.status !== 'done')
+				.filter((r) => r.preferred_date === day && (r.status === 'new' || r.status === 'confirmed'))
 				.sort((a, b) => Number(a.preferred_window === 'afternoon') - Number(b.preferred_window === 'afternoon'))
 				.map((r) => ({ id: r.id, window: r.preferred_window, ...eventBody(r, data.origin) }));
 			return { day, events };
@@ -105,6 +105,9 @@
 		<p class="muted hint">Newest first. Try confirming one, then look at the calendar.</p>
 		{#each requests as r (r.id)}
 			<RequestCard {r}>
+				{#if r.status === 'awaiting_customer'}
+					<span class="muted">Nothing to do until the customer confirms.</span>
+				{:else}
 				<select
 					aria-label="Status for {displayName(r)}"
 					value={r.status}
@@ -118,6 +121,7 @@
 					<button type="button" class="btn ghost confirm" onclick={() => (statuses[r.id] = 'confirmed')}>
 						<Icon name="check" size={18} /> Confirm
 					</button>
+				{/if}
 				{/if}
 			</RequestCard>
 		{/each}

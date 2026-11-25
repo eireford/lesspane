@@ -89,6 +89,7 @@ feature have no link.
 | `firestore.rules` | Denies all direct client access to Firestore |
 | `src/lib/server/assistant/` | The chat assistant: Gemini on Vertex AI (`chat.ts`), its knowledge (`knowledge.ts`), its tools (`tools.ts`: estimate, ZIP check, booking) and usage limits (`limits.ts`) |
 | `src/routes/api/chat/+server.ts`, `src/lib/components/ChatPanel.svelte` | The chat endpoint and the "Ask us" panel on every page |
+| `src/lib/server/orders.ts`, `agent-api.ts`, `src/routes/mcp/`, `src/routes/api/v1/`, `src/routes/confirm/` | Ordering by outside AI agents: the rules, the tool definitions, the MCP server, the HTTP API, the customer's confirm page |
 
 Prices are always recomputed on the server; the browser never sends a price.
 
@@ -113,11 +114,49 @@ the services and how LessPane works, answers window-cleaning questions, estimate
 - **Locally:** chat needs Google credentials (`gcloud auth application-default login`) and
   `GOOGLE_CLOUD_PROJECT=lesspane`. Without them the panel shows "isn't available" and the rest of the site works.
 - **Testing:** `npm run smoke -- --chat` asks it a question in the browser (a real Gemini call).
-- **Other AI agents ordering on their own** (MCP, an HTTP API, verification, payment): planned, not built. See
-  **[docs/agent-ordering-plan.md](docs/agent-ordering-plan.md)**.
+- **Other AI agents ordering on their own:** see the next section.
 
 The home page also shows three **sample testimonials** (`testimonials` in `config.ts`), each tagged "Sample". They
 show only in showcase mode, and the assistant never quotes them.
+
+## Ordering by outside AI agents
+
+Someone's own AI assistant (ChatGPT, Claude, Gemini or a developer's agent) can price and request a visit for
+them, through the same code as the website. The plan, its phases and the decisions behind it are in
+**[docs/agent-ordering-plan.md](docs/agent-ordering-plan.md)**; phases 0–2 are built.
+
+| Door | Where | What |
+| --- | --- | --- |
+| MCP server | `/mcp` | Streamable HTTP, stateless, no sign-in: one JSON-RPC message per POST, one JSON answer (`src/routes/mcp/+server.ts`) |
+| HTTP API | `/api/v1/...`, described at `/openapi.json` | The same seven operations as JSON |
+| For agents to read | `/agents`, `/llms.txt` | How to order, the rules, the packages (`src/lib/agent-guide.ts`) |
+| For search engines | JSON-LD on the home page | `HomeAndConstructionBusiness` with the counties, hours and package prices |
+
+The operations (`src/lib/server/agent-api.ts`, run by `src/lib/server/orders.ts`): `get_business_info`,
+`check_service_area`, `get_quote`, `request_booking`, `get_booking`, `reschedule_booking`, `cancel_booking`.
+
+- **Prices:** `get_quote` returns a signed `quote_id` (HMAC with `SESSION_SECRET`, valid 14 days) that carries the
+  job and its price. `request_booking` re-prices it with `computeQuote` and refuses a forged, lapsed or out-of-date
+  one. An agent never sends a price.
+- **A person approves, twice.** The agent must send `approved_by_customer: true`. The request is then saved as
+  `awaiting_customer`: no calendar event, no owner alert. The customer gets a "Please confirm" email naming the
+  assistant, with a confirm link the agent never sees (`/confirm/<token>`; its buttons post, so email scanners
+  can't confirm it). Confirmed, it becomes `new` and the owner hears about it as usual, flagged as an AI agent's
+  request with a reminder to phone. Unconfirmed, it lapses after 48 hours.
+- **The owner page** shows where every request came from (website, chat, or the agent's name), dims requests
+  awaiting the customer, and has a **Checked by phone** box for agent requests.
+- **Dates:** agents can miscount days (the evals caught "next Tuesday" booked on a Wednesday). An optional
+  `preferred_weekday` makes the server refuse a date on another day, and every answer spells the day out
+  (`day_text`).
+- **Retries:** the same `request_id` (or `Idempotency-Key`) with the same `quote_id`, within a day, returns the same
+  booking. Both are required because models make up readable, guessable ids. The agent's manage token is
+  derived from the request id, so it can be given back without being stored.
+- **Limits:** 20 requests a minute per IP across the API and MCP, and 3 open requests per email (`agents` in
+  `config.ts`). Refusals are 4xx with `{error: {code, message}}`, or an MCP tool result with `isError`.
+- **Demo:** every answer carries `demo: true` and a notice. No directory listing until launch.
+- **Testing:** unit tests in `src/lib/server/orders.test.ts`; `npm run smoke:agent` (the official MCP client, plus
+  `-- --book --log <dev server log>` to book and confirm locally); and the `lesspane-agent` suite in
+  [ai-evals](https://github.com/eireford/ai-evals), where Gemini acts as a customer's assistant over MCP.
 
 ## Showcase mode
 

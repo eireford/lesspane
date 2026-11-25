@@ -1,3 +1,7 @@
 User-agent: *
 Disallow: /admin
 Disallow: /quote/thanks
+Disallow: /manage/
+Disallow: /confirm/
+Disallow: /api/
+Disallow: /mcp

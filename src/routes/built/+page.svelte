@@ -43,6 +43,11 @@
 			icon: 'hand',
 			title: 'Tested the way people use it',
 			text: 'Unit tests for pricing, validation and the assistant’s tools; a headless-browser test that swipes, taps and drags through every step and books; and a separate eval suite that checks the assistant’s answers against the real pricing code.'
+		},
+		{
+			icon: 'send',
+			title: 'Other people’s AI assistants can order too',
+			text: 'An MCP server and an HTTP API let someone’s own assistant price and request a visit, through the same pricing and checks. The customer confirms each request from an email the agent never sees, and evals have a real model order as an agent would.'
 		}
 	];
 </script>
@@ -107,6 +112,7 @@
 	<ul>
 		<li><a href={showcase.sourceUrl}>The source on GitHub</a>: README, tests and pipeline</li>
 		<li><a href={showcase.evalsUrl}>The assistant's evals</a>: how its answers are tested</li>
+		<li><a href="/agents">Ordering by AI agent</a>: what an assistant needs to book a visit</li>
 		<li><a href="/video">A 37-second video</a> for business owners, and <a href="/deck">the feature tour</a></li>
 	</ul>
 	<p class="by">

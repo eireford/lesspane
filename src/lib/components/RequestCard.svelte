@@ -6,7 +6,8 @@
 	import type { QuoteRequest } from '#lib/server/store.ts';
 
 	// One booking request as the owner sees it: on /admin with a status form, and on the demo's owner view
-	// (/demo) with sample requests. `children` is the status control under the details.
+	// (/owner) with sample requests. `children` is the status control under the details. Requests from outside
+	// AI agents say so; those still waiting for the customer's own confirmation are dimmed.
 	let { r, children }: { r: QuoteRequest; children?: Snippet } = $props();
 
 	const received = (iso: string) =>
@@ -19,11 +20,29 @@
 		});
 </script>
 
-<article class="card request">
+<article class="card request" class:waiting={r.status === 'awaiting_customer'} data-source={r.source ?? 'web'}>
 	<header>
 		<strong>{displayName(r)}</strong>
-		<span class="badge status-{r.status}">{r.status}</span>
+		<span class="badge status-{r.status}">{r.status === 'awaiting_customer' ? 'awaiting customer' : r.status}</span>
 	</header>
+	{#if r.source === 'agent'}
+		<p class="via agent">
+			<span class="tag">AI agent</span> {r.agent_name || 'unnamed'}
+			{#if r.status === 'awaiting_customer'}
+				· waiting for the customer to confirm from their email
+			{:else if r.status === 'cancelled' && r.cancel_reason === 'declined'}
+				· the customer said it wasn't them
+			{:else if r.status === 'cancelled' && r.cancel_reason === 'expired'}
+				· lapsed, never confirmed
+			{:else if r.phone_checked_at}
+				· checked by phone
+			{:else if r.status === 'new'}
+				· confirmed by the customer; call to check
+			{/if}
+		</p>
+	{:else if r.source === 'chat'}
+		<p class="via">Booked through the site's chat</p>
+	{/if}
 	<p class="price-line">
 		<strong>{formatUsd(r.quoted_price)}</strong> · {r.preferred_date}, {timeWindowLabels[r.preferred_window].toLowerCase()}
 	</p>
@@ -53,10 +72,37 @@
 		margin: 6px 0;
 	}
 
+	.waiting {
+		opacity: 0.6;
+		border-style: dashed;
+	}
+
+	.via {
+		font-size: 0.88rem;
+		color: var(--ink-soft);
+	}
+
+	.tag {
+		padding: 1px 8px;
+		border: 1.5px solid var(--lake);
+		border-radius: 999px;
+		color: var(--lake);
+		font-size: 0.75rem;
+		font-weight: 650;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
 	header {
 		display: flex;
+		flex-wrap: wrap;
 		justify-content: space-between;
 		align-items: center;
+		gap: 4px 8px;
+	}
+
+	header strong {
+		overflow-wrap: anywhere;
 	}
 
 	.badge {
@@ -73,6 +119,11 @@
 	.status-done {
 		background: #ecfdf3;
 		color: #067647;
+	}
+
+	.status-awaiting_customer {
+		background: var(--glass);
+		color: var(--lake);
 	}
 
 	.status-cancelled {

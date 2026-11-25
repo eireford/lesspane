@@ -1,22 +1,29 @@
 import { error, fail } from '@sveltejs/kit';
 import { firstName, place } from '#lib/contact.ts';
-import { getRequestByManageToken, updateRequest, type QuoteRequest } from '#lib/server/store.ts';
-import { notifyCustomerChange } from '#lib/server/email.ts';
-import { syncEvent } from '#lib/server/calendar.ts';
-import { bookingDateRange, parseWhen, todayIso } from '#lib/validation.ts';
+import { OrderError, cancelBooking, changeable, expireIfStale, rescheduleBooking } from '#lib/server/orders.ts';
+import { getRequestByManageToken } from '#lib/server/store.ts';
+import { bookingDateRange } from '#lib/validation.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 // "Manage your booking": no account, just the private link from the confirmation email. The customer can see
 // their request and, until the visit day, pick a new day and time or cancel. The owner is emailed either way.
 
-/** Changes are allowed for open requests whose day hasn't come yet. */
-const changeable = (r: QuoteRequest) =>
-	(r.status === 'new' || r.status === 'confirmed') && r.preferred_date > todayIso();
+// The rules for changes live in orders.ts, shared with the agents' API: open requests whose day hasn't come.
 
 async function find(token: string) {
 	const record = await getRequestByManageToken(token);
 	if (!record) error(404, 'This link doesn’t match a booking. Check the link in your email, or start a new request.');
-	return record;
+	return expireIfStale(record);
+}
+
+/** Runs a change, turning a refusal into the form's message. */
+async function change(run: () => Promise<unknown>) {
+	try {
+		await run();
+	} catch (e) {
+		if (e instanceof OrderError) return fail(e.status === 404 ? 404 : e.status, { message: e.message });
+		throw e;
+	}
 }
 
 export const load: PageServerLoad = async ({ params, setHeaders }) => {
@@ -43,23 +50,10 @@ export const load: PageServerLoad = async ({ params, setHeaders }) => {
 
 export const actions: Actions = {
 	reschedule: async ({ params, request, url }) => {
-		const r = await find(params.token);
-		if (!changeable(r)) return fail(409, { message: 'This booking can’t be changed online any more. Reply to your email and we’ll help.' });
-		const when = parseWhen(await request.formData());
-		if (!when.ok) return fail(400, { message: Object.values(when.errors).join(' ') });
-		const fields = { preferred_date: when.value.preferredDate, preferred_window: when.value.preferredWindow, status: 'new' as const };
-		await updateRequest(r.id, fields);
-		await notifyCustomerChange({ ...r, ...fields }, url.origin, 'rescheduled');
-		const eventId = await syncEvent({ ...r, ...fields }, url.origin);
-		if (eventId !== (r.calendar_event_id || null)) await updateRequest(r.id, { calendar_event_id: eventId ?? "" /* Firestore rejects undefined */ });
-		return { done: 'rescheduled' as const };
+		const form = await request.formData();
+		const input = { preferred_date: form.get('preferredDate'), preferred_window: form.get('preferredWindow') };
+		return (await change(() => rescheduleBooking(params.token, input, url.origin))) ?? { done: 'rescheduled' as const };
 	},
-	cancel: async ({ params, url }) => {
-		const r = await find(params.token);
-		if (!changeable(r)) return fail(409, { message: 'This booking can’t be changed online any more. Reply to your email and we’ll help.' });
-		await updateRequest(r.id, { status: 'cancelled' });
-		await notifyCustomerChange({ ...r, status: 'cancelled' }, url.origin, 'cancelled');
-		await syncEvent({ ...r, status: 'cancelled' }, url.origin);
-		return { done: 'cancelled' as const };
-	}
+	cancel: async ({ params, url }) =>
+		(await change(() => cancelBooking(params.token, url.origin))) ?? { done: 'cancelled' as const }
 };

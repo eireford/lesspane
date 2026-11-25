@@ -23,15 +23,30 @@
 
 {#each data.requests as r (r.id)}
 	<RequestCard {r}>
-		<form method="POST" action="?/status" use:enhance class="status-form">
-			<input type="hidden" name="id" value={r.id} />
-			<select name="status" aria-label="Status for {displayName(r)}">
-				{#each data.statuses as s}
-					<option value={s} selected={s === r.status}>{s}</option>
-				{/each}
-			</select>
-			<button class="btn ghost" type="submit">Update</button>
-		</form>
+		{#if r.status === 'awaiting_customer'}
+			<span class="muted">Nothing to do until the customer confirms.</span>
+		{:else}
+			<form method="POST" action="?/status" use:enhance class="status-form">
+				<input type="hidden" name="id" value={r.id} />
+				<select name="status" aria-label="Status for {displayName(r)}">
+					{#each data.statuses as s}
+						<option value={s} selected={s === r.status}>{s}</option>
+					{/each}
+				</select>
+				<button class="btn ghost" type="submit">Update</button>
+			</form>
+			{#if r.source === 'agent' && r.status !== 'cancelled'}
+				{#if r.phone}<a class="btn ghost call" href="tel:{r.phone}">Call</a>{/if}
+				<form method="POST" action="?/checked" use:enhance class="checked">
+					<input type="hidden" name="id" value={r.id} />
+					<label>
+						<input type="checkbox" name="checked" checked={!!r.phone_checked_at} onchange={(e) => e.currentTarget.form?.requestSubmit()} />
+						Checked by phone
+					</label>
+					<noscript><button class="btn ghost" type="submit">Save</button></noscript>
+				</form>
+			{/if}
+		{/if}
 	</RequestCard>
 {:else}
 	<p class="card muted">No requests yet.</p>
@@ -55,5 +70,16 @@
 
 	.status-form {
 		display: contents;
+	}
+
+	.call {
+		min-height: 44px;
+	}
+
+	.checked label {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		min-height: 44px;
 	}
 </style>

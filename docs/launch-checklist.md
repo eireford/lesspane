@@ -25,3 +25,13 @@ customers.
 - [ ] **Demo notices.** Remove the demo banner, the builder credit and the "nobody will come" text on the thanks page
   and in the confirmation email, as well as in the chat.
 - [ ] **Real calendar and email.** Confirm Gmail send and Calendar sync work for the live owner account.
+
+## Ordering by AI agents (docs/agent-ordering-plan.md)
+
+- [ ] **Phone checks.** For the first agent requests, call each customer before confirming, and tick **Checked by
+  phone**. Keep a count in the plan (section 4) until 20 good ones in a row.
+- [ ] **Directories.** Serve `/.well-known/mcp/server.json` and submit to the MCP Registry, the ChatGPT app
+  directory and the Claude connectors directory (phase 3).
+- [ ] **Business listings.** Google Business Profile, Bing Places, Apple Business Connect; marketplaces if chosen.
+- [ ] **Demo notices for agents.** They follow `business.showcase.enabled`: check `/agents`, `/llms.txt` and a
+  `get_business_info` answer say nothing about a demo.

@@ -125,6 +125,25 @@ export const assistant = {
 	dailyModelCalls: 500
 };
 
+// ---------- Outside AI agents ----------
+
+/**
+ * Other people's AI assistants ordering on a customer's behalf, through the MCP server (/mcp) and the HTTP API
+ * (/api/v1). See docs/agent-ordering-plan.md. Every price and check is the website's own.
+ */
+export const agents = {
+	/** Requests per minute per IP address, across the API and MCP. */
+	requestsPerMinute: 20,
+	/** A quote id stays valid this long. */
+	quoteValidDays: 14,
+	/** An agent's request waits this long for the customer to confirm it from their email, then expires. */
+	confirmHours: 48,
+	/** Open requests (awaiting, new or confirmed) one email address may have at once. */
+	openRequestsPerEmail: 3,
+	/** Longest `agent` name and `notes` an agent may send. */
+	maxAgentName: 80
+};
+
 /**
  * What the assistant tells customers about how LessPane works. ASSUMED: reasonable values for a small
  * owner-operated window cleaner, to be confirmed by the owner; every one of them is listed in
