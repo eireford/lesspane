@@ -375,6 +375,10 @@ All in demo mode. Details in the README, "Ordering by outside AI agents".
   site's own chat assistant still books directly (its customer is right there), but its bookings are now labelled.
 - **Phase 2:** unit and endpoint tests (`orders.test.ts`), `npm run smoke:agent` with the official MCP client, and
   the `lesspane-agent` suite in ai-evals.
+- **Showing it (0.8.0):** `/agents/demo`, a live walkthrough for people: each way an agent finds LessPane, how to
+  connect it in each AI maker's assistant (checked against their help pages in November 2026), conversations whose
+  read-only calls run live over MCP or HTTP, and a tool console. Linked from the demo bar, the footer, `/built`,
+  `/agents` and `/llms.txt`.
 - **Not built yet:** the hourly spike alert to the owner and the one-booking-per-address-per-week rule (section 3);
   Web Bot Auth checks (phase 4); Eire's own tests with ChatGPT, Claude and a browser agent on staging (section 8:
   they need this on lesspane.net first).

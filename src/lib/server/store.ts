@@ -80,7 +80,8 @@ interface Store {
 // ---------- Firestore (Cloud Run) ----------
 
 let firestore: Firestore | null = null;
-async function db(): Promise<Firestore> {
+/** The app's Firestore client, shared with the screenshot test's storage (screenshots/runs.ts). */
+export async function db(): Promise<Firestore> {
 	if (!firestore) {
 		const { Firestore } = await import('@google-cloud/firestore');
 		// On Cloud Run the project and credentials come from the environment automatically.

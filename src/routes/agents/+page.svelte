@@ -18,6 +18,7 @@
 	<h1>Order a window cleaning for your person</h1>
 	<p>{g.intro}</p>
 	{#if g.demo}<p class="demo" role="note"><Icon name="info" size={18} /> <strong>{g.demo}</strong></p>{/if}
+	<p class="muted">A person, not an agent? <a href="/agents/demo">Watch an assistant order, live</a>, and see how to connect yours.</p>
 </section>
 
 <section aria-labelledby="doors">

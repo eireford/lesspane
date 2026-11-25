@@ -7,10 +7,10 @@ import type { Actions, PageServerLoad } from './$types';
 type OwnerStatus = (typeof requestStatuses)[number];
 
 // Owner-only list of requests. Access is enforced in hooks.server.ts (HTTP Basic auth or Google sign-in).
-export const load: PageServerLoad = async ({ setHeaders, locals }) => {
+export const load: PageServerLoad = async ({ setHeaders }) => {
 	setHeaders({ 'cache-control': 'no-store' });
 	// Agent requests the customer never confirmed lapse here too, not only when someone opens their link.
-	return { requests: await expireAll(await listRequests()), statuses: requestStatuses, admin: locals.admin ?? null };
+	return { requests: await expireAll(await listRequests()), statuses: requestStatuses };
 };
 
 export const actions: Actions = {

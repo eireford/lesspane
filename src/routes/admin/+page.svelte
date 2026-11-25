@@ -9,15 +9,8 @@
 
 <svelte:head>
 	<title>Requests · LessPane admin</title>
-	<meta name="robots" content="noindex" />
 </svelte:head>
 
-{#if data.admin}
-	<form method="POST" action="/auth/logout" class="who">
-		<span class="muted">Signed in as {data.admin}</span>
-		<button class="link" type="submit">Sign out</button>
-	</form>
-{/if}
 <h1>Requests</h1>
 <p class="muted">{data.requests.length} most recent, newest first.</p>
 
@@ -53,21 +46,6 @@
 {/each}
 
 <style>
-	.who {
-		display: flex;
-		justify-content: flex-end;
-		gap: 10px;
-		font-size: 0.9rem;
-	}
-
-	.who .link {
-		border: 0;
-		background: none;
-		color: var(--lake);
-		text-decoration: underline;
-		cursor: pointer;
-	}
-
 	.status-form {
 		display: contents;
 	}

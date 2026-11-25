@@ -27,7 +27,7 @@
 		<strong>Demo.</strong> A working prototype by
 		<a href={showcase.builtByUrl}>{showcase.builtBy}</a>. Requests here are not real bookings.
 		<span class="peek">
-			<a href="/owner">See the owner's side</a> · <a href="/built">How it's built</a>
+			<a href="/owner">See the owner's side</a> · <a href="/built">How it's built</a> · <a href="/agents/demo">AI agents, live</a>
 		</span>
 	</p>
 {/if}
@@ -48,7 +48,9 @@
 			Built by <a href={showcase.builtByUrl}>{showcase.builtBy}</a> ·
 			<a href="/owner">The owner's side</a> ·
 			<a href="/built">How it's built</a> ·
-			<a href={showcase.sourceUrl}>Source on GitHub</a>
+			<a href="/agents/demo">AI agents, live</a> ·
+			<a href={showcase.sourceUrl}>Source on GitHub</a> ·
+			<a href={showcase.practice.url}>{showcase.practice.name}</a>
 		</p>
 	{/if}
 </footer>

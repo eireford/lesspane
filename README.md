@@ -90,6 +90,8 @@ feature have no link.
 | `src/lib/server/assistant/` | The chat assistant: Gemini on Vertex AI (`chat.ts`), its knowledge (`knowledge.ts`), its tools (`tools.ts`: estimate, ZIP check, booking) and usage limits (`limits.ts`) |
 | `src/routes/api/chat/+server.ts`, `src/lib/components/ChatPanel.svelte` | The chat endpoint and the "Ask us" panel on every page |
 | `src/lib/server/orders.ts`, `agent-api.ts`, `src/routes/mcp/`, `src/routes/api/v1/`, `src/routes/confirm/` | Ordering by outside AI agents: the rules, the tool definitions, the MCP server, the HTTP API, the customer's confirm page |
+| `src/routes/agents/demo/`, `src/lib/agent-demo.ts`, `agent-client.ts`, `src/lib/components/agents/` | The live AI agents demo: discovery, each AI maker's setup, conversations and a tool console |
+| `src/routes/admin/tests/`, `src/lib/server/screenshots/` | The screenshot test: headless Chromium (`browser.ts`), the pages and checks (`runner.ts`), the last ten runs (`runs.ts`) |
 
 Prices are always recomputed on the server; the browser never sends a price.
 
@@ -154,9 +156,29 @@ The operations (`src/lib/server/agent-api.ts`, run by `src/lib/server/orders.ts`
 - **Limits:** 20 requests a minute per IP across the API and MCP, and 3 open requests per email (`agents` in
   `config.ts`). Refusals are 4xx with `{error: {code, message}}`, or an MCP tool result with `isError`.
 - **Demo:** every answer carries `demo: true` and a notice. No directory listing until launch.
+- **The live demo, `/agents/demo`:** for people rather than agents. How an agent finds LessPane (each way in,
+  fetched live), how to connect it in Claude, ChatGPT, Gemini, Copilot, Le Chat or any MCP client (app steps,
+  code, what has been checked, links to each maker's current help), scripted conversations whose read-only tool
+  calls run live over MCP or HTTP, and a console for the read-only tools. `request_booking` is never sent from the
+  page; its answer is shown as an example. Calls count toward the 20-a-minute limit like any agent's.
 - **Testing:** unit tests in `src/lib/server/orders.test.ts`; `npm run smoke:agent` (the official MCP client, plus
   `-- --book --log <dev server log>` to book and confirm locally); and the `lesspane-agent` suite in
   [ai-evals](https://github.com/eireford/ai-evals), where Gemini acts as a customer's assistant over MCP.
+
+## The screenshot test (`/admin/tests`)
+
+The owner's admin has a **Tests** tab. **Run the screenshot test** opens every page (`testPages` in
+`src/lib/server/screenshots/runner.ts`, including the error pages and `/admin` itself) in headless Chromium at
+phone (390 px, 2×) and desktop (1280 px) size, two tabs at once, and saves a full-page WebP screenshot of each, up
+to 7,000 px tall. A page fails if it answers with the wrong HTTP status (the error pages must say 404) or throws a
+script or console error. Progress streams to the page as NDJSON; the run takes about half a minute.
+
+- **Storage:** Firestore on Cloud Run (`test_runs`, plus one `test_shots` document per screenshot, each under the
+  1 MiB limit), `.data/test-runs/` locally. Starting a run deletes all but the newest nine, so at most ten are kept.
+- **Signing the browser in:** with Google sign-in, the browser gets the owner's own session cookie for this site;
+  with the password, it answers the Basic auth challenge for `/admin` only (never for the font server).
+- **Chromium:** the container installs Debian's `chromium` (`Dockerfile`, `CHROME_PATH`), and Cloud Run has 1 GiB
+  of memory for it (`cloudbuild.yaml`). Locally, any installed Chromium or Chrome.
 
 ## Showcase mode
 
@@ -250,7 +272,8 @@ Also: set a **billing budget with alerts** before sharing the link.
 
 ### Costs
 
-At prototype traffic everything stays inside Google Cloud's free allowances; the domains (about $20 a year each)
+At prototype traffic everything stays inside Google Cloud's free allowances (the screenshot test's 1 GiB of
+memory counts only while an instance runs, and its ten runs take tens of MB of Firestore); the domains (about $20 a year each)
 are the real cost. Two guards are in place:
 
 - **Image cleanup**: Artifact Registry keeps the 10 newest images per service and deletes others after 30 days

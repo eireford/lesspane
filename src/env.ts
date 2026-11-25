@@ -29,5 +29,9 @@ export const variables = defineEnvVars({
 	GOOGLE_CLIENT_ID: { description: 'OAuth client for /admin Google sign-in.', schema: optional },
 	GOOGLE_CLIENT_SECRET: { description: 'OAuth client secret for /admin Google sign-in.', schema: optional },
 	SESSION_SECRET: { description: 'Signs the /admin session cookie.', schema: optional },
-	ADMIN_EMAILS: { description: 'Comma-separated addresses allowed into /admin.', schema: optional }
+	ADMIN_EMAILS: { description: 'Comma-separated addresses allowed into /admin.', schema: optional },
+	CHROME_PATH: {
+		description: 'Chromium for the screenshot test in /admin/tests; the container sets /usr/bin/chromium. Unset: the usual install paths are tried.',
+		schema: optional
+	}
 });
