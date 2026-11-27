@@ -80,6 +80,30 @@
 	<Icon name="right" size={22} />
 </button>
 
+<!-- People can have their own AI assistant do it, through LessPane's MCP server and API (/agents). Every claim
+	here matches the agent tools in src/lib/server/agent-api.ts and the safeguards on /agents/demo. -->
+<section class="your-ai" aria-labelledby="your-ai">
+	<h2 id="your-ai" class="choose"><Icon name="sparkle" size={20} /> Or have your own AI assistant do it</h2>
+	<p class="why">
+		Use Claude, ChatGPT, Gemini, Copilot or Le Chat? Add LessPane to it once, then just ask. It works with us
+		directly:
+	</p>
+	<ul class="can">
+		<li><Icon name="sparkle" size={18} /><span><strong>Gets your estimate</strong> from our own prices, never a guess, and checks that we come to your ZIP code.</span></li>
+		<li><Icon name="calendar" size={18} /><span><strong>Arranges the visit:</strong> a day and morning or afternoon, and later a reschedule or a cancellation if you need one.</span></li>
+		<li><Icon name="mail" size={18} /><span><strong>Leaves you in charge:</strong> nothing is booked until you confirm by email, and we confirm the time with you.</span></li>
+	</ul>
+	<p class="try">“Get me a price for the outside windows of my two-story house in 21601, and book next Tuesday morning.”</p>
+	<a class="questions agent" href="/agents/demo#connect">
+		<span class="q-icon"><Icon name="chat" size={28} /></span>
+		<span class="body">
+			<strong class="name">Connect your AI assistant</strong>
+			<span class="blurb">A one-time step for each assistant, and a live demo of one booking a cleaning.</span>
+		</span>
+		<Icon name="right" size={22} />
+	</a>
+</section>
+
 {#if quotes.length}
 	<section class="said" aria-labelledby="said">
 		<h2 id="said" class="choose"><Icon name="heart" size={20} /> What customers say</h2>
@@ -278,6 +302,45 @@
 		font: inherit;
 		text-align: left;
 		cursor: pointer;
+	}
+
+	.your-ai {
+		margin-top: 28px;
+	}
+
+	.can {
+		display: grid;
+		gap: 8px;
+		margin: 0 0 12px;
+		padding: 0;
+		list-style: none;
+	}
+
+	.can li {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 8px;
+		align-items: start;
+		line-height: 1.4;
+	}
+
+	.can li :global(svg) {
+		margin-top: 2px;
+		color: var(--lake);
+	}
+
+	.try {
+		margin: 0 0 14px;
+		padding: 10px 14px;
+		border-left: 3px solid var(--coral);
+		font-family: var(--hand);
+		font-size: 1.15rem;
+		line-height: 1.3;
+	}
+
+	.questions.agent {
+		background: var(--glass);
+		border-color: var(--lake);
 	}
 
 	.q-icon {
