@@ -6,7 +6,8 @@
 	import Journey from '#lib/components/Journey.svelte';
 	import SketchDefs from '#lib/components/SketchDefs.svelte';
 	import SunDial from '#lib/components/SunDial.svelte';
-	import type { AddOnKey, TimeWindow } from '#lib/config.ts';
+	import { business, serviceAreaZips, type AddOnKey, type TimeWindow } from '#lib/config.ts';
+	import { suggestEmail } from '#lib/email-typo.ts';
 	import { layoutToSearchParams } from '#lib/layout.ts';
 	import { formatUsd } from '#lib/pricing.ts';
 	import { addDaysIso } from '#lib/validation.ts';
@@ -30,6 +31,24 @@
 	let date = $state(untrack(() => values.preferredDate || firstGoodDay(data.dateRange.min)));
 	let time = $state<TimeWindow>(untrack(() => (values.preferredWindow as TimeWindow) || 'morning'));
 	let submitting = $state(false);
+
+	// Help before the request is sent: a likely email typo (the customer would never get the confirmation or the
+	// change link), and a ZIP we don't serve, said as soon as it's typed instead of after the whole form.
+	let emailSuggestion = $state<string | null>(null);
+	let zipNote = $state<string | null>(null);
+	function checkEmail(e: Event) {
+		emailSuggestion = suggestEmail((e.currentTarget as HTMLInputElement).value);
+	}
+	function useSuggestion() {
+		const input = document.getElementById('email') as HTMLInputElement | null;
+		if (input && emailSuggestion) input.value = emailSuggestion;
+		emailSuggestion = null;
+		input?.focus();
+	}
+	function checkZip(e: Event) {
+		const zip = (e.currentTarget as HTMLInputElement).value.trim();
+		zipNote = /^\d{5}$/.test(zip) && !serviceAreaZips.has(zip) ? `Sorry, we don't serve ${zip} yet, so we can't book a visit there.` : null;
+	}
 </script>
 
 <svelte:head>
@@ -98,7 +117,7 @@
 			<label class="field" class:bad={!!errors[id]}>
 				<Icon name={icon} size={20} />
 				<span class="sr">{label}</span>
-				<input {id} name={id} placeholder={label} value={values[id] ?? ''} aria-invalid={!!errors[id]} {...attrs} />
+				<input {id} name={id} placeholder={label} defaultValue={values[id] ?? ''} aria-invalid={!!errors[id]} {...attrs} />
 			</label>
 			{#if errors[id]}<p class="error">{errors[id]}</p>{/if}
 		</div>
@@ -112,15 +131,23 @@
 				<li><Icon name="phone" size={15} /> Mobile, optional: we text to confirm the time. No marketing.</li>
 				<li><Icon name="pin" size={15} /> Address, optional: helps us plan the visit. We can ask later.</li>
 			</ul>
-			{@render field('email', 'mail', 'Email', { type: 'email', autocomplete: 'email', required: true })}
+			{@render field('email', 'mail', 'Email', { type: 'email', autocomplete: 'email', required: true, onblur: checkEmail, oninput: () => (emailSuggestion = null) })}
+			{#if emailSuggestion}
+				<p class="suggest" role="status">
+					Did you mean <button type="button" class="link" onclick={useSuggestion}>{emailSuggestion}</button>?
+				</p>
+			{/if}
 			<div class="row">
 				{@render field('name', 'user', 'Name (optional)', { type: 'text', autocomplete: 'name' })}
 				{@render field('phone', 'phone', 'Mobile (optional)', { type: 'tel', autocomplete: 'tel' })}
 			</div>
 			<div class="row addr">
 				{@render field('address', 'pin', 'Street address (optional)', { type: 'text', autocomplete: 'street-address' })}
-				{@render field('zip', 'home', 'ZIP', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5 })}
+				{@render field('zip', 'home', 'ZIP (optional)', { type: 'text', inputmode: 'numeric', autocomplete: 'postal-code', maxlength: 5, oninput: checkZip })}
 			</div>
+			{#if zipNote && !errors.zip}
+				<p class="error" role="status">{zipNote} Questions? Email <a href="mailto:{business.contactEmail}">{business.contactEmail}</a>.</p>
+			{/if}
 
 			<button class="btn block send" type="submit" disabled={submitting} aria-label={`Request my visit, ${formatUsd(data.quote.total)}`}>
 				{#if submitting}…{:else}<Icon name="check" /> Request my visit · {formatUsd(data.quote.total)}{/if}
@@ -253,6 +280,22 @@
 		background: var(--paper);
 		border: 1.5px solid var(--ink);
 		border-radius: var(--sketchy);
+	}
+
+	.suggest {
+		margin: -6px 0 0;
+		font-size: 0.95rem;
+	}
+
+	.suggest .link {
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-weight: 600;
+		color: var(--brand);
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.field.bad {

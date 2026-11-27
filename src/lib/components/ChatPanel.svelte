@@ -216,6 +216,23 @@
 		cursor: pointer;
 	}
 
+	/* On phones the labelled button covered prices and controls (the estimate, the time slider) as people
+	   scrolled; a round icon button covers far less. The aria-label still names it. */
+	@media (max-width: 520px) {
+		.launcher {
+			width: 52px;
+			height: 52px;
+			min-height: 0;
+			padding: 0;
+			justify-content: center;
+			border-radius: 50%;
+		}
+
+		.launcher span {
+			display: none;
+		}
+	}
+
 	.panel {
 		position: fixed;
 		right: 16px;

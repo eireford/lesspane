@@ -180,6 +180,8 @@
 	.change {
 		margin-top: 24px;
 		display: grid;
+		/* minmax(0, …): otherwise the day strip widens the page to fit every day and phones zoom out. */
+		grid-template-columns: minmax(0, 1fr);
 		gap: 12px;
 	}
 

@@ -260,6 +260,12 @@
 				<li class="total">
 					<span><Icon name="window" size={16} /> about {windows} windows</span><span>{formatUsd(quote.lines[0].amount)}</span>
 				</li>
+				{#if quote.minimumApplied}
+					<!-- Without this line, "about 12 windows $84" and a $120 total don't add up. -->
+					<li class="minimum">
+						<span>The {formatUsd(pricing.minimum)} minimum visit applies</span><span>{formatUsd(quote.total)}</span>
+					</li>
+				{/if}
 			</ul>
 		</div>
 
@@ -558,6 +564,12 @@
 
 	.summary .lines .total {
 		font-size: 1.25rem;
+		border-bottom: 0;
+	}
+
+	.summary .lines .minimum {
+		font-size: 1rem;
+		color: var(--ink-soft);
 		border-bottom: 0;
 	}
 
